@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, MessageSquare, Flag, ChevronDown, ChevronUp, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
+import { Heart, Flag, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
+import { CommentsSection } from './CommentsSection'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,12 +17,13 @@ interface ReviewCardProps {
   review: ReviewWithRelations
   showMovie?: boolean
   currentUserId?: string
+  expandComments?: boolean
   onLike?: (reviewId: string, liked: boolean) => void
   onDelete?: (reviewId: string) => void
   onEdit?: (review: ReviewWithRelations) => void
 }
 
-export function ReviewCard({ review, showMovie = false, currentUserId, onLike, onDelete, onEdit }: ReviewCardProps) {
+export function ReviewCard({ review, showMovie = false, currentUserId, expandComments = false, onLike, onDelete, onEdit }: ReviewCardProps) {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [likeCount, setLikeCount] = useState(review._count.likes)
@@ -161,13 +163,12 @@ export function ReviewCard({ review, showMovie = false, currentUserId, onLike, o
           <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
           <span>{likeCount}</span>
         </button>
-        <Link
-          href={`/review/${review.id}`}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <MessageSquare className="h-4 w-4" />
-          <span>{review._count.comments}</span>
-        </Link>
+        <CommentsSection
+          reviewId={review.id}
+          initialCount={review._count.comments}
+          currentUserId={currentUserId}
+          defaultExpanded={expandComments}
+        />
         {review.hasSpoiler && (
           <Badge variant="outline" className="text-xs h-5 border-amber-600/50 text-amber-500">
             spoiler

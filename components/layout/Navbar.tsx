@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { Film, Home, BookOpen, List, Bell, Plus, LogOut, Settings, User, Bookmark } from 'lucide-react'
+import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark } from 'lucide-react'
+import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { MovieSearch } from '@/components/movies/MovieSearch'
@@ -82,12 +83,7 @@ export function Navbar() {
                   Log
                 </Button>
 
-                <Link
-                  href="/notifications"
-                  className="relative flex h-8 w-8 items-center justify-center rounded-full hover:bg-accent transition-colors"
-                >
-                  <Bell className="h-4 w-4" />
-                </Link>
+                <NotificationBell />
 
                 <div className="relative">
                   <button
