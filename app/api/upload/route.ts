@@ -2,8 +2,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
+import { prisma } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -11,7 +10,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const formData = await req.formData()
+  let formData: FormData
+  try {
+    formData = await req.formData()
+  } catch (err) {
+    console.error('Upload: failed to parse form data', err)
+    return NextResponse.json({ error: 'Could not read file — check body size' }, { status: 400 })
+  }
+
   const file = formData.get('file') as File | null
 
   if (!file) {
@@ -22,21 +28,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 })
+  // Client-side compression should keep this well under 2MB
+  if (file.size > 2 * 1024 * 1024) {
+    return NextResponse.json({ error: 'File too large (max 2MB)' }, { status: 400 })
   }
 
-  const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
+  try {
+    const bytes = await file.arrayBuffer()
+    const base64 = Buffer.from(bytes).toString('base64')
+    // Use image/jpeg since the client-side Canvas always outputs JPEG
+    const mimeType = file.type.startsWith('image/') ? file.type : 'image/jpeg'
+    const dataUrl = `data:${mimeType};base64,${base64}`
 
-  const uploadDir = join(process.cwd(), 'public', 'uploads')
-  await mkdir(uploadDir, { recursive: true })
+    // Persist directly to the DB — no filesystem required (works on Vercel)
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { avatar: dataUrl },
+    })
 
-  const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase()
-  const filename = `${session.user.id}-${Date.now()}.${ext}`
-  const filepath = join(uploadDir, filename)
-
-  await writeFile(filepath, buffer)
-
-  return NextResponse.json({ url: `/uploads/${filename}` })
+    return NextResponse.json({ url: dataUrl })
+  } catch (err) {
+    console.error('Upload error:', err)
+    return NextResponse.json({ error: 'Failed to save image' }, { status: 500 })
+  }
 }

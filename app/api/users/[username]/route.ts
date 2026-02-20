@@ -3,6 +3,13 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
+import { z } from 'zod'
+
+const patchSchema = z.object({
+  displayName: z.string().trim().min(1).max(50).optional(),
+  bio: z.string().trim().max(300).optional().nullable(),
+  avatar: z.string().max(2 * 1024 * 1024).optional().nullable(),
+})
 
 export async function GET(req: NextRequest, { params }: { params: { username: string } }) {
   try {
@@ -74,7 +81,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { username: 
     }
 
     const body = await req.json()
-    const { displayName, bio, avatar } = body
+    const parsed = patchSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
+    }
+    const { displayName, bio, avatar } = parsed.data
 
     const updated = await prisma.user.update({
       where: { id: user.id },

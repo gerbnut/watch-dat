@@ -6,7 +6,7 @@ import { auth } from '@/auth'
 import { z } from 'zod'
 
 const createListSchema = z.object({
-  name: z.string().min(1).max(100),
+  name: z.string().trim().min(1, 'List name cannot be empty').max(100),
   description: z.string().max(2000).optional(),
   isPublic: z.boolean().default(true),
 })

@@ -2,21 +2,25 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { auth } from '@/auth'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const query = searchParams.get('q') ?? ''
 
-  if (query.trim().length < 1) {
+  const trimmedQuery = query.trim()
+  if (trimmedQuery.length < 1 || trimmedQuery.length > 50) {
     return NextResponse.json([])
   }
 
   try {
+    const session = await auth()
+
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { username: { contains: query, mode: 'insensitive' } },
-          { displayName: { contains: query, mode: 'insensitive' } },
+          { username: { contains: trimmedQuery, mode: 'insensitive' } },
+          { displayName: { contains: trimmedQuery, mode: 'insensitive' } },
         ],
       },
       select: {
@@ -29,7 +33,19 @@ export async function GET(req: NextRequest) {
       take: 10,
     })
 
-    return NextResponse.json(users)
+    if (!session?.user?.id || users.length === 0) {
+      return NextResponse.json(users.map((u) => ({ ...u, isFollowing: false })))
+    }
+
+    const follows = await prisma.follow.findMany({
+      where: { followerId: session.user.id, followingId: { in: users.map((u) => u.id) } },
+      select: { followingId: true },
+    })
+    const followingIds = new Set(follows.map((f) => f.followingId))
+
+    return NextResponse.json(
+      users.map((u) => ({ ...u, isFollowing: followingIds.has(u.id) }))
+    )
   } catch (err) {
     return NextResponse.json({ error: 'Search failed' }, { status: 500 })
   }
