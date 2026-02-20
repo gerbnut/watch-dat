@@ -5,12 +5,13 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { formatRuntime, getYearFromDate, formatRating, cn } from '@/lib/utils'
-import { Clock, Star, Users, Eye, Bookmark, Plus, Calendar } from 'lucide-react'
+import { formatRuntime, getYearFromDate, formatRating, getInitials, cn } from '@/lib/utils'
+import { Clock, Users, Eye, Bookmark } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { StarRating } from '@/components/movies/StarRating'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogFilmButtonClient } from './LogFilmButtonClient'
 import { WatchlistButtonClient } from './WatchlistButtonClient'
 
@@ -41,7 +42,7 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
     notFound()
   }
 
-  const [reviewStats, recentReviews, userReview] = await Promise.all([
+  const [reviewStats, recentReviews, userReview, friendsWatched] = await Promise.all([
     prisma.review.aggregate({
       where: { movieId: movie.id, rating: { not: null } },
       _avg: { rating: true },
@@ -61,6 +62,19 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
           where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
         })
       : null,
+    session?.user?.id
+      ? prisma.diaryEntry.findMany({
+          where: {
+            movieId: movie.id,
+            user: { followers: { some: { followerId: session.user.id } } },
+          },
+          include: {
+            user: { select: { id: true, username: true, displayName: true, avatar: true } },
+          },
+          orderBy: { watchedDate: 'desc' },
+          take: 20,
+        })
+      : [],
   ])
 
   const watchCount = await prisma.diaryEntry.count({ where: { movieId: movie.id } })
@@ -76,6 +90,11 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
   const directors = (movie.directors as any[]) ?? []
   const cast = (movie.cast as any[]) ?? []
   const avgRating = reviewStats._avg.rating
+
+  // Deduplicate friends by userId (keep most recent watch)
+  const uniqueFriendsWatched = Array.from(
+    new Map((friendsWatched as any[]).map((e) => [e.userId, e])).values()
+  ).slice(0, 8)
 
   return (
     <div className="space-y-8 -mt-6">
@@ -210,6 +229,32 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
                 <p className="text-xs font-medium line-clamp-1">{actor.name}</p>
                 <p className="text-[10px] text-muted-foreground line-clamp-1">{actor.character}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Friends who watched */}
+      {uniqueFriendsWatched.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Friends who watched
+          </h2>
+          <div className="flex items-center gap-3 flex-wrap">
+            {uniqueFriendsWatched.map((entry: any) => (
+              <Link
+                key={entry.userId}
+                href={`/user/${entry.user.username}`}
+                className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-accent transition-colors"
+              >
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={entry.user.avatar ?? undefined} />
+                  <AvatarFallback className="text-[10px] bg-cinema-900 text-cinema-300">
+                    {getInitials(entry.user.displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">{entry.user.displayName}</span>
+              </Link>
             ))}
           </div>
         </div>

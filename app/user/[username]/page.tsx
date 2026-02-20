@@ -5,14 +5,14 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { TMDB_IMAGE } from '@/lib/tmdb'
-import { cn, formatDate, getInitials, formatRating } from '@/lib/utils'
-import { Calendar, Film, BookOpen, List, Users } from 'lucide-react'
+import { formatDate, getInitials, formatRating } from '@/lib/utils'
+import { Calendar, Film } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { ListCard } from '@/components/lists/ListCard'
+import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { FollowButtonClient } from './FollowButtonClient'
 
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
@@ -56,7 +56,7 @@ export default async function UserProfilePage({ params }: { params: { username: 
       }))
     : false
 
-  const [recentReviews, recentLists] = await Promise.all([
+  const [recentReviews, recentLists, recentActivities] = await Promise.all([
     prisma.review.findMany({
       where: { userId: user.id },
       include: {
@@ -80,6 +80,15 @@ export default async function UserProfilePage({ params }: { params: { username: 
       },
       orderBy: { updatedAt: 'desc' },
       take: 6,
+    }),
+    prisma.activity.findMany({
+      where: { userId: user.id },
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
+        movie: { select: { id: true, tmdbId: true, title: true, poster: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
     }),
   ])
 
@@ -185,12 +194,27 @@ export default async function UserProfilePage({ params }: { params: { username: 
       )}
 
       {/* Tabs */}
-      <Tabs defaultValue="reviews">
+      <Tabs defaultValue="activity">
         <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="diary">Diary</TabsTrigger>
           <TabsTrigger value="lists">Lists</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="activity" className="mt-4">
+          {recentActivities.length > 0 ? (
+            <div className="rounded-xl border bg-card divide-y divide-border">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="px-4">
+                  <ActivityFeedItem activity={activity as any} currentUserId={session?.user?.id} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8 text-sm">No activity yet.</p>
+          )}
+        </TabsContent>
 
         <TabsContent value="reviews" className="mt-4 space-y-3">
           {recentReviews.length > 0 ? (
