@@ -18,6 +18,60 @@ interface User {
   avatar: string | null
 }
 
+/** Compress an image file client-side to stay under maxSizeKB using Canvas. */
+async function compressImage(file: File, maxSizeKB = 500): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    const objectUrl = URL.createObjectURL(file)
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+
+      const canvas = document.createElement('canvas')
+      let { width, height } = img
+
+      // Downscale to max 1200px on the longest edge
+      const maxDim = 1200
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, width, height)
+
+      // Iteratively lower quality until under the size cap
+      let quality = 0.85
+      const tryCompress = () => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error('Compression failed')); return }
+            if (blob.size <= maxSizeKB * 1024 || quality <= 0.25) {
+              resolve(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }))
+            } else {
+              quality = Math.max(0.25, quality - 0.1)
+              tryCompress()
+            }
+          },
+          'image/jpeg',
+          quality,
+        )
+      }
+      tryCompress()
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Failed to load image'))
+    }
+
+    img.src = objectUrl
+  })
+}
+
 export function SettingsFormClient({ user }: { user: User }) {
   const router = useRouter()
   const [displayName, setDisplayName] = useState(user.displayName)
@@ -31,23 +85,41 @@ export function SettingsFormClient({ user }: { user: User }) {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Show a local preview immediately — no waiting for upload
+    const previewUrl = URL.createObjectURL(file)
+    const previousAvatar = avatar
+    setAvatar(previewUrl)
     setUploading(true)
+
     try {
+      // Compress to ≤ 500 KB before uploading — critical on slow mobile connections
+      const compressed = await compressImage(file)
+
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', compressed)
+
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
       if (!res.ok) {
-        const err = await res.json()
+        const err = await res.json().catch(() => ({}))
         throw new Error(err.error ?? 'Upload failed')
       }
+
       const data = await res.json()
+      URL.revokeObjectURL(previewUrl)
       setAvatar(data.url)
-      toast({ title: 'Photo updated!' })
+      toast({ title: 'Photo updated!', description: 'Your profile photo has been updated' })
     } catch (err: any) {
-      toast({ title: 'Upload failed', description: err.message ?? 'Could not upload image', variant: 'destructive' })
+      // Revert to previous avatar on failure
+      URL.revokeObjectURL(previewUrl)
+      setAvatar(previousAvatar)
+      toast({
+        title: 'Upload failed',
+        description: err.message ?? 'Could not upload image. Try a smaller photo.',
+        variant: 'destructive',
+      })
     } finally {
       setUploading(false)
-      // Reset so same file can be re-selected
+      // Reset input so the same file can be re-selected if needed
       e.target.value = ''
     }
   }
@@ -87,14 +159,15 @@ export function SettingsFormClient({ user }: { user: User }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-cinema-500 hover:bg-cinema-600 transition-colors shadow-lg disabled:opacity-60"
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-cinema-500 hover:bg-cinema-600 transition-colors shadow-lg disabled:opacity-60"
             >
               {uploading ? (
-                <Loader2 className="h-3 w-3 text-white animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 text-white animate-spin" />
               ) : (
-                <Camera className="h-3 w-3 text-white" />
+                <Camera className="h-3.5 w-3.5 text-white" />
               )}
             </button>
+            {/* accept="image/*" triggers iOS camera roll + "Take Photo" option */}
             <input
               ref={fileInputRef}
               type="file"
@@ -110,9 +183,11 @@ export function SettingsFormClient({ user }: { user: User }) {
               disabled={uploading}
               className="text-sm font-medium text-cinema-400 hover:text-cinema-300 transition-colors disabled:opacity-60"
             >
-              {uploading ? 'Uploading...' : 'Change photo'}
+              {uploading ? 'Uploading…' : 'Change photo'}
             </button>
-            <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG or GIF · Max 5MB</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {uploading ? 'Compressing & uploading…' : 'Any photo · Auto-compressed for fast upload'}
+            </p>
           </div>
         </div>
 

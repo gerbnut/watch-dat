@@ -118,7 +118,7 @@ export default async function StatsPage({ params }: { params: { username: string
           { icon: Film,    label: 'Films watched', value: watchCount.toLocaleString() },
           { icon: Clock,   label: 'Hours watched', value: totalHours > 0 ? totalHours.toLocaleString() : '—' },
           { icon: BookOpen,label: 'Reviews',        value: reviewCount.toLocaleString() },
-          { icon: Star,    label: 'Avg rating',     value: avgRating ? `${(avgRating / 2).toFixed(1)}★` : '—' },
+          { icon: Star,    label: 'Avg rating',     value: avgRating ? avgRating.toFixed(1) : '—' },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="rounded-xl border bg-card p-4 text-center space-y-1.5">
             <Icon className="h-5 w-5 mx-auto text-cinema-400" />
@@ -159,7 +159,7 @@ export default async function StatsPage({ params }: { params: { username: string
             Rating distribution
           </h2>
           {ratingDistribution.length > 0 ? (
-            <RatingChart data={ratingDistribution} />
+            <RatingChart data={ratingDistribution.filter((r) => r.rating !== null) as { rating: number; _count: { id: number } }[]} />
           ) : (
             <p className="text-sm text-muted-foreground text-center py-6">No ratings yet.</p>
           )}

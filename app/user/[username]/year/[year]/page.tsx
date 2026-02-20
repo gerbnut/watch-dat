@@ -194,7 +194,7 @@ export default async function YearWrappedPage({
         {[
           { icon: Film,       label: 'Films',     value: yearCount.toLocaleString() },
           { icon: Clock,      label: 'Hours',     value: totalHours > 0 ? totalHours.toLocaleString() : '—' },
-          { icon: Star,       label: 'Avg rating', value: avgRating ? `${(avgRating / 2).toFixed(1)}★` : '—' },
+          { icon: Star,       label: 'Avg rating', value: avgRating ? avgRating.toFixed(1) : '—' },
           { icon: RotateCcw,  label: 'Rewatches', value: rewatchCount.toLocaleString() },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="rounded-xl border bg-card p-4 text-center space-y-1.5">
@@ -245,7 +245,7 @@ export default async function YearWrappedPage({
                   {entry.rating && (
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-1.5 py-1">
                       <span className="text-[10px] font-bold text-cinema-400">
-                        {(entry.rating / 2).toFixed(1)}★
+                        {entry.rating.toFixed(1)}
                       </span>
                     </div>
                   )}

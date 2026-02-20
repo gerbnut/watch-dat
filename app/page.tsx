@@ -272,7 +272,7 @@ export default async function HomePage() {
                 </div>
                 {movie.vote_average > 0 && (
                   <span className="text-xs text-cinema-400 font-semibold shrink-0">
-                    ★ {(movie.vote_average / 2).toFixed(1)}
+                    ★ {movie.vote_average.toFixed(1)}
                   </span>
                 )}
               </Link>
