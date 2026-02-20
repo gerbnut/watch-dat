@@ -61,7 +61,7 @@ export default async function HomePage() {
     return (
       <div className="space-y-16">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cinema-950 via-cinema-900/30 to-film-950 py-20 px-8 text-center">
+        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cinema-950 via-cinema-900/30 to-film-950 py-12 sm:py-20 px-5 sm:px-8 text-center">
           <div className="absolute inset-0 opacity-20">
             <div className="flex gap-1 h-full">
               {trending.slice(0, 8).map((m: any) => (
@@ -83,22 +83,22 @@ export default async function HomePage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-cinema-500/20 border border-cinema-500/30 px-4 py-1.5 text-sm text-cinema-300">
               <Film className="h-4 w-4" /> Your digital film diary
             </div>
-            <h1 className="text-5xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight">
               Track every film<br />
               <span className="text-cinema-400">you've ever watched.</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            <p className="text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto">
               Rate, review, and discover films with a community of cinephiles.
               Build your diary, curate lists, and see what your friends are watching.
             </p>
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-3">
               <Link href="/register">
-                <Button variant="cinema" size="xl">
+                <Button variant="cinema" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base">
                   Start your diary
                 </Button>
               </Link>
               <Link href="/films">
-                <Button variant="outline" size="xl">
+                <Button variant="outline" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base">
                   Explore films
                 </Button>
               </Link>
@@ -127,7 +127,7 @@ export default async function HomePage() {
             <TrendingUp className="h-5 w-5 text-cinema-400" />
             <h2 className="text-lg font-semibold">Trending this week</h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
             {trending.map((movie: any) => (
               <MovieCard
                 key={movie.id}
@@ -137,7 +137,7 @@ export default async function HomePage() {
                 releaseDate={movie.release_date}
                 rating={movie.vote_average}
                 size="md"
-                className="shrink-0"
+                className="shrink-0 snap-start"
               />
             ))}
           </div>

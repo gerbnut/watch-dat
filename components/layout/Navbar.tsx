@@ -77,10 +77,10 @@ export function Navbar() {
                   variant="cinema"
                   size="sm"
                   onClick={() => setLogOpen(true)}
-                  className="gap-1.5 hidden sm:flex"
+                  className="gap-1.5 flex"
                 >
                   <Plus className="h-4 w-4" />
-                  Log
+                  <span className="hidden sm:inline">Log</span>
                 </Button>
 
                 <NotificationBell />
@@ -139,31 +139,6 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile nav */}
-        <div className="md:hidden flex border-t border-border/50">
-          {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors',
-                pathname === href ? 'text-cinema-400' : 'text-muted-foreground'
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          ))}
-          {session?.user && (
-            <button
-              onClick={() => setLogOpen(true)}
-              className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-cinema-400"
-            >
-              <Plus className="h-5 w-5" />
-              Log
-            </button>
-          )}
-        </div>
       </nav>
 
       <LogFilmModal open={logOpen} onClose={() => setLogOpen(false)} />

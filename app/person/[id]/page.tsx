@@ -51,11 +51,11 @@ export default async function PersonPage({ params }: { params: { id: string } })
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex gap-6 items-start">
-        <div className="relative w-28 sm:w-36 shrink-0">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
+        <div className="relative w-28 sm:w-36 shrink-0 mx-auto sm:mx-0">
           <div className="relative overflow-hidden rounded-lg shadow-xl aspect-[2/3] bg-muted">
             {profileUrl ? (
-              <Image src={profileUrl} alt={person.name} fill className="object-cover" priority sizes="150px" />
+              <Image src={profileUrl} alt={person.name} fill className="object-cover" priority sizes="(max-width: 640px) 112px, 144px" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-4xl font-bold">
                 {person.name[0]}
@@ -64,8 +64,8 @@ export default async function PersonPage({ params }: { params: { id: string } })
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 space-y-2 pt-1">
-          <h1 className="text-2xl sm:text-3xl font-bold leading-tight">{person.name}</h1>
+        <div className="flex-1 min-w-0 space-y-2">
+          <h1 className="text-xl sm:text-3xl font-bold leading-tight">{person.name}</h1>
           {person.known_for_department && (
             <p className="text-sm text-muted-foreground">{person.known_for_department}</p>
           )}
@@ -76,7 +76,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
             </p>
           )}
           {person.biography && (
-            <p className="text-sm leading-relaxed text-muted-foreground line-clamp-4 sm:line-clamp-6">
+            <p className="text-sm leading-relaxed text-muted-foreground line-clamp-4 sm:line-clamp-none">
               {person.biography}
             </p>
           )}

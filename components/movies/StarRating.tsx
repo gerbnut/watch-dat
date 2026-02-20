@@ -47,6 +47,19 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
     setTimeout(() => setAnimStar(null), 220)
   }
 
+  function handleTouch(e: React.TouchEvent<SVGSVGElement>, starIndex: number) {
+    if (readOnly || !onChange) return
+    e.preventDefault()
+    const touch = e.touches[0]
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = touch.clientX - rect.left
+    const half = x < rect.width / 2
+    const rating = (half ? starIndex - 0.5 : starIndex) * 2
+    onChange(rating)
+    setAnimStar(starIndex)
+    setTimeout(() => setAnimStar(null), 220)
+  }
+
   function getFill(starIndex: number): 'full' | 'half' | 'empty' {
     if (!displayValue) return 'empty'
     if (displayValue >= starIndex) return 'full'
@@ -63,8 +76,11 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
         {[1, 2, 3, 4, 5].map((star) => {
           const fill = getFill(star)
           return (
-            <svg
+            <div
               key={star}
+              className={cn(!readOnly && 'min-w-[44px] min-h-[44px] flex items-center justify-center')}
+            >
+            <svg
               viewBox="0 0 24 24"
               className={cn(
                 starSize,
@@ -74,6 +90,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
               )}
               onMouseMove={(e) => handleMouseMove(e, star)}
               onClick={(e) => handleClick(e, star)}
+              onTouchStart={(e) => handleTouch(e, star)}
             >
               <defs>
                 <linearGradient id={`half-${star}`} x1="0" x2="1" y1="0" y2="0">
@@ -115,6 +132,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
                 />
               )}
             </svg>
+            </div>
           )
         })}
       </div>

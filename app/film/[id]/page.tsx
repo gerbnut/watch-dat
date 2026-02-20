@@ -104,19 +104,22 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
     <div className="space-y-8 -mt-6">
       {/* Backdrop */}
       {backdropUrl && (
-        <div className="relative -mx-4 h-72 sm:h-96 overflow-hidden">
+        <div className="relative -mx-4 h-52 sm:h-96 overflow-hidden">
           <Image src={backdropUrl} alt={movie.title} fill className="object-cover object-top" priority sizes="100vw" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         </div>
       )}
 
       {/* Main info */}
-      <div className={cn('flex gap-6', backdropUrl && '-mt-32 relative z-10')}>
+      <div className={cn(
+        'flex flex-col sm:flex-row gap-4 sm:gap-6',
+        backdropUrl && '-mt-16 sm:-mt-32 relative z-10'
+      )}>
         {/* Poster */}
-        <div className="relative w-32 sm:w-44 shrink-0">
+        <div className="relative w-28 sm:w-44 shrink-0 mx-auto sm:mx-0">
           <div className="relative overflow-hidden rounded-lg shadow-2xl aspect-[2/3]">
             {posterUrl ? (
-              <Image src={posterUrl} alt={movie.title} fill className="object-cover" priority sizes="200px" />
+              <Image src={posterUrl} alt={movie.title} fill className="object-cover" priority sizes="(max-width: 640px) 112px, 176px" />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-muted rounded-lg">
                 <Eye className="h-10 w-10 text-muted-foreground/30" />
@@ -126,9 +129,9 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Details */}
-        <div className="flex-1 min-w-0 space-y-3 pt-2">
+        <div className="flex-1 min-w-0 space-y-3 sm:pt-2">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold leading-tight">{movie.title}</h1>
+            <h1 className="text-xl sm:text-3xl font-bold leading-tight">{movie.title}</h1>
             <div className="flex flex-wrap items-center gap-2 mt-1.5 text-sm text-muted-foreground">
               {getYearFromDate(movie.releaseDate) && (
                 <span>{getYearFromDate(movie.releaseDate)}</span>
@@ -283,9 +286,9 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
       {cast.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cast</h2>
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory">
             {cast.slice(0, 12).map((actor: any) => (
-              <Link key={actor.id} href={`/person/${actor.id}`} className="shrink-0 w-20 space-y-1 text-center group">
+              <Link key={actor.id} href={`/person/${actor.id}`} className="shrink-0 w-20 space-y-1 text-center group snap-start">
                 <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted mx-auto transition-transform duration-200 group-hover:scale-105 group-hover:ring-2 group-hover:ring-cinema-400">
                   {actor.profile_path ? (
                     <Image
