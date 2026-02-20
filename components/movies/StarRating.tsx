@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface StarRatingProps {
@@ -19,6 +19,7 @@ const SIZES = {
 }
 
 export function StarRating({ value, onChange, readOnly = false, size = 'md', showValue = false, className }: StarRatingProps) {
+  const uid = useId()
   const [hovered, setHovered] = useState<number | null>(null)
   const [animStar, setAnimStar] = useState<number | null>(null)
 
@@ -93,7 +94,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
               onTouchStart={(e) => handleTouch(e, star)}
             >
               <defs>
-                <linearGradient id={`half-${star}`} x1="0" x2="1" y1="0" y2="0">
+                <linearGradient id={`half-${uid}-${star}`} x1="0" x2="1" y1="0" y2="0">
                   <stop offset="50%" stopColor="currentColor" className="text-cinema-400" />
                   <stop offset="50%" stopColor="transparent" />
                 </linearGradient>
@@ -113,13 +114,13 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
                     strokeWidth="1.5"
                     style={{ transition: 'stroke 0.12s ease-out' }}
                   />
-                  <clipPath id={`clip-half-${star}`}>
+                  <clipPath id={`clip-half-${uid}-${star}`}>
                     <rect x="0" y="0" width="12" height="24" />
                   </clipPath>
                   <polygon
                     points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                     className="fill-cinema-400 stroke-none"
-                    clipPath={`url(#clip-half-${star})`}
+                    clipPath={`url(#clip-half-${uid}-${star})`}
                     style={{ transition: 'fill 0.12s ease-out' }}
                   />
                 </>

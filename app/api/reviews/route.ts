@@ -32,6 +32,12 @@ export async function POST(req: NextRequest) {
     const { tmdbId, rating, text, liked, hasSpoiler, watchedDate, rewatch } = parsed.data
     const movie = await getOrCacheMovie(tmdbId)
 
+    // Check if this is a create or an update so we don't spam the activity feed on edits
+    const existingReview = await prisma.review.findUnique({
+      where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
+      select: { id: true },
+    })
+
     const review = await prisma.review.upsert({
       where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
       create: {
@@ -79,15 +85,17 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Log activity
-    await prisma.activity.create({
-      data: {
-        userId: session.user.id,
-        type: text ? 'REVIEWED' : 'WATCHED',
-        movieId: movie.id,
-        reviewId: review.id,
-      },
-    })
+    // Log activity only on initial create, not on edits
+    if (!existingReview) {
+      await prisma.activity.create({
+        data: {
+          userId: session.user.id,
+          type: text ? 'REVIEWED' : 'WATCHED',
+          movieId: movie.id,
+          reviewId: review.id,
+        },
+      })
+    }
 
     return NextResponse.json(review, { status: 201 })
   } catch (err) {
