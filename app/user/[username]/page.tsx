@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { formatDate, getInitials, formatRating } from '@/lib/utils'
-import { Calendar, Film } from 'lucide-react'
+import { BarChart2, Calendar, Film } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
@@ -168,6 +168,10 @@ export default async function UserProfilePage({ params }: { params: { username: 
                   <span className="text-xs text-muted-foreground">Avg rating</span>
                 </div>
               )}
+              <Link href={`/user/${user.username}/stats`} className="text-center hover:text-cinema-400 transition-colors">
+                <BarChart2 className="h-5 w-5 mx-auto mb-0.5" />
+                <span className="text-xs text-muted-foreground">Stats</span>
+              </Link>
             </div>
           </div>
         </div>
