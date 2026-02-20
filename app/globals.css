@@ -4,25 +4,28 @@
 
 @layer base {
   :root {
-    --background: 222 20% 8%;
-    --foreground: 213 31% 91%;
-    --card: 222 20% 11%;
-    --card-foreground: 213 31% 91%;
-    --popover: 222 20% 9%;
-    --popover-foreground: 213 31% 91%;
-    --primary: 27 95% 56%;
+    /* Near-black base — dark cinema feel */
+    --background: 220 13% 5%;
+    --foreground: 210 18% 92%;
+    --card: 220 12% 8%;
+    --card-foreground: 210 18% 92%;
+    --popover: 220 12% 7%;
+    --popover-foreground: 210 18% 92%;
+    /* Matrix green primary */
+    --primary: 140 65% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 222 20% 16%;
-    --secondary-foreground: 213 31% 91%;
-    --muted: 222 20% 14%;
-    --muted-foreground: 215 16% 55%;
-    --accent: 222 20% 16%;
-    --accent-foreground: 213 31% 91%;
+    --secondary: 220 12% 13%;
+    --secondary-foreground: 210 18% 92%;
+    --muted: 220 12% 11%;
+    /* Cool slate secondary text */
+    --muted-foreground: 215 20% 54%;
+    --accent: 220 12% 13%;
+    --accent-foreground: 210 18% 92%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 20% 18%;
-    --input: 222 20% 18%;
-    --ring: 27 95% 56%;
+    --border: 220 12% 15%;
+    --input: 220 12% 15%;
+    --ring: 140 65% 45%;
     --radius: 0.5rem;
   }
 
@@ -33,7 +36,7 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 27 95% 50%;
+    --primary: 140 65% 38%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
@@ -45,7 +48,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 27 95% 50%;
+    --ring: 140 65% 38%;
   }
 }
 
@@ -100,8 +103,23 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    hsl(var(--muted-foreground) / 0.1) 50%,
+    rgba(34, 197, 94, 0.05) 50%,
     transparent 100%
   );
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* Hero section gradient */
+.hero-gradient {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 70%);
+}
+
+/* Page transition wrapper */
+.page-content {
+  animation: page-enter 0.25s ease-out;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

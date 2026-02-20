@@ -20,6 +20,7 @@ const SIZES = {
 
 export function StarRating({ value, onChange, readOnly = false, size = 'md', showValue = false, className }: StarRatingProps) {
   const [hovered, setHovered] = useState<number | null>(null)
+  const [animStar, setAnimStar] = useState<number | null>(null)
 
   // Convert 1-10 scale to 1-5 stars
   const starsValue = value ? value / 2 : null
@@ -42,6 +43,8 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
     const half = x < rect.width / 2
     const rating = (half ? starIndex - 0.5 : starIndex) * 2 // Convert back to 1-10
     onChange(rating)
+    setAnimStar(starIndex)
+    setTimeout(() => setAnimStar(null), 220)
   }
 
   function getFill(starIndex: number): 'full' | 'half' | 'empty' {
@@ -65,7 +68,9 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
               viewBox="0 0 24 24"
               className={cn(
                 starSize,
-                readOnly ? 'cursor-default' : 'cursor-pointer transition-transform hover:scale-110'
+                readOnly ? 'cursor-default' : 'cursor-pointer',
+                !readOnly && 'transition-transform duration-100 hover:scale-125',
+                animStar === star && 'animate-star-pop',
               )}
               onMouseMove={(e) => handleMouseMove(e, star)}
               onClick={(e) => handleClick(e, star)}
@@ -81,6 +86,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
                   points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                   className="fill-cinema-400 stroke-cinema-400"
                   strokeWidth="1"
+                  style={{ transition: 'fill 0.12s ease-out, stroke 0.12s ease-out' }}
                 />
               ) : fill === 'half' ? (
                 <>
@@ -88,6 +94,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
                     points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                     className="fill-none stroke-cinema-400/50"
                     strokeWidth="1.5"
+                    style={{ transition: 'stroke 0.12s ease-out' }}
                   />
                   <clipPath id={`clip-half-${star}`}>
                     <rect x="0" y="0" width="12" height="24" />
@@ -96,6 +103,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
                     points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                     className="fill-cinema-400 stroke-none"
                     clipPath={`url(#clip-half-${star})`}
+                    style={{ transition: 'fill 0.12s ease-out' }}
                   />
                 </>
               ) : (
@@ -103,6 +111,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
                   points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                   className="fill-none stroke-muted-foreground/40"
                   strokeWidth="1.5"
+                  style={{ transition: 'fill 0.12s ease-out, stroke 0.12s ease-out' }}
                 />
               )}
             </svg>

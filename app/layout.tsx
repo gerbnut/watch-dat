@@ -5,6 +5,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { Navbar } from '@/components/layout/Navbar'
+import { LayoutTransition } from '@/components/layout/LayoutTransition'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' })
 
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             <Navbar />
             <main className="mx-auto max-w-6xl px-4 py-6">
-              {children}
+              <LayoutTransition>{children}</LayoutTransition>
             </main>
             <Toaster />
           </QueryProvider>

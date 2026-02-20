@@ -50,7 +50,7 @@ export function MovieCard({
     <div className={cn('group flex flex-col gap-1.5', card, className)}>
       <div
         className={cn(
-          'relative overflow-hidden rounded-md bg-muted transition-transform duration-200 group-hover:scale-[1.03] group-hover:shadow-xl group-hover:shadow-black/50',
+          'relative overflow-hidden rounded-md bg-muted transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-glow-green',
           img
         )}
       >
