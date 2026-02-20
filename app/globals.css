@@ -60,12 +60,12 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
-    overflow-x: hidden;
   }
 
-  /* Smooth scrolling */
+  /* Smooth scrolling + prevent horizontal overflow without breaking position:fixed */
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   /* Better scrollbar */

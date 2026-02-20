@@ -181,7 +181,7 @@ export default async function UserProfilePage({ params }: { params: { username: 
       {user.favoriteMovies.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Favorite films</h2>
-          <div className="flex gap-3">
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-pl-4">
             {user.favoriteMovies.map(({ movie }) => (
               <MovieCard
                 key={movie.id}
@@ -190,7 +190,7 @@ export default async function UserProfilePage({ params }: { params: { username: 
                 poster={movie.poster}
                 releaseDate={movie.releaseDate}
                 size="md"
-                className="shrink-0"
+                className="shrink-0 snap-start"
               />
             ))}
           </div>
