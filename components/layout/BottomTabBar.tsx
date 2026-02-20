@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Film, BookOpen, Bookmark, List } from 'lucide-react'
+import { Home, Film, BookOpen, Bookmark, List, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const TABS = [
@@ -11,6 +11,7 @@ const TABS = [
   { href: '/diary', label: 'Diary', icon: BookOpen },
   { href: '/watchlist', label: 'Watchlist', icon: Bookmark },
   { href: '/lists', label: 'Lists', icon: List },
+  { href: '/friends', label: 'Friends', icon: Users },
 ]
 
 export function BottomTabBar() {

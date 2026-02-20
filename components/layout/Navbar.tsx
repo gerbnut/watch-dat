@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark } from 'lucide-react'
+import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark, Users } from 'lucide-react'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { href: '/diary', label: 'Diary', icon: BookOpen },
   { href: '/watchlist', label: 'Watchlist', icon: Bookmark },
   { href: '/lists', label: 'Lists', icon: List },
+  { href: '/friends', label: 'Friends', icon: Users },
 ]
 
 export function Navbar() {
