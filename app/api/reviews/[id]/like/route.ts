@@ -15,17 +15,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       where: { userId_reviewId: { userId: session.user.id, reviewId: params.id } },
     })
 
+    let liked: boolean
     if (existing) {
-      // Unlike
       await prisma.like.delete({ where: { id: existing.id } })
-      return NextResponse.json({ liked: false })
+      liked = false
     } else {
-      // Like
       await prisma.like.create({
         data: { userId: session.user.id, reviewId: params.id },
       })
+      liked = true
 
-      // Notify review author
+      // Notify review author (not self-likes)
       const review = await prisma.review.findUnique({
         where: { id: params.id },
         select: { userId: true },
@@ -40,9 +40,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           },
         })
       }
-
-      return NextResponse.json({ liked: true })
     }
+
+    const likeCount = await prisma.like.count({ where: { reviewId: params.id } })
+    return NextResponse.json({ liked, likeCount })
   } catch (err) {
     console.error('Like error:', err)
     return NextResponse.json({ error: 'Failed to toggle like' }, { status: 500 })

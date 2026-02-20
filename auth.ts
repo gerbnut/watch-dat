@@ -23,7 +23,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id
         token.username = (user as any).username
         token.displayName = (user as any).displayName
-        token.avatar = (user as any).avatar
+        // Exclude base64 data URLs — they would exceed the 4KB cookie limit.
+        // Profile pages and settings load the avatar fresh from the DB.
+        const av = (user as any).avatar as string | null
+        token.avatar = av?.startsWith('data:') ? null : av
       }
       return token
     },

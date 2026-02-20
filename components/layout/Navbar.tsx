@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
@@ -25,6 +25,21 @@ export function Navbar() {
   const { data: session } = useSession()
   const [logOpen, setLogOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const close = (e: MouseEvent | Event) => {
+      if (e instanceof MouseEvent && menuRef.current?.contains(e.target as Node)) return
+      setUserMenuOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    window.addEventListener('scroll', close, { passive: true, capture: true })
+    return () => {
+      document.removeEventListener('mousedown', close)
+      window.removeEventListener('scroll', close, { capture: true })
+    }
+  }, [userMenuOpen])
 
   return (
     <>
@@ -85,10 +100,9 @@ export function Navbar() {
 
                 <NotificationBell />
 
-                <div className="relative">
+                <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    onBlur={() => setTimeout(() => setUserMenuOpen(false), 150)}
                   >
                     <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-cinema-500 transition-all">
                       <AvatarImage src={session.user.image ?? undefined} />

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Flag, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
+import { Heart, Flag, MoreHorizontal, Trash2, Pencil, MessageSquare } from 'lucide-react'
 import { CommentsSection } from './CommentsSection'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -33,7 +33,13 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
   const isOwner = currentUserId === review.user.id
 
   async function handleLike() {
-    if (!currentUserId) return
+    if (!currentUserId) {
+      // Import toast lazily to avoid server-side issues
+      const { toast } = await import('@/hooks/use-toast')
+      toast({ title: 'Sign in to like', description: 'Create an account to like reviews.' })
+      return
+    }
+    if (liking) return
     setLiking(true)
     const newLiked = !isLiked
     setIsLiked(newLiked)
@@ -43,10 +49,9 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
       const res = await fetch(`/api/reviews/${review.id}/like`, { method: 'POST' })
       const data = await res.json()
       setIsLiked(data.liked)
-      setLikeCount((c) => data.liked ? c : c - 1)
+      setLikeCount(data.likeCount) // authoritative server count
       onLike?.(review.id, data.liked)
     } catch {
-      // Revert optimistic
       setIsLiked(!newLiked)
       setLikeCount((c) => !newLiked ? c + 1 : c - 1)
     } finally {
@@ -154,14 +159,21 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
       <div className="flex items-center gap-4 pt-1">
         <button
           onClick={handleLike}
-          disabled={liking || !currentUserId}
+          disabled={liking}
           className={cn(
-            'flex items-center gap-1.5 text-sm transition-colors',
-            isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-400'
+            'flex items-center gap-1.5 text-sm transition-all',
+            isLiked ? 'text-cinema-400' : 'text-muted-foreground hover:text-cinema-400',
+            liking && 'scale-110'
           )}
         >
-          <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
-          <span>{likeCount}</span>
+          <Heart
+            className={cn(
+              'h-4 w-4 transition-transform duration-200',
+              isLiked && 'fill-current',
+              liking && 'scale-125'
+            )}
+          />
+          {likeCount > 0 && <span>{likeCount}</span>}
         </button>
         <CommentsSection
           reviewId={review.id}

@@ -1,7 +1,8 @@
 'use client'
 
-import React, { Suspense, useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import React, { Suspense, useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Search, Film, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,13 +12,12 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { cn, getInitials } from '@/lib/utils'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 
 type Tab = 'films' | 'people'
 
 function SearchContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
+  const { data: session } = useSession()
   const initialQ = searchParams.get('q') ?? ''
   const [query, setQuery] = useState(initialQ)
   const [tab, setTab] = useState<Tab>('films')
@@ -43,6 +43,22 @@ function SearchContent() {
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [debouncedQuery])
+
+  const toggleFollow = useCallback(async (username: string, userId: string) => {
+    // Optimistic update
+    setPeople((prev) =>
+      prev.map((p) => (p.id === userId ? { ...p, isFollowing: !p.isFollowing } : p))
+    )
+    try {
+      const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed')
+    } catch {
+      // Revert on error
+      setPeople((prev) =>
+        prev.map((p) => (p.id === userId ? { ...p, isFollowing: !p.isFollowing } : p))
+      )
+    }
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -105,21 +121,32 @@ function SearchContent() {
         people.length > 0 ? (
           <div className="space-y-2">
             {people.map((user: any) => (
-              <Link key={user.id} href={`/user/${user.username}`}>
-                <div className="flex items-center gap-3 rounded-lg border bg-card p-4 hover:bg-accent/50 transition-colors">
-                  <Avatar className="h-10 w-10">
+              <div key={user.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
+                <Link href={`/user/${user.username}`} className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={user.avatar ?? undefined} />
                     <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium">{user.displayName}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{user.displayName}</p>
                     <p className="text-sm text-muted-foreground">@{user.username}</p>
                   </div>
-                  <div className="ml-auto text-xs text-muted-foreground">
-                    {user._count.reviews} reviews · {user._count.followers} followers
-                  </div>
+                </Link>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="hidden sm:block text-xs text-muted-foreground">
+                    {user._count.followers} followers
+                  </span>
+                  {session?.user && session.user.id !== user.id && (
+                    <Button
+                      variant={user.isFollowing ? 'outline' : 'cinema'}
+                      size="sm"
+                      onClick={() => toggleFollow(user.username, user.id)}
+                    >
+                      {user.isFollowing ? 'Following' : 'Follow'}
+                    </Button>
+                  )}
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { Metadata } from 'next'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Bell, Heart, UserPlus, MessageSquare } from 'lucide-react'
+import { Bell, Heart, UserPlus, MessageSquare, AtSign } from 'lucide-react'
 import Link from 'next/link'
 import { formatRelativeTime, getInitials, cn } from '@/lib/utils'
 import { MarkReadClient } from './MarkReadClient'
@@ -14,12 +14,16 @@ const ICONS = {
   NEW_FOLLOWER: UserPlus,
   LIKED_REVIEW: Heart,
   COMMENTED_REVIEW: MessageSquare,
+  REPLIED_COMMENT: MessageSquare,
+  MENTION: AtSign,
 }
 
-const LABELS = {
+const LABELS: Record<string, string> = {
   NEW_FOLLOWER: 'started following you',
   LIKED_REVIEW: 'liked your review',
   COMMENTED_REVIEW: 'commented on your review',
+  REPLIED_COMMENT: 'replied to your comment',
+  MENTION: 'mentioned you',
 }
 
 export default async function NotificationsPage() {
@@ -30,12 +34,21 @@ export default async function NotificationsPage() {
     where: { userId: session.user.id },
     include: {
       actor: { select: { id: true, username: true, displayName: true, avatar: true } },
+      review: {
+        include: { movie: { select: { title: true, tmdbId: true } } },
+      },
     },
     orderBy: { createdAt: 'desc' },
     take: 50,
   })
 
   const unread = notifications.filter((n) => !n.read)
+
+  function notificationHref(n: (typeof notifications)[0]): string {
+    if (n.reviewId) return `/review/${n.reviewId}`
+    if (n.type === 'NEW_FOLLOWER') return `/user/${n.actor.username}`
+    return '#'
+  }
 
   return (
     <div className="max-w-xl space-y-4">
@@ -52,28 +65,32 @@ export default async function NotificationsPage() {
       ) : (
         <div className="rounded-xl border bg-card divide-y divide-border">
           {notifications.map((n) => {
-            const Icon = ICONS[n.type] ?? Bell
+            const Icon = ICONS[n.type as keyof typeof ICONS] ?? Bell
             const label = LABELS[n.type] ?? n.type
+            const href = notificationHref(n)
 
             return (
-              <div key={n.id} className={cn('flex items-start gap-3 p-4', !n.read && 'bg-cinema-500/5')}>
-                <Link href={`/user/${n.actor.username}`}>
-                  <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarImage src={n.actor.avatar ?? undefined} />
-                    <AvatarFallback className="text-xs">{getInitials(n.actor.displayName)}</AvatarFallback>
-                  </Avatar>
-                </Link>
+              <Link
+                key={n.id}
+                href={href}
+                className={cn('flex items-start gap-3 p-4 hover:bg-accent/50 transition-colors', !n.read && 'bg-cinema-500/5')}
+              >
+                <Avatar className="h-9 w-9 shrink-0">
+                  <AvatarImage src={n.actor.avatar ?? undefined} />
+                  <AvatarFallback className="text-xs">{getInitials(n.actor.displayName)}</AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">
-                    <Link href={`/user/${n.actor.username}`} className="font-semibold hover:underline">
-                      {n.actor.displayName}
-                    </Link>
+                    <span className="font-semibold">{n.actor.displayName}</span>
                     {' '}{label}
+                    {n.review?.movie && (
+                      <span className="text-muted-foreground"> of <span className="text-foreground font-medium">{n.review.movie.title}</span></span>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{formatRelativeTime(n.createdAt)}</p>
                 </div>
                 <Icon className={cn('h-4 w-4 shrink-0 mt-0.5', !n.read ? 'text-cinema-400' : 'text-muted-foreground')} />
-              </div>
+              </Link>
             )
           })}
         </div>

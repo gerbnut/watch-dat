@@ -11,18 +11,22 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const notifications = await prisma.notification.findMany({
-      where: { userId: session.user.id },
-      include: {
-        actor: { select: { id: true, username: true, displayName: true, avatar: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 30,
-    })
-
-    const unreadCount = await prisma.notification.count({
-      where: { userId: session.user.id, read: false },
-    })
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: { userId: session.user.id },
+        include: {
+          actor: { select: { id: true, username: true, displayName: true, avatar: true } },
+          review: {
+            include: { movie: { select: { title: true, tmdbId: true } } },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+      }),
+      prisma.notification.count({
+        where: { userId: session.user.id, read: false },
+      }),
+    ])
 
     return NextResponse.json({ notifications, unreadCount })
   } catch (err) {
