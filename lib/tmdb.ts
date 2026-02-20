@@ -90,6 +90,28 @@ export async function getNowPlayingMovies(page = 1) {
   return tmdbFetch('/movie/now_playing', { page: String(page) })
 }
 
+export async function getSimilarMovies(tmdbId: number): Promise<{ results: TMDBSearchResult[] }> {
+  return tmdbFetch(`/movie/${tmdbId}/recommendations`)
+}
+
+export interface WatchProvider {
+  logo_path: string
+  provider_id: number
+  provider_name: string
+  display_priority: number
+}
+
+export interface WatchProvidersResult {
+  link?: string
+  flatrate?: WatchProvider[]
+  rent?: WatchProvider[]
+  buy?: WatchProvider[]
+}
+
+export async function getWatchProviders(tmdbId: number): Promise<{ results: Record<string, WatchProvidersResult> }> {
+  return tmdbFetch(`/movie/${tmdbId}/watch/providers`)
+}
+
 export interface TMDBPerson {
   id: number
   name: string

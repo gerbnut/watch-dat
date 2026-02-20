@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { cn, getYearFromDate, formatRating } from '@/lib/utils'
 import { StarRating } from './StarRating'
-import { Film } from 'lucide-react'
+import { Film, Star } from 'lucide-react'
 
 interface MovieCardProps {
   tmdbId: number
@@ -65,6 +65,15 @@ export function MovieCard({
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted">
             <Film className="h-8 w-8 text-muted-foreground/40" />
+          </div>
+        )}
+        {/* Community rating — slides up on hover */}
+        {rating && !userRating && (
+          <div className="absolute inset-x-0 bottom-0 px-2 py-2 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none">
+            <span className="flex items-center gap-0.5 text-xs font-bold text-cinema-400">
+              <Star className="h-3 w-3 fill-cinema-400 stroke-none" />
+              {(rating / 2).toFixed(1)}
+            </span>
           </div>
         )}
         {userRating && (

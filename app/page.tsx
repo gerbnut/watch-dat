@@ -4,10 +4,10 @@ import { prisma } from '@/lib/db'
 import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { Button } from '@/components/ui/button'
-import { TMDB_IMAGE } from '@/lib/tmdb'
+import { getSimilarMovies, TMDB_IMAGE } from '@/lib/tmdb'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Film, TrendingUp, Star, Users } from 'lucide-react'
+import { Film, TrendingUp, Star, Users, Sparkles } from 'lucide-react'
 
 async function getTrendingFromTMDB() {
   try {
@@ -135,6 +135,7 @@ export default async function HomePage() {
                 title={movie.title}
                 poster={movie.poster_path}
                 releaseDate={movie.release_date}
+                rating={movie.vote_average}
                 size="md"
                 className="shrink-0"
               />
@@ -145,8 +146,39 @@ export default async function HomePage() {
     )
   }
 
-  // Authenticated home — activity feed
-  const feed = await getHomeFeed(session.user.id)
+  // Authenticated home — fetch feed + most recent diary entry in parallel
+  const [feed, recentEntry] = await Promise.all([
+    getHomeFeed(session.user.id),
+    prisma.diaryEntry.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { watchedDate: 'desc' },
+      include: { movie: { select: { tmdbId: true, title: true } } },
+    }),
+  ])
+
+  // Recommendations: similar films to most recently watched, excluding already-seen
+  let recommendations: any[] = []
+  let basedOnTitle = ''
+
+  if (recentEntry?.movie) {
+    try {
+      const [similar, watched] = await Promise.all([
+        getSimilarMovies(recentEntry.movie.tmdbId),
+        prisma.diaryEntry.findMany({
+          where: { userId: session.user.id },
+          select: { movie: { select: { tmdbId: true } } },
+          take: 500,
+        }),
+      ])
+      const watchedSet = new Set(watched.map((e) => e.movie.tmdbId))
+      recommendations = (similar.results ?? [])
+        .filter((m: any) => !watchedSet.has(m.id))
+        .slice(0, 12)
+      basedOnTitle = recentEntry.movie.title
+    } catch {
+      // silent fail — recommendations are non-critical
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -184,6 +216,34 @@ export default async function HomePage() {
 
       {/* Sidebar */}
       <aside className="space-y-6">
+        {/* Because you watched X */}
+        {recommendations.length > 0 && (
+          <div className="rounded-xl border bg-card p-4">
+            <div className="flex items-start gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-cinema-400 mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold leading-tight">Because you watched</h2>
+                <p className="text-xs text-muted-foreground truncate">{basedOnTitle}</p>
+              </div>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              {recommendations.map((movie: any) => (
+                <MovieCard
+                  key={movie.id}
+                  tmdbId={movie.id}
+                  title={movie.title}
+                  poster={movie.poster_path}
+                  releaseDate={movie.release_date}
+                  rating={movie.vote_average}
+                  size="xs"
+                  className="shrink-0"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Trending */}
         <div className="rounded-xl border bg-card p-4">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="h-4 w-4 text-cinema-400" />
@@ -204,12 +264,17 @@ export default async function HomePage() {
                     />
                   )}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{movie.title}</p>
                   {movie.release_date && (
                     <p className="text-xs text-muted-foreground">{new Date(movie.release_date).getFullYear()}</p>
                   )}
                 </div>
+                {movie.vote_average > 0 && (
+                  <span className="text-xs text-cinema-400 font-semibold shrink-0">
+                    ★ {(movie.vote_average / 2).toFixed(1)}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

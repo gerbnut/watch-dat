@@ -28,6 +28,7 @@ export default async function FilmsPage() {
               title={movie.title}
               poster={movie.poster_path}
               releaseDate={movie.release_date}
+              rating={movie.vote_average}
               size="sm"
             />
           ))}
@@ -47,6 +48,7 @@ export default async function FilmsPage() {
               title={movie.title}
               poster={movie.poster_path}
               releaseDate={movie.release_date}
+              rating={movie.vote_average}
               size="sm"
             />
           ))}

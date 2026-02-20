@@ -1,5 +1,5 @@
 import { auth } from '@/auth'
-import { getOrCacheMovie, TMDB_IMAGE } from '@/lib/tmdb'
+import { getOrCacheMovie, getWatchProviders, TMDB_IMAGE } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
@@ -77,7 +77,11 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
       : [],
   ])
 
-  const watchCount = await prisma.diaryEntry.count({ where: { movieId: movie.id } })
+  const [watchCount, watchProvidersData] = await Promise.all([
+    prisma.diaryEntry.count({ where: { movieId: movie.id } }),
+    getWatchProviders(tmdbId).catch(() => null),
+  ])
+  const streamingProviders = watchProvidersData?.results?.['US'] ?? null
   const isOnWatchlist = session?.user?.id
     ? !!(await prisma.watchlistItem.findUnique({
         where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
@@ -203,6 +207,77 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
           <p className="leading-relaxed text-sm sm:text-base">{movie.overview}</p>
         </div>
       )}
+
+      {/* Streaming availability */}
+      {streamingProviders && (streamingProviders.flatrate?.length || streamingProviders.rent?.length || streamingProviders.buy?.length) ? (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Where to watch</h2>
+
+          {/* Streaming (subscription) */}
+          {streamingProviders.flatrate && streamingProviders.flatrate.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">Stream</p>
+              <div className="flex flex-wrap gap-2">
+                {streamingProviders.flatrate.map((p) => (
+                  <a
+                    key={p.provider_id}
+                    href={streamingProviders.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-accent transition-colors"
+                    title={p.provider_name}
+                  >
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                      alt={p.provider_name}
+                      width={22}
+                      height={22}
+                      className="rounded-md"
+                    />
+                    {p.provider_name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Rent / Buy */}
+          {(() => {
+            const rentBuy = [
+              ...(streamingProviders.rent ?? []),
+              ...(streamingProviders.buy ?? []),
+            ].filter((p, i, arr) => arr.findIndex((x) => x.provider_id === p.provider_id) === i)
+            return rentBuy.length > 0 ? (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground">Rent / Buy</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {rentBuy.map((p) => (
+                    <a
+                      key={p.provider_id}
+                      href={streamingProviders.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-md border bg-card/60 px-2.5 py-1.5 text-xs hover:bg-accent transition-colors"
+                      title={p.provider_name}
+                    >
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                        alt={p.provider_name}
+                        width={18}
+                        height={18}
+                        className="rounded"
+                      />
+                      {p.provider_name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          })()}
+
+          <p className="text-[10px] text-muted-foreground/60">US availability · Data provided by JustWatch</p>
+        </div>
+      ) : null}
 
       {/* Cast */}
       {cast.length > 0 && (
