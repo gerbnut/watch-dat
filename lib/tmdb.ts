@@ -90,6 +90,25 @@ export async function getNowPlayingMovies(page = 1) {
   return tmdbFetch('/movie/now_playing', { page: String(page) })
 }
 
+export interface TMDBPerson {
+  id: number
+  name: string
+  biography: string
+  birthday: string | null
+  deathday: string | null
+  place_of_birth: string | null
+  profile_path: string | null
+  known_for_department: string
+  movie_credits?: {
+    cast: { id: number; title: string; poster_path: string | null; release_date: string; character: string; order: number }[]
+    crew: { id: number; title: string; poster_path: string | null; release_date: string; job: string; department: string }[]
+  }
+}
+
+export async function getPersonDetails(tmdbId: number): Promise<TMDBPerson> {
+  return tmdbFetch(`/person/${tmdbId}`, { append_to_response: 'movie_credits' })
+}
+
 // Cache movie in DB to avoid redundant API calls
 export async function getOrCacheMovie(tmdbId: number) {
   const existing = await prisma.movie.findUnique({

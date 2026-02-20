@@ -146,7 +146,7 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
                     {directors.map((d: any, i: number) => (
                       <span key={d.id}>
                         {i > 0 && ', '}
-                        <span className="text-foreground font-medium">{d.name}</span>
+                        <Link href={`/person/${d.id}`} className="text-foreground font-medium hover:text-cinema-400 transition-colors">{d.name}</Link>
                       </span>
                     ))}
                   </span>
@@ -210,8 +210,8 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cast</h2>
           <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin">
             {cast.slice(0, 12).map((actor: any) => (
-              <div key={actor.id} className="shrink-0 w-20 space-y-1 text-center">
-                <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted mx-auto">
+              <Link key={actor.id} href={`/person/${actor.id}`} className="shrink-0 w-20 space-y-1 text-center group">
+                <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted mx-auto transition-transform duration-200 group-hover:scale-105 group-hover:ring-2 group-hover:ring-cinema-400">
                   {actor.profile_path ? (
                     <Image
                       src={TMDB_IMAGE.profile(actor.profile_path, 'w185')!}
@@ -226,9 +226,9 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
                     </div>
                   )}
                 </div>
-                <p className="text-xs font-medium line-clamp-1">{actor.name}</p>
+                <p className="text-xs font-medium line-clamp-1 group-hover:text-cinema-400 transition-colors">{actor.name}</p>
                 <p className="text-[10px] text-muted-foreground line-clamp-1">{actor.character}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
