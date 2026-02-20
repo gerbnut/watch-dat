@@ -1,0 +1,99 @@
+'use client'
+
+import React from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { TMDB_IMAGE } from '@/lib/tmdb'
+import { cn, getYearFromDate, formatRating } from '@/lib/utils'
+import { StarRating } from './StarRating'
+import { Film } from 'lucide-react'
+
+interface MovieCardProps {
+  tmdbId: number
+  title: string
+  poster: string | null
+  releaseDate?: Date | string | null
+  rating?: number | null
+  userRating?: number | null
+  className?: string
+  size?: 'xs' | 'sm' | 'md' | 'lg'
+  showRating?: boolean
+  showYear?: boolean
+  onClick?: () => void
+}
+
+const SIZES = {
+  xs: { card: 'w-16', img: 'h-24', title: 'text-xs' },
+  sm: { card: 'w-24', img: 'h-36', title: 'text-xs' },
+  md: { card: 'w-32', img: 'h-48', title: 'text-sm' },
+  lg: { card: 'w-44', img: 'h-64', title: 'text-sm' },
+}
+
+export function MovieCard({
+  tmdbId,
+  title,
+  poster,
+  releaseDate,
+  rating,
+  userRating,
+  className,
+  size = 'md',
+  showRating = false,
+  showYear = true,
+  onClick,
+}: MovieCardProps) {
+  const posterUrl = TMDB_IMAGE.poster(poster, 'w342')
+  const year = getYearFromDate(releaseDate ?? null)
+  const { card, img, title: titleSize } = SIZES[size]
+
+  const content = (
+    <div className={cn('group flex flex-col gap-1.5', card, className)}>
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-md bg-muted transition-transform duration-200 group-hover:scale-[1.03] group-hover:shadow-xl group-hover:shadow-black/50',
+          img
+        )}
+      >
+        {posterUrl ? (
+          <Image
+            src={posterUrl}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 30vw, 200px"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <Film className="h-8 w-8 text-muted-foreground/40" />
+          </div>
+        )}
+        {userRating && (
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
+            <StarRating value={userRating} readOnly size="sm" />
+          </div>
+        )}
+      </div>
+      <div>
+        <p className={cn('font-medium leading-tight line-clamp-2', titleSize)}>{title}</p>
+        {showYear && year && (
+          <p className="text-xs text-muted-foreground mt-0.5">{year}</p>
+        )}
+        {showRating && rating && (
+          <div className="flex items-center gap-1 mt-1">
+            <span className="text-xs text-cinema-400 font-semibold">★ {formatRating(rating)}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  if (onClick) {
+    return (
+      <button onClick={onClick} className="text-left">
+        {content}
+      </button>
+    )
+  }
+
+  return <Link href={`/film/${tmdbId}`}>{content}</Link>
+}

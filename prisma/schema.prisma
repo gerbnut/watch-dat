@@ -1,0 +1,302 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  displayName String
+  avatar      String?
+  bio         String?
+  joinDate    DateTime @default(now())
+  password    String?
+
+  // Social
+  reviews        Review[]
+  likes          Like[]
+  lists          List[]
+  watchlist      WatchlistItem[]
+  diaryEntries   DiaryEntry[]
+  followers      Follow[]        @relation("following")
+  following      Follow[]        @relation("follower")
+  activities     Activity[]
+  favoriteMovies FavoriteMovie[]
+  comments       Comment[]
+  notifications  Notification[]  @relation("notified")
+  sentNotifications Notification[] @relation("actor")
+
+  accounts Account[]
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([username])
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Movie {
+  id          String    @id // TMDB ID as string
+  tmdbId      Int       @unique
+  title       String
+  poster      String?
+  backdrop    String?
+  overview    String?
+  releaseDate DateTime?
+  runtime     Int?
+  genres      Json?     // Array of {id, name}
+  directors   Json?     // Array of {id, name}
+  cast        Json?     // Array of {id, name, character, profile_path}
+  tagline     String?
+  language    String?
+  cachedAt    DateTime  @default(now())
+
+  reviews        Review[]
+  diaryEntries   DiaryEntry[]
+  listItems      ListItem[]
+  activities     Activity[]
+  favorites      FavoriteMovie[]
+  watchlistItems WatchlistItem[]
+
+  @@index([tmdbId])
+  @@index([title])
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  userId      String
+  movieId     String
+  rating      Float?    // 1-10 in 0.5 increments, nullable for watch-only
+  text        String?   @db.Text
+  liked       Boolean   @default(false)
+  hasSpoiler  Boolean   @default(false)
+  watchedDate DateTime?
+  rewatch     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie    Movie     @relation(fields: [movieId], references: [id])
+  likes    Like[]
+  comments Comment[]
+
+  @@unique([userId, movieId])
+  @@index([userId])
+  @@index([movieId])
+  @@index([createdAt])
+  @@index([rating])
+}
+
+model DiaryEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  movieId     String
+  watchedDate DateTime
+  rating      Float?
+  rewatch     Boolean  @default(false)
+  reviewId    String?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id])
+
+  @@index([userId])
+  @@index([watchedDate])
+  @@index([movieId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  reviewId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reviewId])
+  @@index([userId])
+  @@index([reviewId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  reviewId  String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([userId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model List {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?  @db.Text
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ListItem[]
+
+  @@index([userId])
+}
+
+model ListItem {
+  id      String   @id @default(cuid())
+  listId  String
+  movieId String
+  order   Int
+  note    String?  @db.Text
+  addedAt DateTime @default(now())
+
+  list  List  @relation(fields: [listId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id])
+
+  @@unique([listId, movieId])
+  @@index([listId])
+  @@index([order])
+}
+
+model WatchlistItem {
+  id      String   @id @default(cuid())
+  userId  String
+  movieId String
+  addedAt DateTime @default(now())
+  note    String?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id])
+
+  @@unique([userId, movieId])
+  @@index([userId])
+}
+
+model FavoriteMovie {
+  id      String @id @default(cuid())
+  userId  String
+  movieId String
+  order   Int    @default(0)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id])
+
+  @@unique([userId, movieId])
+  @@index([userId])
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  userId    String
+  type      ActivityType
+  movieId   String?
+  reviewId  String?
+  listId    String?
+  metadata  Json?
+  createdAt DateTime     @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie? @relation(fields: [movieId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           // who receives it
+  actorId   String           // who triggered it
+  type      NotificationType
+  reviewId  String?
+  listId    String?
+  movieId   String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user  User @relation("notified", fields: [userId], references: [id], onDelete: Cascade)
+  actor User @relation("actor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum ActivityType {
+  WATCHED
+  REVIEWED
+  LIKED_REVIEW
+  ADDED_TO_LIST
+  CREATED_LIST
+  FOLLOWED_USER
+  ADDED_TO_WATCHLIST
+}
+
+enum NotificationType {
+  NEW_FOLLOWER
+  LIKED_REVIEW
+  COMMENTED_REVIEW
+}
