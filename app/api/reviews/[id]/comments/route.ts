@@ -6,10 +6,17 @@ import { auth } from '@/auth'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
 
-const commentSchema = z.object({
-  text: z.string().min(1).max(500),
-  parentId: z.string().optional(),
-})
+const GIPHY_URL_RE = /^https:\/\/media\d*\.giphy\.com\//
+
+const commentSchema = z
+  .object({
+    text: z.string().max(500).optional(),
+    parentId: z.string().optional(),
+    gifUrl: z.string().regex(GIPHY_URL_RE, 'Invalid GIF URL').optional(),
+  })
+  .refine((d) => (d.text?.trim().length ?? 0) > 0 || !!d.gifUrl, {
+    message: 'Comment must have text or a GIF',
+  })
 
 /** Parse @username mentions from comment text, returning matched usernames. */
 function extractMentions(text: string): string[] {
@@ -45,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
     }
 
-    const { text, parentId } = parsed.data
+    const { text, parentId, gifUrl } = parsed.data
 
     // Validate parentId belongs to the same review
     if (parentId) {
@@ -63,7 +70,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         userId: session.user.id,
         reviewId: params.id,
         parentId: parentId ?? null,
-        text,
+        text: text?.trim() ?? null,
+        gifUrl: gifUrl ?? null,
       },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
@@ -105,7 +113,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // Notify @mentioned users (skip anyone already getting a notification above)
-    const mentionedUsernames = extractMentions(text)
+    const mentionedUsernames = text ? extractMentions(text) : []
     if (mentionedUsernames.length > 0) {
       const mentionedUsers = await prisma.user.findMany({
         where: { username: { in: mentionedUsernames } },

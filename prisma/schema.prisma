@@ -169,7 +169,8 @@ model Comment {
   userId    String
   reviewId  String
   parentId  String?
-  text      String   @db.Text
+  text      String?  @db.Text
+  gifUrl    String?
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

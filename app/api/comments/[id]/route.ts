@@ -27,7 +27,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       // Soft-delete: preserve thread structure, show [deleted] placeholder
       await prisma.comment.update({
         where: { id: params.id },
-        data: { deleted: true, text: '' },
+        data: { deleted: true, text: null, gifUrl: null },
       })
       return NextResponse.json({ deleted: true, softDelete: true })
     } else {

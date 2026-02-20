@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn, getInitials, formatRelativeTime } from '@/lib/utils'
 import Link from 'next/link'
@@ -17,7 +17,8 @@ interface CommentUser {
 
 interface FlatComment {
   id: string
-  text: string
+  text: string | null
+  gifUrl: string | null
   parentId: string | null
   deleted: boolean
   createdAt: string
@@ -26,6 +27,13 @@ interface FlatComment {
 
 interface Comment extends FlatComment {
   replies: Comment[]
+}
+
+interface GiphyResult {
+  id: string
+  title: string
+  previewUrl: string
+  url: string
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -45,7 +53,8 @@ function buildTree(flat: FlatComment[]): Comment[] {
 }
 
 /** Render text with @mention links highlighted in cinema green. */
-function renderText(text: string) {
+function renderText(text: string | null) {
+  if (!text) return null
   const parts = text.split(/(@\w+)/g)
   return parts.map((part, i) => {
     if (/^@\w+$/.test(part)) {
@@ -59,10 +68,87 @@ function renderText(text: string) {
   })
 }
 
+// ─── GifPicker ────────────────────────────────────────────────────────────────
+
+interface GifPickerProps {
+  onSelect: (url: string) => void
+}
+
+function GifPicker({ onSelect }: GifPickerProps) {
+  const [query, setQuery] = useState('')
+  const [gifs, setGifs] = useState<GiphyResult[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const t = setTimeout(
+      async () => {
+        setLoading(true)
+        try {
+          const res = await fetch(`/api/giphy/search?q=${encodeURIComponent(query)}`)
+          const data = await res.json()
+          setGifs(Array.isArray(data) ? data : [])
+        } catch {
+          setGifs([])
+        } finally {
+          setLoading(false)
+        }
+      },
+      query ? 400 : 0,
+    )
+    return () => clearTimeout(t)
+  }, [query])
+
+  return (
+    <div className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded-xl border border-border bg-popover shadow-xl overflow-hidden">
+      <div className="p-2 border-b border-border">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search GIFs…"
+          autoFocus
+          className="w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+      </div>
+      <div className="h-52 overflow-y-auto p-2">
+        {loading ? (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        ) : gifs.length === 0 ? (
+          <p className="text-center text-xs text-muted-foreground py-8">No GIFs found</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-1">
+            {gifs.map((gif) => (
+              <button
+                key={gif.id}
+                type="button"
+                onClick={() => onSelect(gif.url)}
+                className="overflow-hidden rounded-md hover:opacity-75 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={gif.previewUrl}
+                  alt={gif.title}
+                  className="w-full h-20 object-cover"
+                  loading="lazy"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="border-t border-border px-2 py-1 bg-muted/40">
+        <p className="text-[10px] text-muted-foreground text-center tracking-wide">Powered by GIPHY</p>
+      </div>
+    </div>
+  )
+}
+
 // ─── CommentInput ─────────────────────────────────────────────────────────────
 
 interface CommentInputProps {
-  onSubmit: (text: string) => Promise<void>
+  onSubmit: (text: string, gifUrl?: string) => Promise<void>
   placeholder?: string
   autoFocus?: boolean
   compact?: boolean
@@ -73,7 +159,22 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
   const [submitting, setSubmitting] = useState(false)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionResults, setMentionResults] = useState<any[]>([])
+  const [selectedGif, setSelectedGif] = useState<string | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!showPicker) return
+    function handleOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [showPicker])
 
   useEffect(() => {
     if (mentionQuery === null || mentionQuery.length === 0) {
@@ -115,11 +216,12 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
 
   async function handleSubmit() {
     const trimmed = text.trim()
-    if (!trimmed || submitting || text.length > 500) return
+    if ((!trimmed && !selectedGif) || submitting || text.length > 500) return
     setSubmitting(true)
     try {
-      await onSubmit(trimmed)
+      await onSubmit(trimmed, selectedGif ?? undefined)
       setText('')
+      setSelectedGif(null)
       setMentionQuery(null)
       setMentionResults([])
     } finally {
@@ -127,8 +229,10 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
     }
   }
 
+  const canSubmit = (text.trim().length > 0 || !!selectedGif) && !submitting && text.length <= 500
+
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
       {/* @mention dropdown */}
       {mentionResults.length > 0 && (
         <div className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-48 overflow-y-auto rounded-lg border bg-popover shadow-lg">
@@ -148,6 +252,26 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
           ))}
         </div>
       )}
+
+      {/* Selected GIF preview */}
+      {selectedGif && (
+        <div className="mb-2 relative inline-flex">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={selectedGif}
+            alt="Selected GIF"
+            className="h-24 max-w-[180px] rounded-lg object-cover"
+          />
+          <button
+            type="button"
+            onClick={() => setSelectedGif(null)}
+            className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-end gap-2">
         <textarea
           ref={textareaRef}
@@ -164,7 +288,7 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
           autoFocus={autoFocus}
           className={cn(
             'flex-1 min-h-[44px] resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm',
-            'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+            'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
           )}
         />
         <div className="flex flex-col items-end gap-1 shrink-0">
@@ -173,20 +297,47 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
               {text.length}/500
             </span>
           )}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting || !text.trim() || text.length > 500}
-            className="flex h-[44px] w-[44px] items-center justify-center rounded-md bg-cinema-500 hover:bg-cinema-600 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-          >
-            {submitting ? (
-              <Loader2 className="h-4 w-4 text-white animate-spin" />
-            ) : (
-              <Send className="h-4 w-4 text-white" />
-            )}
-          </button>
+          <div className="flex items-center gap-1">
+            {/* GIF picker toggle */}
+            <button
+              type="button"
+              onClick={() => setShowPicker((v) => !v)}
+              className={cn(
+                'flex h-[44px] w-[44px] items-center justify-center rounded-md border text-[11px] font-bold tracking-widest transition-colors',
+                showPicker || selectedGif
+                  ? 'border-cinema-500 bg-cinema-500/10 text-cinema-400'
+                  : 'border-input text-muted-foreground hover:border-cinema-500/50 hover:text-cinema-400',
+              )}
+              aria-label="Insert GIF"
+            >
+              GIF
+            </button>
+            {/* Send */}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="flex h-[44px] w-[44px] items-center justify-center rounded-md bg-cinema-500 hover:bg-cinema-600 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 text-white animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 text-white" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* GIF Picker popover */}
+      {showPicker && (
+        <GifPicker
+          onSelect={(url) => {
+            setSelectedGif(url)
+            setShowPicker(false)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -198,7 +349,7 @@ interface CommentItemProps {
   reviewId: string
   currentUserId?: string
   depth?: number
-  onReply: (parentId: string, text: string) => Promise<void>
+  onReply: (parentId: string, text: string, gifUrl?: string) => Promise<void>
   onDelete: (commentId: string) => Promise<void>
 }
 
@@ -243,7 +394,22 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
                 {formatRelativeTime(new Date(comment.createdAt))}
               </span>
             </div>
-            <p className="text-sm mt-0.5 leading-relaxed break-words">{renderText(comment.text)}</p>
+
+            {/* Text */}
+            {comment.text && (
+              <p className="text-sm mt-0.5 leading-relaxed break-words">{renderText(comment.text)}</p>
+            )}
+
+            {/* Inline GIF */}
+            {comment.gifUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={comment.gifUrl}
+                alt="GIF"
+                className="mt-1.5 max-w-[240px] rounded-lg"
+                loading="lazy"
+              />
+            )}
 
             <div className="flex items-center gap-3 mt-1">
               {currentUserId && depth < 4 && (
@@ -275,8 +441,8 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
               placeholder={`Reply to @${comment.user.username}…`}
               autoFocus
               compact
-              onSubmit={async (text) => {
-                await onReply(comment.id, text)
+              onSubmit={async (text, gifUrl) => {
+                await onReply(comment.id, text, gifUrl)
                 setReplying(false)
                 setShowReplies(true)
               }}
@@ -361,29 +527,35 @@ export function CommentsSection({
   const visibleTopLevel = showAll ? topLevel : topLevel.slice(-2)
   const hiddenCount = topLevel.length - visibleTopLevel.length
 
-  const submitComment = useCallback(async (text: string) => {
-    const res = await fetch(`/api/reviews/${reviewId}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    })
-    if (!res.ok) throw new Error('Failed to post comment')
-    const comment = await res.json()
-    setFlat((prev) => [...prev, { ...comment, deleted: false }])
-    setCount((c) => c + 1)
-  }, [reviewId])
+  const submitComment = useCallback(
+    async (text: string, gifUrl?: string) => {
+      const res = await fetch(`/api/reviews/${reviewId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text || undefined, gifUrl: gifUrl || undefined }),
+      })
+      if (!res.ok) throw new Error('Failed to post comment')
+      const comment = await res.json()
+      setFlat((prev) => [...prev, { ...comment, deleted: false }])
+      setCount((c) => c + 1)
+    },
+    [reviewId],
+  )
 
-  const submitReply = useCallback(async (parentId: string, text: string) => {
-    const res = await fetch(`/api/reviews/${reviewId}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, parentId }),
-    })
-    if (!res.ok) throw new Error('Failed to post reply')
-    const comment = await res.json()
-    setFlat((prev) => [...prev, { ...comment, deleted: false }])
-    setCount((c) => c + 1)
-  }, [reviewId])
+  const submitReply = useCallback(
+    async (parentId: string, text: string, gifUrl?: string) => {
+      const res = await fetch(`/api/reviews/${reviewId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text || undefined, parentId, gifUrl: gifUrl || undefined }),
+      })
+      if (!res.ok) throw new Error('Failed to post reply')
+      const comment = await res.json()
+      setFlat((prev) => [...prev, { ...comment, deleted: false }])
+      setCount((c) => c + 1)
+    },
+    [reviewId],
+  )
 
   const deleteComment = useCallback(async (commentId: string) => {
     const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' })
@@ -391,7 +563,9 @@ export function CommentsSection({
     const data = await res.json()
     if (data.softDelete) {
       // Mark as deleted in local state (thread preserved)
-      setFlat((prev) => prev.map((c) => c.id === commentId ? { ...c, deleted: true, text: '' } : c))
+      setFlat((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, deleted: true, text: null, gifUrl: null } : c)),
+      )
     } else {
       // Hard delete: remove entirely
       setFlat((prev) => prev.filter((c) => c.id !== commentId))
@@ -406,7 +580,7 @@ export function CommentsSection({
         onClick={() => setOpen(!open)}
         className={cn(
           'flex items-center gap-1.5 text-sm transition-colors',
-          open ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+          open ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
         )}
       >
         <MessageSquare className="h-4 w-4" />
