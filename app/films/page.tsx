@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { Metadata } from 'next'
 import { getTrendingMovies, getPopularMovies, TMDB_IMAGE } from '@/lib/tmdb'
 import { MovieCard } from '@/components/movies/MovieCard'
