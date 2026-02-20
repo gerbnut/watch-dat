@@ -42,23 +42,35 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
     })
 
     if (result.following) {
-      // Activity + notification outside transaction (non-critical side effects)
-      await Promise.all([
-        prisma.activity.create({
-          data: {
-            userId: session.user.id,
-            type: 'FOLLOWED_USER',
-            metadata: { targetUserId: target.id, targetUsername: params.username },
-          },
-        }),
-        prisma.notification.create({
-          data: {
-            userId: target.id,
-            actorId: session.user.id,
-            type: 'NEW_FOLLOWER',
-          },
-        }),
-      ])
+      // Guard: only log activity + notification if none already exists for this pair.
+      // Prevents duplicates when a user follows → unfollows → follows again.
+      const alreadyLogged = await prisma.activity.findFirst({
+        where: {
+          userId: session.user.id,
+          type: 'FOLLOWED_USER',
+          metadata: { path: ['targetUserId'], equals: target.id },
+        },
+        select: { id: true },
+      })
+
+      if (!alreadyLogged) {
+        await Promise.all([
+          prisma.activity.create({
+            data: {
+              userId: session.user.id,
+              type: 'FOLLOWED_USER',
+              metadata: { targetUserId: target.id, targetUsername: params.username },
+            },
+          }),
+          prisma.notification.create({
+            data: {
+              userId: target.id,
+              actorId: session.user.id,
+              type: 'NEW_FOLLOWER',
+            },
+          }),
+        ])
+      }
     }
 
     return NextResponse.json(result)

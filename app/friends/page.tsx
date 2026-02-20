@@ -27,15 +27,25 @@ function FollowToggle({
   user: UserResult
   onToggle: (username: string, nowFollowing: boolean) => void
 }) {
+  const [isFollowing, setIsFollowing] = useState(user.isFollowing)
   const [loading, setLoading] = useState(false)
 
+  // Sync local state if parent re-fetches and passes a new value
+  useEffect(() => {
+    setIsFollowing(user.isFollowing)
+  }, [user.isFollowing])
+
   async function toggle() {
+    const next = !isFollowing
+    setIsFollowing(next) // optimistic
     setLoading(true)
     try {
       const res = await fetch(`/api/users/${user.username}/follow`, { method: 'POST' })
       const data = await res.json()
+      setIsFollowing(data.following) // confirm server state
       onToggle(user.username, data.following)
     } catch {
+      setIsFollowing(!next) // revert on error
       toast({ title: 'Error', description: 'Failed to update follow', variant: 'destructive' })
     } finally {
       setLoading(false)
@@ -44,15 +54,13 @@ function FollowToggle({
 
   return (
     <Button
-      variant={user.isFollowing ? 'outline' : 'cinema'}
+      variant={isFollowing ? 'outline' : 'cinema'}
       size="sm"
       onClick={toggle}
       disabled={loading}
       className="shrink-0 gap-1.5"
     >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : user.isFollowing ? (
+      {isFollowing ? (
         <><UserMinus className="h-4 w-4 mr-1" />Unfollow</>
       ) : (
         <><UserPlus className="h-4 w-4 mr-1" />Follow</>
