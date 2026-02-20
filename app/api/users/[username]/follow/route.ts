@@ -20,26 +20,29 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 })
     }
 
-    const existing = await prisma.follow.findUnique({
-      where: {
-        followerId_followingId: {
-          followerId: session.user.id,
-          followingId: target.id,
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: session.user.id,
+            followingId: target.id,
+          },
         },
-      },
-    })
-
-    if (existing) {
-      // Unfollow
-      await prisma.follow.delete({ where: { id: existing.id } })
-      return NextResponse.json({ following: false })
-    } else {
-      // Follow
-      await prisma.follow.create({
-        data: { followerId: session.user.id, followingId: target.id },
       })
 
-      // Activity + notification
+      if (existing) {
+        await tx.follow.delete({ where: { id: existing.id } })
+        return { following: false }
+      } else {
+        await tx.follow.create({
+          data: { followerId: session.user.id, followingId: target.id },
+        })
+        return { following: true }
+      }
+    })
+
+    if (result.following) {
+      // Activity + notification outside transaction (non-critical side effects)
       await Promise.all([
         prisma.activity.create({
           data: {
@@ -56,9 +59,9 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
           },
         }),
       ])
-
-      return NextResponse.json({ following: true })
     }
+
+    return NextResponse.json(result)
   } catch (err) {
     console.error('Follow error:', err)
     return NextResponse.json({ error: 'Failed to toggle follow' }, { status: 500 })
