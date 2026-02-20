@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { getTrendingMovies, getPopularMovies } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'

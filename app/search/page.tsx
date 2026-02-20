@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Search, Film, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,7 @@ import { TMDB_IMAGE } from '@/lib/tmdb'
 
 type Tab = 'films' | 'people'
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const initialQ = searchParams.get('q') ?? ''
@@ -127,5 +127,13 @@ export default function SearchPage() {
         )
       )}
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12 text-muted-foreground"><Loader2 className="h-6 w-6 mx-auto animate-spin" /></div>}>
+      <SearchContent />
+    </Suspense>
   )
 }
