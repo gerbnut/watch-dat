@@ -9,7 +9,6 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
   const cursor = searchParams.get('cursor')
   const year = searchParams.get('year')
   const month = searchParams.get('month')
-  const genre = searchParams.get('genre')
   const limit = 30
 
   try {

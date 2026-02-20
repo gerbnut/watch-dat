@@ -77,16 +77,17 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
       : [],
   ])
 
-  const [watchCount, watchProvidersData] = await Promise.all([
+  const [watchCount, watchProvidersData, watchlistItem] = await Promise.all([
     prisma.diaryEntry.count({ where: { movieId: movie.id } }),
     getWatchProviders(tmdbId).catch(() => null),
+    session?.user?.id
+      ? prisma.watchlistItem.findUnique({
+          where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
+        })
+      : null,
   ])
   const streamingProviders = watchProvidersData?.results?.['US'] ?? null
-  const isOnWatchlist = session?.user?.id
-    ? !!(await prisma.watchlistItem.findUnique({
-        where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
-      }))
-    : false
+  const isOnWatchlist = !!watchlistItem
 
   const backdropUrl = TMDB_IMAGE.backdrop(movie.backdrop, 'w1280')
   const posterUrl = TMDB_IMAGE.poster(movie.poster, 'w500')

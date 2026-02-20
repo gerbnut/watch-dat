@@ -41,15 +41,29 @@ async function getHomeFeed(userId: string) {
   })
 
   const reviewIds = activities.filter((a) => a.reviewId).map((a) => a.reviewId!)
-  const reviews = reviewIds.length
-    ? await prisma.review.findMany({
-        where: { id: { in: reviewIds } },
-        include: { _count: { select: { likes: true, comments: true } } },
-      })
-    : []
+  const [reviews, likedReviewData] = await Promise.all([
+    reviewIds.length
+      ? prisma.review.findMany({
+          where: { id: { in: reviewIds } },
+          include: { _count: { select: { likes: true, comments: true } } },
+        })
+      : [],
+    reviewIds.length
+      ? prisma.like.findMany({
+          where: { userId, reviewId: { in: reviewIds } },
+          select: { reviewId: true },
+        })
+      : [],
+  ])
   const reviewMap = new Map(reviews.map((r) => [r.id, r]))
+  const likedSet = new Set(likedReviewData.map((l) => l.reviewId))
 
-  return activities.map((a) => ({ ...a, review: a.reviewId ? reviewMap.get(a.reviewId) ?? null : null }))
+  return activities.map((a) => ({
+    ...a,
+    review: a.reviewId
+      ? { ...(reviewMap.get(a.reviewId) ?? null), isLiked: likedSet.has(a.reviewId) }
+      : null,
+  }))
 }
 
 export default async function HomePage() {
@@ -147,7 +161,7 @@ export default async function HomePage() {
   }
 
   // Authenticated home — fetch feed + most recent diary entry in parallel
-  const [feed, recentEntry] = await Promise.all([
+  const [feedResult, recentEntryResult] = await Promise.allSettled([
     getHomeFeed(session.user.id),
     prisma.diaryEntry.findFirst({
       where: { userId: session.user.id },
@@ -155,6 +169,8 @@ export default async function HomePage() {
       include: { movie: { select: { tmdbId: true, title: true } } },
     }),
   ])
+  const feed = feedResult.status === 'fulfilled' ? feedResult.value : []
+  const recentEntry = recentEntryResult.status === 'fulfilled' ? recentEntryResult.value : null
 
   // Recommendations: similar films to most recently watched, excluding already-seen
   let recommendations: any[] = []
@@ -167,7 +183,7 @@ export default async function HomePage() {
         prisma.diaryEntry.findMany({
           where: { userId: session.user.id },
           select: { movie: { select: { tmdbId: true } } },
-          take: 500,
+          take: 100,
         }),
       ])
       const watchedSet = new Set(watched.map((e) => e.movie.tmdbId))
