@@ -4,11 +4,12 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, ArrowRight, Film, Clock, Star, RotateCcw, Calendar } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Film, Clock, Star, RotateCcw, Calendar, Clapperboard } from 'lucide-react'
 import { MonthlyChart } from '@/components/stats/MonthlyChart'
 import { GenreChart } from '@/components/stats/GenreChart'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { formatDate } from '@/lib/utils'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 export async function generateMetadata({ params }: { params: { username: string; year: string } }): Promise<Metadata> {
   return { title: `${params.year} Wrapped · @${params.username}` }
@@ -44,6 +45,7 @@ export default async function YearWrappedPage({
     // Check adjacent years have data
     prevYearCount,
     nextYearCount,
+    topDirectorResult,
   ] = await Promise.all([
     prisma.diaryEntry.count({
       where: { userId: user.id, watchedDate: { gte: yearStart, lte: yearEnd } },
@@ -125,6 +127,20 @@ export default async function YearWrappedPage({
         },
       },
     }),
+    prisma.$queryRaw<{ director_name: string; count: bigint }[]>`
+      SELECT
+        director->>'name' as director_name,
+        COUNT(*)::int as count
+      FROM "DiaryEntry" de
+      JOIN "Movie" m ON de."movieId" = m.id
+      CROSS JOIN LATERAL jsonb_array_elements(m.directors::jsonb) as director
+      WHERE de."userId" = ${user.id}
+        AND de."watchedDate" >= ${yearStart}
+        AND de."watchedDate" <= ${yearEnd}
+      GROUP BY director->>'name'
+      ORDER BY count DESC
+      LIMIT 1
+    `,
   ])
 
   if (yearCount === 0) notFound()
@@ -135,6 +151,7 @@ export default async function YearWrappedPage({
 
   const monthlyData = monthlyStats.map((m) => ({ month: Number(m.month), count: Number(m.count) }))
   const genreData = genreStats.map((g) => ({ genre_name: g.genre_name, count: Number(g.count) }))
+  const topDirector = topDirectorResult[0] ?? null
 
   const peakMonth = monthlyData.reduce((a, b) => (a.count >= b.count ? a : b), { month: 0, count: 0 })
   const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -152,6 +169,11 @@ export default async function YearWrappedPage({
           All stats
         </Link>
         <div className="flex items-center gap-3">
+          <ShareButton
+            url={`/user/${user.username}/year/${year}`}
+            title={`${user.displayName}'s ${year} in film — Watch Dat`}
+            text={`${yearCount} films watched in ${year}`}
+          />
           {prevYearCount > 0 && (
             <Link
               href={`/user/${user.username}/year/${year - 1}`}
@@ -192,10 +214,10 @@ export default async function YearWrappedPage({
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { icon: Film,       label: 'Films',     value: yearCount.toLocaleString() },
-          { icon: Clock,      label: 'Hours',     value: totalHours > 0 ? totalHours.toLocaleString() : '—' },
+          { icon: Film,       label: 'Films',      value: yearCount.toLocaleString() },
+          { icon: Clock,      label: 'Hours',      value: totalHours > 0 ? totalHours.toLocaleString() : '—' },
           { icon: Star,       label: 'Avg rating', value: avgRating ? avgRating.toFixed(1) : '—' },
-          { icon: RotateCcw,  label: 'Rewatches', value: rewatchCount.toLocaleString() },
+          { icon: RotateCcw,  label: 'Rewatches',  value: rewatchCount.toLocaleString() },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="rounded-xl border bg-card p-4 text-center space-y-1.5">
             <Icon className="h-4 w-4 mx-auto text-cinema-400" />
@@ -204,6 +226,20 @@ export default async function YearWrappedPage({
           </div>
         ))}
       </div>
+
+      {/* Top director highlight */}
+      {topDirector && Number(topDirector.count) > 1 && (
+        <div className="rounded-xl border bg-card p-5 flex items-center gap-4">
+          <div className="rounded-full bg-cinema-500/10 p-3 shrink-0">
+            <Clapperboard className="h-5 w-5 text-cinema-400" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Most-watched director</p>
+            <p className="text-lg font-bold">{topDirector.director_name}</p>
+            <p className="text-sm text-muted-foreground">{String(topDirector.count)} films</p>
+          </div>
+        </div>
+      )}
 
       {/* Monthly activity */}
       <div className="rounded-xl border bg-card p-5 space-y-4">
