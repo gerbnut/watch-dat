@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Heart, Flag, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { CommentsSection } from './CommentsSection'
 import { LogFilmModal } from './LogFilmModal'
+import { ReportModal } from '@/components/ui/ReportModal'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +34,7 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
   const [editOpen, setEditOpen] = useState(false)
 
   const isOwner = currentUserId === review.user.id
+  const [reportOpen, setReportOpen] = useState(false)
 
   async function handleLike() {
     if (!currentUserId) {
@@ -87,29 +89,39 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
 
         <div className="flex items-center gap-2">
           {review.rating && <StarRating value={review.rating} readOnly size="sm" />}
-          {isOwner && (
-            <div className="relative">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowMenu(!showMenu)}>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-              {showMenu && (
-                <div className="absolute right-0 top-full z-10 mt-1 w-32 rounded-md border bg-popover shadow-lg">
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowMenu(!showMenu)}>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+            {showMenu && (
+              <div className="absolute right-0 top-full z-10 mt-1 w-36 rounded-md border bg-popover shadow-lg py-1" onMouseLeave={() => setShowMenu(false)}>
+                {isOwner && (
+                  <>
+                    <button
+                      onClick={() => { setShowMenu(false); setEditOpen(true) }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => { setShowMenu(false); onDelete?.(review.id) }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete
+                    </button>
+                  </>
+                )}
+                {!isOwner && currentUserId && (
                   <button
-                    onClick={() => { setShowMenu(false); setEditOpen(true) }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
+                    onClick={() => { setShowMenu(false); setReportOpen(true) }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
+                    <Flag className="h-3.5 w-3.5" /> Report
                   </button>
-                  <button
-                    onClick={() => { setShowMenu(false); onDelete?.(review.id) }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -230,6 +242,13 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
         onSuccess={() => setEditOpen(false)}
       />
     )}
+    <ReportModal
+      open={reportOpen}
+      onClose={() => setReportOpen(false)}
+      targetType="REVIEW"
+      targetId={review.id}
+      targetLabel={review.movie?.title}
+    />
   </>
   )
 }

@@ -14,9 +14,11 @@ import { MovieCard } from '@/components/movies/MovieCard'
 import { ListCard } from '@/components/lists/ListCard'
 import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { FollowButtonClient } from './FollowButtonClient'
+import { BlockButtonClient } from './BlockButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { BannerSection } from './BannerSection'
 import { ShareButton } from '@/components/ui/ShareButton'
+import { ReportButton } from '@/components/ui/ReportButton'
 
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const user = await prisma.user.findUnique({
@@ -53,11 +55,18 @@ export default async function UserProfilePage({ params }: { params: { username: 
   if (!user) notFound()
 
   const isOwnProfile = session?.user?.id === user.id
-  const isFollowing = session?.user?.id && !isOwnProfile
-    ? !!(await prisma.follow.findUnique({
-        where: { followerId_followingId: { followerId: session.user.id, followingId: user.id } },
-      }))
-    : false
+  const [isFollowing, isBlocked] = await Promise.all([
+    session?.user?.id && !isOwnProfile
+      ? prisma.follow.findUnique({
+          where: { followerId_followingId: { followerId: session.user.id, followingId: user.id } },
+        }).then(Boolean)
+      : false,
+    session?.user?.id && !isOwnProfile
+      ? prisma.block.findUnique({
+          where: { blockerId_blockedId: { blockerId: session.user.id, blockedId: user.id } },
+        }).then(Boolean)
+      : false,
+  ])
 
   const [recentReviews, recentLists, recentActivities] = await Promise.all([
     prisma.review.findMany({
@@ -135,10 +144,14 @@ export default async function UserProfilePage({ params }: { params: { username: 
                   </button>
                 </Link>
               ) : session?.user && (
-                <FollowButtonClient
-                  username={user.username}
-                  isFollowing={isFollowing}
-                />
+                <>
+                  <FollowButtonClient
+                    username={user.username}
+                    isFollowing={!!isFollowing}
+                  />
+                  <BlockButtonClient username={user.username} isBlocked={!!isBlocked} />
+                  <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
+                </>
               )}
             </div>
           </div>
