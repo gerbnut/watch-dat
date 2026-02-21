@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import { Film, Loader2, Eye, EyeOff, Check, X } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Check, X } from 'lucide-react'
+import { WatchDatLogoMark } from '@/components/layout/WatchDatLogo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/hooks/use-toast'
@@ -83,8 +84,8 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-sm pt-12 pb-20">
       <div className="mb-8 text-center space-y-2">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cinema-500 mb-3">
-          <Film className="h-6 w-6 text-white" />
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cinema-950 border border-cinema-800/60 mb-3">
+          <WatchDatLogoMark className="text-cinema-400" size={30} />
         </div>
         <h1 className="text-2xl font-bold">Join Watch Dat</h1>
         <p className="text-muted-foreground text-sm">Start your digital film diary</p>

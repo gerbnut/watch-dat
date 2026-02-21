@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 
 import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark, Users } from 'lucide-react'
+import { WatchDatLogoMark } from './WatchDatLogo'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -69,15 +70,7 @@ export function Navbar() {
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            {/* Eye with film-frame viewfinder mark */}
-            <svg width="28" height="20" viewBox="0 0 28 20" fill="none" className="text-cinema-400 shrink-0 transition-opacity group-hover:opacity-80">
-              {/* Eye outline */}
-              <path d="M1.5 10 C5 4 23 4 26.5 10 C23 16 5 16 1.5 10 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
-              {/* Film-frame viewfinder corners (pupil) */}
-              <path d="M8.5 8 L8.5 6 L10.5 6 M17.5 6 L19.5 6 L19.5 8 M19.5 12 L19.5 14 L17.5 14 M10.5 14 L8.5 14 L8.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              {/* Iris dot */}
-              <circle cx="14" cy="10" r="1.4" fill="currentColor"/>
-            </svg>
+            <WatchDatLogoMark className="text-cinema-400 shrink-0 transition-opacity group-hover:opacity-80" />
             <span className="hidden sm:block font-black tracking-[0.12em] uppercase text-[14px] leading-none">
               WATCH<span className="text-cinema-400">DAT</span>
             </span>
