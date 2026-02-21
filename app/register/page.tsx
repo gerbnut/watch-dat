@@ -71,7 +71,7 @@ export default function RegisterPage() {
       })
 
       if (result?.ok) {
-        router.push('/')
+        router.push('/onboarding')
         router.refresh()
       }
     } catch {
