@@ -8,6 +8,7 @@ import { getSimilarMovies, TMDB_IMAGE } from '@/lib/tmdb'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Film, TrendingUp, Star, Users, Sparkles } from 'lucide-react'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 async function getTrendingFromTMDB() {
   try {
@@ -152,7 +153,9 @@ export default async function HomePage() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Main feed with tabs */}
       <div className="lg:col-span-2">
-        <FeedTabs currentUserId={session.user.id} />
+        <ErrorBoundary label="feed">
+          <FeedTabs currentUserId={session.user.id} />
+        </ErrorBoundary>
       </div>
 
       {/* Sidebar */}
