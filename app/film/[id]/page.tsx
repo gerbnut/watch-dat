@@ -23,9 +23,26 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   if (isNaN(tmdbId)) return { title: 'Film Not Found' }
   try {
     const movie = await getOrCacheMovie(tmdbId)
+    const year = getYearFromDate(movie.releaseDate)
+    const pageTitle = year ? `${movie.title} (${year})` : movie.title
+    const description = movie.overview ?? 'Track, rate, and review this film on Watch Dat.'
+    const posterUrl = TMDB_IMAGE.poster(movie.poster, 'w500')
+    const images = posterUrl ? [{ url: posterUrl, width: 500, height: 750, alt: movie.title }] : []
     return {
-      title: `${movie.title} (${getYearFromDate(movie.releaseDate)})`,
-      description: movie.overview ?? undefined,
+      title: pageTitle,
+      description,
+      openGraph: {
+        title: `${pageTitle} — Watch Dat`,
+        description,
+        images,
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${pageTitle} — Watch Dat`,
+        description: movie.overview?.slice(0, 200) ?? undefined,
+        images: posterUrl ? [posterUrl] : [],
+      },
     }
   } catch {
     return { title: 'Film' }

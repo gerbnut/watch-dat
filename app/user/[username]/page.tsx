@@ -23,10 +23,32 @@ import { ReportButton } from '@/components/ui/ReportButton'
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const user = await prisma.user.findUnique({
     where: { username: params.username.toLowerCase() },
-    select: { displayName: true, username: true },
+    select: {
+      displayName: true,
+      username: true,
+      bio: true,
+      _count: { select: { reviews: true, diaryEntries: true } },
+    },
   })
   if (!user) return { title: 'User Not Found' }
-  return { title: `${user.displayName} (@${user.username})` }
+  const pageTitle = `${user.displayName} (@${user.username})`
+  const description =
+    user.bio ??
+    `${user.displayName} has logged ${user._count.diaryEntries} film${user._count.diaryEntries === 1 ? '' : 's'} and written ${user._count.reviews} review${user._count.reviews === 1 ? '' : 's'} on Watch Dat.`
+  return {
+    title: pageTitle,
+    description,
+    openGraph: {
+      title: `${pageTitle} — Watch Dat`,
+      description,
+      type: 'profile',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${pageTitle} — Watch Dat`,
+      description,
+    },
+  }
 }
 
 export default async function UserProfilePage({ params }: { params: { username: string } }) {

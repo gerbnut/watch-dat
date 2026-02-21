@@ -14,11 +14,32 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     where: { id: params.id },
     include: {
       user: { select: { displayName: true } },
-      movie: { select: { title: true } },
+      movie: { select: { title: true, poster: true } },
     },
   })
   if (!review) return { title: 'Review' }
-  return { title: `${review.user.displayName}'s review of ${review.movie.title}` }
+  const pageTitle = `${review.user.displayName}'s review of ${review.movie.title}`
+  const description =
+    review.text?.slice(0, 200) ??
+    `${review.user.displayName} reviewed ${review.movie.title} on Watch Dat.`
+  const posterUrl = TMDB_IMAGE.poster((review.movie as any).poster ?? null, 'w500')
+  const images = posterUrl ? [{ url: posterUrl, width: 500, height: 750, alt: review.movie.title }] : []
+  return {
+    title: pageTitle,
+    description,
+    openGraph: {
+      title: `${pageTitle} — Watch Dat`,
+      description,
+      images,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${pageTitle} — Watch Dat`,
+      description: description.slice(0, 200),
+      images: posterUrl ? [posterUrl] : [],
+    },
+  }
 }
 
 export default async function ReviewDetailPage({ params }: { params: { id: string } }) {
