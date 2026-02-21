@@ -117,10 +117,24 @@
 
 /* Page transition wrapper */
 .page-content {
-  animation: page-enter 0.25s ease-out;
+  animation: page-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Navigation progress bar */
+.nav-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: hsl(140 65% 45%);
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 0 8px hsl(140 65% 45% / 0.6);
+  opacity: 0;
 }
