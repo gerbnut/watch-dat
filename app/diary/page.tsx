@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { formatDate, cn } from '@/lib/utils'
 import { StarRating } from '@/components/movies/StarRating'
+import { Button } from '@/components/ui/button'
 import { CalendarDays, RefreshCw, Heart } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Film Diary' }
@@ -68,10 +69,15 @@ export default async function DiaryPage() {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center space-y-3">
+        <div className="rounded-xl border bg-card p-12 text-center space-y-4">
           <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/40" />
-          <p className="font-medium">Your diary is empty</p>
-          <p className="text-sm text-muted-foreground">Start logging films to build your diary</p>
+          <div className="space-y-1.5">
+            <p className="font-medium">Your diary is empty</p>
+            <p className="text-sm text-muted-foreground">Every film you log appears here, organised by month</p>
+          </div>
+          <Link href="/films">
+            <Button variant="cinema" size="sm">Browse films to log</Button>
+          </Link>
         </div>
       ) : (
         <div className="space-y-8">

@@ -190,7 +190,7 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
               <>
                 <p className="font-medium">Nothing here yet</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Check back later for popular reviews
+                  Popular reviews from the community will appear here
                 </p>
               </>
             )}

@@ -60,7 +60,12 @@ export default async function NotificationsPage() {
       {notifications.length === 0 ? (
         <div className="rounded-xl border bg-card p-12 text-center space-y-3">
           <Bell className="h-10 w-10 mx-auto text-muted-foreground/40" />
-          <p className="font-medium">No notifications yet</p>
+          <div className="space-y-1.5">
+            <p className="font-medium">No notifications yet</p>
+            <p className="text-sm text-muted-foreground">
+              You'll get notified when someone follows you, likes a review, or leaves a comment
+            </p>
+          </div>
         </div>
       ) : (
         <div className="rounded-xl border bg-card divide-y divide-border">

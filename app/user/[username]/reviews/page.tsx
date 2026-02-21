@@ -59,7 +59,14 @@ export default async function UserReviewsPage({ params }: { params: { username: 
       {reviews.length === 0 ? (
         <div className="rounded-xl border bg-card p-12 text-center space-y-3">
           <BookOpen className="h-10 w-10 mx-auto text-muted-foreground/40" />
-          <p className="font-medium">No reviews yet</p>
+          <div className="space-y-1.5">
+            <p className="font-medium">No reviews yet</p>
+            <p className="text-sm text-muted-foreground">
+              {session?.user?.username === user.username
+                ? 'Log a film and write your first review'
+                : `${user.displayName} hasn't written any reviews yet`}
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
