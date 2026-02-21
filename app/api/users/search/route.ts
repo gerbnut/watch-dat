@@ -3,8 +3,18 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
+import { rateLimit, getIp } from '@/lib/rateLimit'
 
 export async function GET(req: NextRequest) {
+  const { allowed, headers } = rateLimit({
+    key: `ip:${getIp(req)}:user-search`,
+    limit: 30,
+    windowSec: 60,
+  })
+  if (!allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers })
+  }
+
   const { searchParams } = req.nextUrl
   const query = searchParams.get('q') ?? ''
 

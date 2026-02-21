@@ -2,8 +2,18 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { searchMovies } from '@/lib/tmdb'
+import { rateLimit, getIp } from '@/lib/rateLimit'
 
 export async function GET(req: NextRequest) {
+  const { allowed, headers } = rateLimit({
+    key: `ip:${getIp(req)}:movie-search`,
+    limit: 60,
+    windowSec: 60,
+  })
+  if (!allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers })
+  }
+
   const { searchParams } = req.nextUrl
   const query = searchParams.get('q')
   const page = Number(searchParams.get('page') ?? '1')

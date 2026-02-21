@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
+import { rateLimit, getIp } from '@/lib/rateLimit'
 
 const ALLOWED_FIELDS = ['avatar', 'bannerUrl'] as const
 type AllowedField = typeof ALLOWED_FIELDS[number]
@@ -11,6 +12,15 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { allowed, headers } = rateLimit({
+    key: `user:${session.user.id}:upload`,
+    limit: 10,
+    windowSec: 600, // 10 uploads per 10 minutes per user
+  })
+  if (!allowed) {
+    return NextResponse.json({ error: 'Too many uploads. Please wait.' }, { status: 429, headers })
   }
 
   // Determine which DB field to write — defaults to 'avatar' for backward compat
