@@ -264,9 +264,9 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
 
   return (
     <div ref={wrapperRef} className="relative">
-      {/* @mention dropdown */}
+      {/* @mention dropdown — above the textarea, capped to 35dvh so it stays inside the viewport above the keyboard */}
       {mentionResults.length > 0 && (
-        <div className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-48 overflow-y-auto rounded-lg border bg-popover shadow-lg">
+        <div className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-[35dvh] overflow-y-auto rounded-lg border bg-popover shadow-lg">
           {mentionResults.map((u: any) => (
             <button
               key={u.id}
