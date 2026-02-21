@@ -14,6 +14,7 @@ import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogFilmButtonClient } from './LogFilmButtonClient'
 import { WatchlistButtonClient } from './WatchlistButtonClient'
+import { RecommendButtonClient } from './RecommendButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { ShareButton } from '@/components/ui/ShareButton'
 
@@ -207,6 +208,7 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
               isLogged={!!userReview}
             />
             <WatchlistButtonClient tmdbId={tmdbId} isOnWatchlist={isOnWatchlist} />
+            <RecommendButtonClient tmdbId={tmdbId} title={movie.title} />
             <ShareButton
               url={`/film/${tmdbId}`}
               title={`${movie.title} — Watch Dat`}

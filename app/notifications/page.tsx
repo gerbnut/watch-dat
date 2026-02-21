@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { Metadata } from 'next'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Bell, Heart, UserPlus, MessageSquare, AtSign } from 'lucide-react'
+import { Bell, Heart, UserPlus, MessageSquare, AtSign, Send } from 'lucide-react'
 import Link from 'next/link'
 import { formatRelativeTime, getInitials, cn } from '@/lib/utils'
 import { MarkReadClient } from './MarkReadClient'
@@ -16,6 +16,7 @@ const ICONS = {
   COMMENTED_REVIEW: MessageSquare,
   REPLIED_COMMENT: MessageSquare,
   MENTION: AtSign,
+  RECOMMENDED_MOVIE: Send,
 }
 
 const LABELS: Record<string, string> = {
@@ -24,6 +25,7 @@ const LABELS: Record<string, string> = {
   COMMENTED_REVIEW: 'commented on your review',
   REPLIED_COMMENT: 'replied to your comment',
   MENTION: 'mentioned you',
+  RECOMMENDED_MOVIE: 'recommended a film to you',
 }
 
 export default async function NotificationsPage() {
@@ -37,6 +39,7 @@ export default async function NotificationsPage() {
       review: {
         include: { movie: { select: { title: true, tmdbId: true } } },
       },
+      movie: { select: { title: true, tmdbId: true } },
     },
     orderBy: { createdAt: 'desc' },
     take: 50,
@@ -47,6 +50,7 @@ export default async function NotificationsPage() {
   function notificationHref(n: (typeof notifications)[0]): string {
     if (n.reviewId) return `/review/${n.reviewId}`
     if (n.type === 'NEW_FOLLOWER') return `/user/${n.actor.username}`
+    if (n.type === 'RECOMMENDED_MOVIE' && n.movie?.tmdbId) return `/film/${n.movie.tmdbId}`
     return '#'
   }
 
@@ -90,6 +94,9 @@ export default async function NotificationsPage() {
                     {' '}{label}
                     {n.review?.movie && (
                       <span className="text-muted-foreground"> of <span className="text-foreground font-medium">{n.review.movie.title}</span></span>
+                    )}
+                    {n.type === 'RECOMMENDED_MOVIE' && n.movie && (
+                      <span className="text-muted-foreground">: <span className="text-foreground font-medium">{n.movie.title}</span></span>
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{formatRelativeTime(n.createdAt)}</p>

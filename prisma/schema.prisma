@@ -34,6 +34,8 @@ model User {
   comments       Comment[]
   notifications  Notification[]  @relation("notified")
   sentNotifications Notification[] @relation("actor")
+  sentRecommendations     Recommendation[] @relation("sent_recs")
+  receivedRecommendations Recommendation[] @relation("received_recs")
 
   accounts Account[]
   sessions Session[]
@@ -96,12 +98,14 @@ model Movie {
   language    String?
   cachedAt    DateTime  @default(now())
 
-  reviews        Review[]
-  diaryEntries   DiaryEntry[]
-  listItems      ListItem[]
-  activities     Activity[]
-  favorites      FavoriteMovie[]
-  watchlistItems WatchlistItem[]
+  reviews          Review[]
+  diaryEntries     DiaryEntry[]
+  listItems        ListItem[]
+  activities       Activity[]
+  favorites        FavoriteMovie[]
+  watchlistItems   WatchlistItem[]
+  recommendations  Recommendation[]
+  notifications    Notification[]
 
   @@index([tmdbId])
   @@index([title])
@@ -259,6 +263,24 @@ model FavoriteMovie {
   @@index([userId])
 }
 
+model Recommendation {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  movieId     String
+  message     String?  @db.Text
+  seen        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  sender    User  @relation("sent_recs", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User  @relation("received_recs", fields: [recipientId], references: [id], onDelete: Cascade)
+  movie     Movie @relation(fields: [movieId], references: [id])
+
+  @@unique([senderId, recipientId, movieId])
+  @@index([recipientId, seen])
+  @@index([senderId])
+}
+
 model Activity {
   id        String       @id @default(cuid())
   userId    String
@@ -292,6 +314,7 @@ model Notification {
   actor   User     @relation("actor", fields: [actorId], references: [id], onDelete: Cascade)
   review  Review?  @relation(fields: [reviewId], references: [id], onDelete: SetNull)
   comment Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([userId, read])
@@ -314,4 +337,5 @@ enum NotificationType {
   COMMENTED_REVIEW
   REPLIED_COMMENT
   MENTION
+  RECOMMENDED_MOVIE
 }
