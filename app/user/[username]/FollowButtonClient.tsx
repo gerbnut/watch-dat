@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { UserPlus, UserMinus } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
@@ -36,12 +37,33 @@ export function FollowButtonClient({ username, isFollowing: initial }: FollowBut
       size="sm"
       onClick={toggle}
       disabled={loading}
+      className="overflow-hidden min-w-[88px]"
     >
-      {isFollowing ? (
-        <><UserMinus className="h-4 w-4" /> Unfollow</>
-      ) : (
-        <><UserPlus className="h-4 w-4" /> Follow</>
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {isFollowing ? (
+          <motion.span
+            key="following"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.14 }}
+            className="flex items-center gap-1.5"
+          >
+            <UserMinus className="h-4 w-4" /> Unfollow
+          </motion.span>
+        ) : (
+          <motion.span
+            key="follow"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.14 }}
+            className="flex items-center gap-1.5"
+          >
+            <UserPlus className="h-4 w-4" /> Follow
+          </motion.span>
+        )}
+      </AnimatePresence>
     </Button>
   )
 }

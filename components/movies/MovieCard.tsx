@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { TMDB_IMAGE } from '@/lib/tmdb'
@@ -45,23 +45,31 @@ export function MovieCard({
   const posterUrl = TMDB_IMAGE.poster(poster, 'w342')
   const year = getYearFromDate(releaseDate ?? null)
   const { card, img, title: titleSize } = SIZES[size]
+  const [imgLoaded, setImgLoaded] = useState(false)
 
   const content = (
     <div className={cn('group flex flex-col gap-1.5', card, className)}>
       <div
         className={cn(
-          'relative overflow-hidden rounded-md bg-muted transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-glow-green',
+          'relative overflow-hidden rounded-md bg-muted transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-glow-green active:scale-[0.97]',
           img
         )}
       >
         {posterUrl ? (
-          <Image
-            src={posterUrl}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 30vw, 200px"
-          />
+          <>
+            <Image
+              src={posterUrl}
+              alt={title}
+              fill
+              className={cn(
+                'object-cover transition-opacity duration-300',
+                imgLoaded ? 'opacity-100' : 'opacity-0',
+              )}
+              sizes="(max-width: 768px) 30vw, 200px"
+              onLoad={() => setImgLoaded(true)}
+            />
+            {!imgLoaded && <div className="absolute inset-0 skeleton" />}
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted">
             <Film className="h-8 w-8 text-muted-foreground/40" />

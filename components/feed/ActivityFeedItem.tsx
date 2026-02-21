@@ -3,10 +3,12 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { Eye, Star, Heart, BookOpen, List, UserPlus, Bookmark, MessageSquare, Share2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StarRating } from '@/components/movies/StarRating'
 import { CommentsSection } from '@/components/reviews/CommentsSection'
+import { AnimatedLikeButton } from '@/components/ui/AnimatedLikeButton'
 import { formatRelativeTime, getInitials, cn } from '@/lib/utils'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import type { ActivityWithRelations } from '@/types'
@@ -40,6 +42,7 @@ interface ActivityFeedItemProps {
 export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemProps) {
   const label = ACTIVITY_LABELS[activity.type] ?? activity.type
   const posterUrl = activity.movie?.poster ? TMDB_IMAGE.poster(activity.movie.poster, 'w185') : null
+  const [imgLoaded, setImgLoaded] = useState(false)
 
   const [likeCount, setLikeCount] = useState<number>(activity.review?._count?.likes ?? 0)
   const [isLiked, setIsLiked] = useState<boolean>(activity.review?.isLiked ?? false)
@@ -58,7 +61,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
     setLiking(true)
     const newLiked = !isLiked
     setIsLiked(newLiked)
-    setLikeCount((c) => newLiked ? c + 1 : c - 1)
+    setLikeCount((c) => (newLiked ? c + 1 : c - 1))
     try {
       const res = await fetch(`/api/reviews/${activity.review.id}/like`, { method: 'POST' })
       const data = await res.json()
@@ -66,22 +69,26 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
       setLikeCount(data.likeCount)
     } catch {
       setIsLiked(!newLiked)
-      setLikeCount((c) => !newLiked ? c + 1 : c - 1)
+      setLikeCount((c) => (!newLiked ? c + 1 : c - 1))
     } finally {
       setLiking(false)
     }
   }
 
-  async function handleShare() {
+  async function handleShare(e: React.MouseEvent) {
+    e.preventDefault()
     if (!activity.review?.id) return
     const url = `${window.location.origin}/review/${activity.review.id}`
     try {
-      await navigator.clipboard.writeText(url)
-      const { toast } = await import('@/hooks/use-toast')
-      toast({ title: 'Link copied!' })
+      if (navigator.share) {
+        await navigator.share({ title: 'Watch Dat review', url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        const { toast } = await import('@/hooks/use-toast')
+        toast({ title: 'Link copied!' })
+      }
     } catch {
-      // fallback: open in new tab
-      window.open(url, '_blank')
+      // dismissed share sheet — ignore
     }
   }
 
@@ -89,18 +96,23 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
   const commentCount: number = activity.review?._count?.comments ?? 0
 
   return (
-    <div className="py-4 border-b border-border last:border-0 animate-fade-in">
+    <div className="py-4 border-b border-border/60 last:border-0">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Link href={`/user/${activity.user.username}`} className="shrink-0">
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-9 w-9 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
               <AvatarImage src={activity.user.avatar ?? undefined} />
-              <AvatarFallback className="text-xs">{getInitials(activity.user.displayName)}</AvatarFallback>
+              <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
+                {getInitials(activity.user.displayName)}
+              </AvatarFallback>
             </Avatar>
           </Link>
           <p className="text-sm leading-snug min-w-0">
-            <Link href={`/user/${activity.user.username}`} className="font-semibold hover:underline">
+            <Link
+              href={`/user/${activity.user.username}`}
+              className="font-semibold hover:text-cinema-400 transition-colors"
+            >
               {activity.user.displayName}
             </Link>
             {' '}
@@ -108,7 +120,10 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
             {activity.movie && (
               <>
                 {' '}
-                <Link href={`/film/${activity.movie.tmdbId}`} className="font-medium hover:underline">
+                <Link
+                  href={`/film/${activity.movie.tmdbId}`}
+                  className="font-medium hover:text-cinema-400 transition-colors"
+                >
                   {activity.movie.title}
                 </Link>
               </>
@@ -118,7 +133,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
                 {' '}
                 <Link
                   href={`/user/${(activity.metadata as any).targetUsername}`}
-                  className="font-medium hover:underline"
+                  className="font-medium hover:text-cinema-400 transition-colors"
                 >
                   {(activity.metadata as any).targetUsername}
                 </Link>
@@ -126,29 +141,47 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
             )}
           </p>
         </div>
-        <span className="text-xs text-muted-foreground shrink-0">{formatRelativeTime(activity.createdAt)}</span>
+        <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
+          {formatRelativeTime(activity.createdAt)}
+        </span>
       </div>
 
-      {/* Review card — rich layout with poster */}
+      {/* Review card — tappable on mobile, rich on desktop */}
       {hasReview && (
-        <div className="rounded-md border bg-card overflow-hidden">
-          <div className="flex gap-3 p-3">
-            {/* Movie poster */}
+        <div className="relative rounded-xl border bg-card overflow-hidden group hover:border-border/80 transition-colors">
+          {/* Full-card tap target — goes to review page */}
+          <Link
+            href={`/review/${activity.review.id}`}
+            className="absolute inset-0 z-0"
+            aria-label={`View review of ${activity.movie?.title ?? 'film'}`}
+            tabIndex={-1}
+          />
+
+          {/* Review content */}
+          <div className="relative z-10 flex gap-3 p-3 pointer-events-none">
             {posterUrl && activity.movie && (
-              <Link href={`/film/${activity.movie.tmdbId}`} className="shrink-0">
-                <div className="relative w-[56px] h-[84px] overflow-hidden rounded bg-muted hover:opacity-80 transition-opacity">
+              <Link
+                href={`/film/${activity.movie.tmdbId}`}
+                className="shrink-0 pointer-events-auto"
+                tabIndex={-1}
+              >
+                <div className="relative w-[52px] h-[78px] rounded-md overflow-hidden bg-muted">
                   <Image
                     src={posterUrl}
                     alt={activity.movie.title}
                     fill
-                    className="object-cover"
-                    sizes="56px"
+                    className={cn(
+                      'object-cover transition-opacity duration-300',
+                      imgLoaded ? 'opacity-100' : 'opacity-0',
+                    )}
+                    sizes="52px"
+                    onLoad={() => setImgLoaded(true)}
                   />
+                  {!imgLoaded && <div className="absolute inset-0 skeleton" />}
                 </div>
               </Link>
             )}
 
-            {/* Review content */}
             <div className="flex-1 min-w-0 space-y-1.5">
               {activity.review.rating && (
                 <StarRating value={activity.review.rating} readOnly size="sm" showValue />
@@ -169,25 +202,19 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
             </div>
           </div>
 
-          {/* Action bar */}
-          <div className="flex items-center gap-4 px-3 py-2 border-t border-border/60">
-            <button
+          {/* Action bar — always interactive (z-20 above the tap overlay) */}
+          <div className="relative z-20 flex items-center gap-1 px-3 py-2 border-t border-border/50">
+            <AnimatedLikeButton
+              isLiked={isLiked}
+              likeCount={likeCount}
               onClick={handleLike}
               disabled={liking}
-              className={cn(
-                'flex items-center gap-1.5 text-sm transition-all',
-                isLiked ? 'text-cinema-400' : 'text-muted-foreground hover:text-cinema-400',
-                liking && 'scale-110'
-              )}
-            >
-              <Heart className={cn('h-4 w-4 transition-transform duration-200', isLiked && 'fill-current', liking && 'scale-125')} />
-              {likeCount > 0 && <span>{likeCount}</span>}
-            </button>
+            />
 
             <button
               onClick={() => setCommentsOpen((v) => !v)}
               className={cn(
-                'flex items-center gap-1.5 text-sm transition-colors',
+                'flex items-center gap-1.5 text-sm transition-colors ml-1 touch-manipulation',
                 commentsOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
               )}
             >
@@ -197,16 +224,16 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
 
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors ml-auto touch-manipulation"
             >
               <Share2 className="h-3.5 w-3.5" />
-              <span className="text-xs">Share</span>
+              <span className="text-xs hidden sm:inline">Share</span>
             </button>
           </div>
 
-          {/* Comments — controlled by action bar toggle */}
+          {/* Comments */}
           {commentsOpen && (
-            <div className="border-t border-border/60 px-3 py-3">
+            <div className="relative z-20 border-t border-border/50 px-3 py-3">
               <CommentsSection
                 reviewId={activity.review.id}
                 initialCount={commentCount}
@@ -218,12 +245,22 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
         </div>
       )}
 
-      {/* Non-review activity — small poster on right */}
+      {/* Non-review activity poster */}
       {!hasReview && activity.movie && posterUrl && (
-        <Link href={`/film/${activity.movie.tmdbId}`}>
-          <div className="relative h-20 w-14 overflow-hidden rounded bg-muted hover:opacity-80 transition-opacity">
-            <Image src={posterUrl} alt={activity.movie.title} fill className="object-cover" sizes="56px" />
-          </div>
+        <Link href={`/film/${activity.movie.tmdbId}`} className="inline-block">
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="relative h-20 w-14 overflow-hidden rounded-lg bg-muted shadow-md"
+          >
+            <Image
+              src={posterUrl}
+              alt={activity.movie.title}
+              fill
+              className="object-cover"
+              sizes="56px"
+            />
+          </motion.div>
         </Link>
       )}
     </div>

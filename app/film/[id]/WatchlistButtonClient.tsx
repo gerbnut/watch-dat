@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Bookmark, BookmarkCheck } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -43,12 +44,35 @@ export function WatchlistButtonClient({ tmdbId, isOnWatchlist: initial }: Watchl
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={toggle} disabled={loading}>
-      {isOnWatchlist ? (
-        <><BookmarkCheck className="h-4 w-4 text-cinema-400" /> On watchlist</>
-      ) : (
-        <><Bookmark className="h-4 w-4" /> Watchlist</>
-      )}
+    <Button variant="outline" size="sm" onClick={toggle} disabled={loading} className="overflow-hidden min-w-[110px]">
+      <AnimatePresence mode="wait" initial={false}>
+        {isOnWatchlist ? (
+          <motion.span
+            key="on-watchlist"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.14 }}
+            className="flex items-center gap-1.5"
+          >
+            <motion.span animate={{ scale: [1, 1.35, 1] }} transition={{ duration: 0.3, times: [0, 0.5, 1] }}>
+              <BookmarkCheck className="h-4 w-4 text-cinema-400" />
+            </motion.span>
+            On watchlist
+          </motion.span>
+        ) : (
+          <motion.span
+            key="watchlist"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.14 }}
+            className="flex items-center gap-1.5"
+          >
+            <Bookmark className="h-4 w-4" /> Watchlist
+          </motion.span>
+        )}
+      </AnimatePresence>
     </Button>
   )
 }

@@ -2,10 +2,21 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Loader2, Users } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { ActivityFeedItem } from './ActivityFeedItem'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05 } },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } },
+}
 
 type Tab = 'following' | 'for-you'
 
@@ -156,7 +167,7 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              'px-4 py-2 text-sm font-medium transition-colors relative',
+              'px-4 py-2 text-sm font-medium transition-colors relative touch-manipulation',
               activeTab === tab
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground',
@@ -164,7 +175,11 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
           >
             {tab === 'following' ? 'Following' : 'For You'}
             {activeTab === tab && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cinema-400 rounded-full" />
+              <motion.span
+                layoutId="feed-tab-indicator"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-cinema-400 rounded-full"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
             )}
           </button>
         ))}
@@ -216,15 +231,22 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
           )}
         </div>
       ) : (
-        <div className="rounded-xl border bg-card px-4">
+        <motion.div
+          key={activeTab}
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="rounded-xl border bg-card px-4"
+        >
           {currentItems.map((activity) => (
-            <ActivityFeedItem
-              key={activity.id}
-              activity={activity as any}
-              currentUserId={currentUserId}
-            />
+            <motion.div key={activity.id} variants={itemVariants}>
+              <ActivityFeedItem
+                activity={activity as any}
+                currentUserId={currentUserId}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Infinite scroll sentinel */}
