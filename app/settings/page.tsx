@@ -5,6 +5,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { SettingsFormClient } from './SettingsFormClient'
 import { FavoritesEditorClient } from './FavoritesEditorClient'
+import { DeleteAccountClient } from './DeleteAccountClient'
 
 export const metadata: Metadata = { title: 'Settings' }
 
@@ -47,6 +48,8 @@ export default async function SettingsPage() {
         user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
       />
       <FavoritesEditorClient username={user.username} initialFavorites={favorites} />
+
+      <DeleteAccountClient />
 
       {/* Legal links */}
       <div className="border-t pt-4 flex gap-4 text-xs text-muted-foreground">
