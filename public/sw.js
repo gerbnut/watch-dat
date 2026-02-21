@@ -1,3 +1,37 @@
+// Push notification support
+self.addEventListener('push', (e) => {
+  if (!e.data) return
+  let payload
+  try { payload = e.data.json() } catch { return }
+
+  const title = payload.title ?? 'Watch Dat'
+  const options = {
+    body: payload.body ?? '',
+    icon: payload.icon ?? '/icon-192.png',
+    badge: '/icon-192.png',
+    data: { url: payload.url ?? '/' },
+    vibrate: [100, 50, 100],
+  }
+
+  e.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close()
+  const url = e.notification.data?.url ?? '/'
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url)
+          return client.focus()
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url)
+    })
+  )
+})
+
 const CACHE_NAME = 'watchdat-shell-v1'
 const SHELL_URLS = ['/', '/films', '/diary', '/watchlist', '/lists']
 

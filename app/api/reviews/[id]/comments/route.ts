@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
+import { sendPushToUser } from '@/lib/webpush'
 
 const commentSchema = z
   .object({
@@ -145,6 +146,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     if (notifications.length > 0) {
       await prisma.notification.createMany({ data: notifications })
+
+      // Best-effort push: send to all notification recipients
+      const actor = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { displayName: true },
+      })
+      const actorName = actor?.displayName ?? 'Someone'
+      await Promise.allSettled(
+        notifications.map((n) =>
+          sendPushToUser(n.userId, {
+            title: n.type === 'REPLIED_COMMENT' ? 'New reply' : 'New comment',
+            body: n.type === 'REPLIED_COMMENT'
+              ? `${actorName} replied to your comment`
+              : `${actorName} commented on your review`,
+            url: `/review/${params.id}`,
+          })
+        )
+      )
     }
   } catch {
     // Notification errors are non-fatal — comment was already saved

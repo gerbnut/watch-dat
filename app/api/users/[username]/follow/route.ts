@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
+import { sendPushToUser } from '@/lib/webpush'
 
 export async function POST(req: NextRequest, { params }: { params: { username: string } }) {
   const session = await auth()
@@ -54,6 +55,10 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
       })
 
       if (!alreadyLogged) {
+        const actor = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { displayName: true },
+        })
         await Promise.all([
           prisma.activity.create({
             data: {
@@ -68,6 +73,11 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
               actorId: session.user.id,
               type: 'NEW_FOLLOWER',
             },
+          }),
+          sendPushToUser(target.id, {
+            title: 'New follower',
+            body: `${actor?.displayName ?? 'Someone'} started following you`,
+            url: `/user/${session.user.id}`,
           }),
         ])
       }
