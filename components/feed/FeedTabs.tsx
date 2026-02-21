@@ -172,8 +172,22 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
 
       {/* Feed content */}
       {currentState.loading && currentItems.length === 0 ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="rounded-xl border bg-card divide-y divide-border/50">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex gap-3 p-4">
+              <div className="skeleton h-9 w-9 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="skeleton h-3.5 w-2/5 rounded" />
+                <div className="skeleton h-3 w-full rounded" />
+                <div className="skeleton h-3 w-3/4 rounded" />
+                <div className="flex gap-2 mt-1">
+                  <div className="skeleton h-16 w-11 rounded" />
+                  <div className="skeleton h-16 w-11 rounded" />
+                  <div className="skeleton h-16 w-11 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : currentItems.length === 0 && currentState.loaded ? (
         <div className="rounded-xl border bg-card p-12 text-center space-y-4">
