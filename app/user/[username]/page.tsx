@@ -16,6 +16,7 @@ import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { FollowButtonClient } from './FollowButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { BannerSection } from './BannerSection'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const user = await prisma.user.findUnique({
@@ -122,6 +123,11 @@ export default async function UserProfilePage({ params }: { params: { username: 
             </Avatar>
 
             <div className="flex items-center gap-2 pb-1">
+              <ShareButton
+                url={`/user/${user.username}`}
+                title={`${user.displayName} on Watch Dat`}
+                text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
+              />
               {isOwnProfile ? (
                 <Link href="/settings">
                   <button className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors">

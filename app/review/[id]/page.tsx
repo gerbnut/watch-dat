@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
+import { ShareButton } from '@/components/ui/ShareButton'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -65,12 +66,17 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
             </div>
           </Link>
         )}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">Review of</p>
           <Link href={`/film/${review.movie.tmdbId}`} className="font-semibold hover:underline truncate block">
             {review.movie.title}
           </Link>
         </div>
+        <ShareButton
+          url={`/review/${review.id}`}
+          title={`${review.user.displayName}'s review of ${review.movie.title}`}
+          text={review.text?.slice(0, 120) ?? undefined}
+        />
       </div>
 
       {/* Review card with comments auto-expanded */}

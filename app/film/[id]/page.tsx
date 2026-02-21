@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogFilmButtonClient } from './LogFilmButtonClient'
 import { WatchlistButtonClient } from './WatchlistButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
+import { ShareButton } from '@/components/ui/ShareButton'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const tmdbId = Number(params.id)
@@ -206,6 +207,11 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
               isLogged={!!userReview}
             />
             <WatchlistButtonClient tmdbId={tmdbId} isOnWatchlist={isOnWatchlist} />
+            <ShareButton
+              url={`/film/${tmdbId}`}
+              title={`${movie.title} — Watch Dat`}
+              text={movie.overview ?? undefined}
+            />
           </div>
         </div>
       </div>
