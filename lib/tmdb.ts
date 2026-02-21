@@ -13,6 +13,8 @@ export const TMDB_IMAGE = {
     path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null,
   profile: (path: string | null, size: 'w45' | 'w185' | 'h632' | 'original' = 'w185') =>
     path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null,
+  logo: (path: string | null, size: 'w45' | 'w92' | 'w154' | 'w185' | 'w300' | 'w500' | 'original' = 'w92') =>
+    path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null,
 }
 
 async function tmdbFetch(endpoint: string, params: Record<string, string> = {}) {

@@ -246,7 +246,7 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
                     title={p.provider_name}
                   >
                     <Image
-                      src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                      src={TMDB_IMAGE.logo(p.logo_path, 'w45')!}
                       alt={p.provider_name}
                       width={22}
                       height={22}
@@ -279,7 +279,7 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
                       title={p.provider_name}
                     >
                       <Image
-                        src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
+                        src={TMDB_IMAGE.logo(p.logo_path, 'w45')!}
                         alt={p.provider_name}
                         width={18}
                         height={18}
