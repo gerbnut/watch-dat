@@ -20,14 +20,28 @@ interface SelectedMovie {
   release_date: string
 }
 
+interface EditInitial {
+  rating: number | null
+  text: string
+  liked: boolean
+  hasSpoiler: boolean
+  rewatch: boolean
+  watchedDate: string
+}
+
 interface LogFilmModalProps {
   open: boolean
   onClose: () => void
   preselectedMovie?: SelectedMovie | null
   onSuccess?: () => void
+  /** If provided, the modal opens in edit mode and PATCHes this review id */
+  editReviewId?: string
+  editInitial?: EditInitial
 }
 
-export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess }: LogFilmModalProps) {
+export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editReviewId, editInitial }: LogFilmModalProps) {
+  const editMode = !!editReviewId
+
   const [movie, setMovie] = useState<SelectedMovie | null>(preselectedMovie ?? null)
   const [rating, setRating] = useState<number | null>(null)
   const [text, setText] = useState('')
@@ -37,15 +51,49 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess }: Log
   const [watchedDate, setWatchedDate] = useState(formatDate(new Date(), 'yyyy-MM-dd'))
   const [submitting, setSubmitting] = useState(false)
 
+  // Pre-populate fields when opening in edit mode
+  React.useEffect(() => {
+    if (open && editMode && editInitial) {
+      setRating(editInitial.rating)
+      setText(editInitial.text)
+      setLiked(editInitial.liked)
+      setHasSpoiler(editInitial.hasSpoiler)
+      setRewatch(editInitial.rewatch)
+      setWatchedDate(editInitial.watchedDate || formatDate(new Date(), 'yyyy-MM-dd'))
+    }
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
   React.useEffect(() => {
     if (preselectedMovie) setMovie(preselectedMovie)
   }, [preselectedMovie])
 
   async function handleSubmit() {
-    if (!movie) return
     setSubmitting(true)
-
     try {
+      if (editMode) {
+        const res = await fetch(`/api/reviews/${editReviewId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: rating ?? null,
+            text: text.trim() || null,
+            liked,
+            hasSpoiler,
+            rewatch,
+            watchedDate: watchedDate || null,
+          }),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          throw new Error(err.error ?? 'Failed to update')
+        }
+        toast({ title: 'Updated!', description: 'Your review has been saved', variant: 'success' as any })
+        onSuccess?.()
+        handleClose()
+        return
+      }
+
+      if (!movie) return
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,11 +140,11 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess }: Log
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Log a film</DialogTitle>
+          <DialogTitle>{editMode ? 'Edit review' : 'Log a film'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {!preselectedMovie && (
+          {!preselectedMovie && !editMode && (
             <MovieSearch
               onSelect={(m) => setMovie(m)}
               navigateOnSelect={false}
@@ -200,7 +248,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess }: Log
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={handleClose}>Cancel</Button>
-            <Button variant="cinema" onClick={handleSubmit} disabled={!movie || submitting}>
+            <Button variant="cinema" onClick={handleSubmit} disabled={(!movie && !editMode) || submitting}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
             </Button>
           </div>

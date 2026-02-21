@@ -6,13 +6,15 @@ import { auth } from '@/auth'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
 
-const GIPHY_URL_RE = /^https:\/\/[\w-]+\.giphy\.com\//
-
 const commentSchema = z
   .object({
     text: z.string().max(500).optional(),
     parentId: z.string().optional(),
-    gifUrl: z.string().regex(GIPHY_URL_RE, 'Invalid GIF URL').optional(),
+    gifUrl: z
+      .string()
+      .url('Invalid GIF URL')
+      .refine((u) => u.includes('giphy.com'), 'GIF must be from GIPHY')
+      .optional(),
   })
   .refine((d) => (d.text?.trim().length ?? 0) > 0 || !!d.gifUrl, {
     message: 'Comment must have text or a GIF',

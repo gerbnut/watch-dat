@@ -14,6 +14,7 @@ import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogFilmButtonClient } from './LogFilmButtonClient'
 import { WatchlistButtonClient } from './WatchlistButtonClient'
+import { BackButton } from '@/components/ui/BackButton'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const tmdbId = Number(params.id)
@@ -104,11 +105,16 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
   return (
     <div className="space-y-8 -mt-6">
       {/* Backdrop */}
-      {backdropUrl && (
+      {backdropUrl ? (
         <div className="relative -mx-4 h-52 sm:h-96 overflow-hidden">
           <Image src={backdropUrl} alt={movie.title} fill className="object-cover object-top" priority sizes="100vw" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          <div className="absolute top-3 left-4 z-10">
+            <BackButton />
+          </div>
         </div>
+      ) : (
+        <BackButton />
       )}
 
       {/* Main info */}

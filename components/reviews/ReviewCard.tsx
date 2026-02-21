@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Flag, MoreHorizontal, Trash2, Pencil, MessageSquare } from 'lucide-react'
+import { Heart, Flag, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { CommentsSection } from './CommentsSection'
+import { LogFilmModal } from './LogFilmModal'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +30,7 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
   const [likeCount, setLikeCount] = useState(review._count.likes)
   const [isLiked, setIsLiked] = useState(review.isLiked ?? false)
   const [liking, setLiking] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const isOwner = currentUserId === review.user.id
 
@@ -60,6 +62,7 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
   }
 
   return (
+    <>
     <article className="rounded-lg border bg-card p-4 space-y-3 animate-fade-in">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -92,7 +95,7 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
               {showMenu && (
                 <div className="absolute right-0 top-full z-10 mt-1 w-32 rounded-md border bg-popover shadow-lg">
                   <button
-                    onClick={() => { setShowMenu(false); onEdit?.(review) }}
+                    onClick={() => { setShowMenu(false); setEditOpen(true) }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
                   >
                     <Pencil className="h-3.5 w-3.5" /> Edit
@@ -175,12 +178,6 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
           />
           {likeCount > 0 && <span>{likeCount}</span>}
         </button>
-        <CommentsSection
-          reviewId={review.id}
-          initialCount={review._count.comments}
-          currentUserId={currentUserId}
-          defaultExpanded={expandComments}
-        />
         {review.hasSpoiler && (
           <Badge variant="outline" className="text-xs h-5 border-amber-600/50 text-amber-500">
             spoiler
@@ -192,6 +189,47 @@ export function ReviewCard({ review, showMovie = false, currentUserId, expandCom
           </Badge>
         )}
       </div>
+
+      {/* CommentsSection is full-width below the actions row so the input
+          never overflows on narrow mobile viewports */}
+      <CommentsSection
+        reviewId={review.id}
+        initialCount={review._count.comments}
+        currentUserId={currentUserId}
+        defaultExpanded={expandComments}
+      />
     </article>
+
+    {editOpen && (
+      <LogFilmModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        editReviewId={review.id}
+        editInitial={{
+          rating: review.rating ?? null,
+          text: review.text ?? '',
+          liked: (review as any).liked ?? false,
+          hasSpoiler: review.hasSpoiler ?? false,
+          rewatch: review.rewatch ?? false,
+          watchedDate: (review as any).watchedDate
+            ? new Date((review as any).watchedDate).toISOString().split('T')[0]
+            : '',
+        }}
+        preselectedMovie={
+          (review as any).movie
+            ? {
+                id: (review as any).movie.tmdbId,
+                title: (review as any).movie.title,
+                poster_path: (review as any).movie.poster ?? null,
+                release_date: (review as any).movie.releaseDate
+                  ? new Date((review as any).movie.releaseDate).toISOString().split('T')[0]
+                  : '',
+              }
+            : undefined
+        }
+        onSuccess={() => setEditOpen(false)}
+      />
+    )}
+  </>
   )
 }

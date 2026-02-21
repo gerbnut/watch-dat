@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Metadata } from 'next'
 import { MovieCard } from '@/components/movies/MovieCard'
+import { BackButton } from '@/components/ui/BackButton'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const tmdbId = Number(params.id)
@@ -50,6 +51,8 @@ export default async function PersonPage({ params }: { params: { id: string } })
 
   return (
     <div className="space-y-8">
+      <BackButton />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
         <div className="relative w-28 sm:w-36 shrink-0 mx-auto sm:mx-0">
