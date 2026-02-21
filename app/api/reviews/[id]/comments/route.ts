@@ -43,16 +43,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
+  console.log('[POST /comments] reviewId:', params.id, 'sessionUserId:', session?.user?.id ?? 'NONE')
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const body = await req.json()
+    console.log('[POST /comments] body:', JSON.stringify(body))
     const parsed = commentSchema.safeParse(body)
     if (!parsed.success) {
+      console.error('[POST /comments] validation failed:', parsed.error.errors)
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
     }
+    console.log('[POST /comments] validation OK, data:', JSON.stringify(parsed.data))
 
     const { text, parentId, gifUrl } = parsed.data
 

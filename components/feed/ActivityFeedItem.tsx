@@ -144,12 +144,12 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
                 <Heart className={cn('h-4 w-4 transition-transform duration-200', isLiked && 'fill-current', liking && 'scale-125')} />
                 {likeCount > 0 && <span>{likeCount}</span>}
               </button>
-              <CommentsSection
-                reviewId={activity.review.id}
-                initialCount={activity.review._count?.comments ?? 0}
-                currentUserId={currentUserId}
-              />
             </div>
+            <CommentsSection
+              reviewId={activity.review.id}
+              initialCount={activity.review._count?.comments ?? 0}
+              currentUserId={currentUserId}
+            />
           </div>
         )}
 

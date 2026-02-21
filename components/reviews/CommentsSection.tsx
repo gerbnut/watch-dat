@@ -253,8 +253,8 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
       setSelectedGif(null)
       setMentionQuery(null)
       setMentionResults([])
-    } catch {
-      setSubmitError('Failed to post. Please try again.')
+    } catch (err: any) {
+      setSubmitError(err?.message ?? 'Failed to post. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -565,12 +565,18 @@ export function CommentsSection({
 
   const submitComment = useCallback(
     async (text: string, gifUrl?: string) => {
+      const payload = { text: text || undefined, gifUrl: gifUrl || undefined }
+      console.log('[submitComment] sending', JSON.stringify(payload))
       const res = await fetch(`/api/reviews/${reviewId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text || undefined, gifUrl: gifUrl || undefined }),
+        body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Failed to post comment')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        console.error('[submitComment] failed', res.status, err)
+        throw new Error(err.error ?? `Server error ${res.status}`)
+      }
       const comment = await res.json()
       setFlat((prev) => [...prev, { ...comment, deleted: false }])
       setCount((c) => c + 1)
@@ -585,7 +591,10 @@ export function CommentsSection({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: text || undefined, parentId, gifUrl: gifUrl || undefined }),
       })
-      if (!res.ok) throw new Error('Failed to post reply')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? `Server error ${res.status}`)
+      }
       const comment = await res.json()
       setFlat((prev) => [...prev, { ...comment, deleted: false }])
       setCount((c) => c + 1)
