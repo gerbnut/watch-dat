@@ -45,19 +45,15 @@ export function NotificationBell() {
     return () => clearInterval(interval)
   }, [])
 
-  // Close on click outside / scroll
+  // Close on click outside
   useEffect(() => {
     if (!open) return
-    const close = (e: MouseEvent | Event) => {
-      if (e instanceof MouseEvent && containerRef.current?.contains(e.target as Node)) return
+    const close = (e: PointerEvent) => {
+      if (containerRef.current?.contains(e.target as Node)) return
       setOpen(false)
     }
-    document.addEventListener('mousedown', close)
-    window.addEventListener('scroll', close, { passive: true, capture: true })
-    return () => {
-      document.removeEventListener('mousedown', close)
-      window.removeEventListener('scroll', close, { capture: true })
-    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
   }, [open])
 
   async function fetchUnread() {

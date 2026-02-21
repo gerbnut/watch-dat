@@ -102,6 +102,22 @@ export async function searchMovies(query: string, page = 1): Promise<{
   return tmdbFetch('/search/movie', { query, page: String(page), include_adult: 'false' })
 }
 
+export interface TMDBPersonSearchResult {
+  id: number
+  name: string
+  profile_path: string | null
+  known_for_department: string
+  known_for: Array<{ id: number; title?: string; name?: string; media_type: string }>
+}
+
+export async function searchPeople(query: string, page = 1): Promise<{
+  results: TMDBPersonSearchResult[]
+  total_pages: number
+  total_results: number
+}> {
+  return tmdbFetch('/search/person', { query, page: String(page), include_adult: 'false' })
+}
+
 export async function getMovieDetails(tmdbId: number): Promise<TMDBMovie> {
   return tmdbFetch(`/movie/${tmdbId}`, { append_to_response: 'credits' })
 }
@@ -174,48 +190,54 @@ export async function getOrCacheMovie(tmdbId: number) {
 
   if (!isStale && existing) return existing
 
-  const data = await getMovieDetails(tmdbId)
+  try {
+    const data = await getMovieDetails(tmdbId)
 
-  const directors = data.credits?.crew
-    .filter((c) => c.job === 'Director')
-    .map((c) => ({ id: c.id, name: c.name })) ?? []
+    const directors = data.credits?.crew
+      .filter((c) => c.job === 'Director')
+      .map((c) => ({ id: c.id, name: c.name })) ?? []
 
-  const cast = data.credits?.cast
-    .slice(0, 20)
-    .map((c) => ({ id: c.id, name: c.name, character: c.character, profile_path: c.profile_path })) ?? []
+    const cast = data.credits?.cast
+      .slice(0, 20)
+      .map((c) => ({ id: c.id, name: c.name, character: c.character, profile_path: c.profile_path })) ?? []
 
-  const movie = await prisma.movie.upsert({
-    where: { tmdbId },
-    update: {
-      title: data.title,
-      poster: data.poster_path,
-      backdrop: data.backdrop_path,
-      overview: data.overview,
-      releaseDate: data.release_date ? new Date(data.release_date) : null,
-      runtime: data.runtime ?? null,
-      genres: data.genres ?? [],
-      directors,
-      cast,
-      tagline: data.tagline ?? null,
-      language: data.original_language ?? null,
-      cachedAt: new Date(),
-    },
-    create: {
-      id: String(tmdbId),
-      tmdbId,
-      title: data.title,
-      poster: data.poster_path,
-      backdrop: data.backdrop_path,
-      overview: data.overview,
-      releaseDate: data.release_date ? new Date(data.release_date) : null,
-      runtime: data.runtime ?? null,
-      genres: data.genres ?? [],
-      directors,
-      cast,
-      tagline: data.tagline ?? null,
-      language: data.original_language ?? null,
-    },
-  })
+    const movie = await prisma.movie.upsert({
+      where: { tmdbId },
+      update: {
+        title: data.title,
+        poster: data.poster_path,
+        backdrop: data.backdrop_path,
+        overview: data.overview,
+        releaseDate: data.release_date ? new Date(data.release_date) : null,
+        runtime: data.runtime ?? null,
+        genres: data.genres ?? [],
+        directors,
+        cast,
+        tagline: data.tagline ?? null,
+        language: data.original_language ?? null,
+        cachedAt: new Date(),
+      },
+      create: {
+        id: String(tmdbId),
+        tmdbId,
+        title: data.title,
+        poster: data.poster_path,
+        backdrop: data.backdrop_path,
+        overview: data.overview,
+        releaseDate: data.release_date ? new Date(data.release_date) : null,
+        runtime: data.runtime ?? null,
+        genres: data.genres ?? [],
+        directors,
+        cast,
+        tagline: data.tagline ?? null,
+        language: data.original_language ?? null,
+      },
+    })
 
-  return movie
+    return movie
+  } catch (err: any) {
+    // If we have stale cached data, serve it rather than 404ing on a transient TMDB error
+    if (existing) return existing
+    throw err
+  }
 }

@@ -3,16 +3,18 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Search, Film, Users, Loader2 } from 'lucide-react'
+import { Search, Film, Users, Clapperboard, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { useDebounce } from '@/hooks/use-debounce'
 import { cn, getInitials } from '@/lib/utils'
+import { TMDB_IMAGE } from '@/lib/tmdb'
 import Link from 'next/link'
+import Image from 'next/image'
 
-type Tab = 'films' | 'people'
+type Tab = 'films' | 'members' | 'cast'
 
 function SearchContent() {
   const searchParams = useSearchParams()
@@ -21,14 +23,16 @@ function SearchContent() {
   const [query, setQuery] = useState(initialQ)
   const [tab, setTab] = useState<Tab>('films')
   const [films, setFilms] = useState<any[]>([])
-  const [people, setPeople] = useState<any[]>([])
+  const [members, setMembers] = useState<any[]>([])
+  const [cast, setCast] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const debouncedQuery = useDebounce(query, 350)
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setFilms([])
-      setPeople([])
+      setMembers([])
+      setCast([])
       return
     }
 
@@ -36,28 +40,34 @@ function SearchContent() {
     Promise.allSettled([
       fetch(`/api/movies/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
       fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
-    ]).then(([movieResult, userResult]) => {
+      fetch(`/api/people/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
+    ]).then(([movieResult, userResult, castResult]) => {
       if (movieResult.status === 'fulfilled') setFilms(movieResult.value.results ?? [])
-      if (userResult.status === 'fulfilled') setPeople(Array.isArray(userResult.value) ? userResult.value : [])
+      if (userResult.status === 'fulfilled') setMembers(Array.isArray(userResult.value) ? userResult.value : [])
+      if (castResult.status === 'fulfilled') setCast(castResult.value.results ?? [])
       setLoading(false)
     })
   }, [debouncedQuery])
 
   const toggleFollow = useCallback(async (username: string, userId: string) => {
-    // Optimistic update
-    setPeople((prev) =>
+    setMembers((prev) =>
       prev.map((p) => (p.id === userId ? { ...p, isFollowing: !p.isFollowing } : p))
     )
     try {
       const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' })
       if (!res.ok) throw new Error('Failed')
     } catch {
-      // Revert on error
-      setPeople((prev) =>
+      setMembers((prev) =>
         prev.map((p) => (p.id === userId ? { ...p, isFollowing: !p.isFollowing } : p))
       )
     }
   }, [])
+
+  const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
+    { id: 'films', label: 'Films', icon: Film },
+    { id: 'cast', label: 'Cast & Crew', icon: Clapperboard },
+    { id: 'members', label: 'Members', icon: Users },
+  ]
 
   return (
     <div className="space-y-6">
@@ -68,7 +78,7 @@ function SearchContent() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search films, people..."
+            placeholder="Search films, cast & crew, members..."
             className="pl-10 h-11 text-base bg-muted/50"
             autoFocus
           />
@@ -78,17 +88,17 @@ function SearchContent() {
         </div>
 
         <div className="flex gap-1">
-          {(['films', 'people'] as Tab[]).map((t) => (
+          {tabs.map(({ id, label, icon: Icon }) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={id}
+              onClick={() => setTab(id)}
               className={cn(
                 'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
-                tab === t ? 'bg-cinema-500 text-white' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                tab === id ? 'bg-cinema-500 text-white' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
               )}
             >
-              {t === 'films' ? <Film className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+              <Icon className="h-3.5 w-3.5" />
+              {label}
             </button>
           ))}
         </div>
@@ -116,10 +126,46 @@ function SearchContent() {
         ) : (
           <p className="text-center text-muted-foreground py-8">No films found for "{debouncedQuery}"</p>
         )
+      ) : tab === 'cast' ? (
+        cast.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {cast.map((person: any) => (
+              <Link
+                key={person.id}
+                href={`/person/${person.id}`}
+                className="group flex flex-col items-center gap-2 rounded-xl p-3 hover:bg-accent transition-colors"
+              >
+                <div className="relative w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0">
+                  {person.profile_path ? (
+                    <Image
+                      src={TMDB_IMAGE.profile(person.profile_path, 'w185')!}
+                      alt={person.name}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-2xl font-bold">
+                      {person.name[0]}
+                    </div>
+                  )}
+                </div>
+                <div className="text-center min-w-0 w-full">
+                  <p className="text-sm font-medium truncate group-hover:text-foreground">{person.name}</p>
+                  {person.known_for_department && (
+                    <p className="text-xs text-muted-foreground">{person.known_for_department}</p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-muted-foreground py-8">No cast or crew found for "{debouncedQuery}"</p>
+        )
       ) : (
-        people.length > 0 ? (
+        members.length > 0 ? (
           <div className="space-y-2">
-            {people.map((user: any) => (
+            {members.map((user: any) => (
               <div key={user.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
                 <Link href={`/user/${user.username}`} className="flex items-center gap-3 flex-1 min-w-0">
                   <Avatar className="h-10 w-10 shrink-0">
@@ -149,7 +195,7 @@ function SearchContent() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No people found for "{debouncedQuery}"</p>
+          <p className="text-center text-muted-foreground py-8">No members found for "{debouncedQuery}"</p>
         )
       )}
     </div>

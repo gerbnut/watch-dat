@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
@@ -27,6 +27,8 @@ export function Navbar() {
   const [logOpen, setLogOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [navAvatar, setNavAvatar] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const avatarBtnRef = useRef<HTMLButtonElement>(null)
   // Fetch avatar from DB — session.user.image strips base64 data URLs to stay under 4KB cookie limit
   useEffect(() => {
     if (!session?.user) return
@@ -48,7 +50,11 @@ export function Navbar() {
 
   useEffect(() => {
     if (!userMenuOpen) return
-    const close = () => setUserMenuOpen(false)
+    const close = (e: PointerEvent) => {
+      if (menuRef.current?.contains(e.target as Node)) return
+      if (avatarBtnRef.current?.contains(e.target as Node)) return
+      setUserMenuOpen(false)
+    }
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
   }, [userMenuOpen])
@@ -67,7 +73,7 @@ export function Navbar() {
 
           {/* Search */}
           <div className="flex-1 max-w-sm">
-            <MovieSearch className="w-full" placeholder="Search films..." />
+            <MovieSearch className="w-full" placeholder="Search films, people..." showPeople />
           </div>
 
           {/* Nav links */}
@@ -106,7 +112,7 @@ export function Navbar() {
 
                 <div className="relative">
                   <button
-                    onPointerDown={(e) => e.stopPropagation()}
+                    ref={avatarBtnRef}
                     onClick={() => setUserMenuOpen((v) => !v)}
                   >
                     <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-cinema-500 transition-all">
@@ -119,8 +125,8 @@ export function Navbar() {
 
                   {userMenuOpen && (
                     <div
+                      ref={menuRef}
                       className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border bg-popover shadow-xl py-1"
-                      onPointerDown={(e) => e.stopPropagation()}
                     >
                       <div className="px-3 py-2 border-b">
                         <p className="text-sm font-medium">{session.user.displayName}</p>

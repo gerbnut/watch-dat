@@ -20,11 +20,23 @@ export default async function PersonPage({ params }: { params: { id: string } })
   const tmdbId = Number(params.id)
   if (isNaN(tmdbId)) notFound()
 
-  let person: Awaited<ReturnType<typeof getPersonDetails>>
+  let person: Awaited<ReturnType<typeof getPersonDetails>> | null = null
   try {
     person = await getPersonDetails(tmdbId)
   } catch {
-    notFound()
+    // TMDB unavailable — show a friendly error instead of a 404
+  }
+
+  if (!person) {
+    return (
+      <div className="space-y-6">
+        <BackButton />
+        <div className="text-center py-16 text-muted-foreground">
+          <p className="text-lg font-medium">Couldn't load this person</p>
+          <p className="text-sm mt-1">TMDB may be temporarily unavailable. Try again shortly.</p>
+        </div>
+      </div>
+    )
   }
 
   const profileUrl = TMDB_IMAGE.profile(person.profile_path, 'w185')

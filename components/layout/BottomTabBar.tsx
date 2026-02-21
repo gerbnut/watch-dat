@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Home, Film, Plus, Bell, User } from 'lucide-react'
+import { Home, Film, Plus, Users, User } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { LogFilmModal } from '@/components/reviews/LogFilmModal'
@@ -67,16 +67,16 @@ export function BottomTabBar() {
             </button>
           </div>
 
-          {/* Alerts */}
+          {/* Friends */}
           <Link
-            href="/notifications"
+            href="/friends"
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
-              pathname === '/notifications' ? 'text-cinema-400' : 'text-muted-foreground'
+              pathname.startsWith('/friends') ? 'text-cinema-400' : 'text-muted-foreground'
             )}
           >
-            <Bell className="h-5 w-5" />
-            Alerts
+            <Users className="h-5 w-5" />
+            Friends
           </Link>
 
           {/* Me */}
