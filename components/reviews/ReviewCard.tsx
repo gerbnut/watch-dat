@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Flag, MoreHorizontal, Trash2, Pencil, Heart, MessageSquare } from 'lucide-react'
 import { CommentsSection } from './CommentsSection'
@@ -36,13 +37,17 @@ export function ReviewCard({
   onDelete,
   onEdit,
 }: ReviewCardProps) {
+  const router = useRouter()
   const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [likeCount, setLikeCount] = useState(review._count.likes)
   const [isLiked, setIsLiked] = useState(review.isLiked ?? false)
   const [liking, setLiking] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [commentsOpen, setCommentsOpen] = useState(expandComments)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const isOwner = currentUserId === review.user.id
   const [reportOpen, setReportOpen] = useState(false)
@@ -73,13 +78,39 @@ export function ReviewCard({
     }
   }
 
-  // Close menu on outside click
+  // Close menu on outside click — ref+contains so menu items fire before close
   React.useEffect(() => {
     if (!showMenu) return
-    const close = () => setShowMenu(false)
+    const close = (e: PointerEvent) => {
+      if (menuRef.current?.contains(e.target as Node)) return
+      if (menuBtnRef.current?.contains(e.target as Node)) return
+      setShowMenu(false)
+    }
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
   }, [showMenu])
+
+  async function handleDelete() {
+    if (deleting) return
+    setDeleting(true)
+    setShowMenu(false)
+    try {
+      const res = await fetch(`/api/reviews/${review.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      const { toast } = await import('@/hooks/use-toast')
+      toast({ title: 'Review deleted' })
+      if (onDelete) {
+        onDelete(review.id)
+      } else {
+        router.refresh()
+      }
+    } catch {
+      const { toast } = await import('@/hooks/use-toast')
+      toast({ title: 'Could not delete review', variant: 'destructive' })
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <>
@@ -118,21 +149,21 @@ export function ReviewCard({
             {review.rating && <StarRating value={review.rating} readOnly size="sm" />}
             <div className="relative">
               <Button
+                ref={menuBtnRef}
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 touch-manipulation"
-                onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
-                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => setShowMenu(!showMenu)}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
               {showMenu && (
                 <motion.div
+                  ref={menuRef}
                   initial={{ opacity: 0, scale: 0.95, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ duration: 0.1 }}
                   className="absolute right-0 top-full z-20 mt-1 w-36 rounded-lg border bg-popover shadow-lg py-1"
-                  onPointerDown={(e) => e.stopPropagation()}
                 >
                   {isOwner && (
                     <>
@@ -143,10 +174,11 @@ export function ReviewCard({
                         <Pencil className="h-3.5 w-3.5" /> Edit
                       </button>
                       <button
-                        onClick={() => { setShowMenu(false); onDelete?.(review.id) }}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 touch-manipulation"
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 touch-manipulation disabled:opacity-50"
                       >
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                        <Trash2 className="h-3.5 w-3.5" /> {deleting ? 'Deleting…' : 'Delete'}
                       </button>
                     </>
                   )}
