@@ -39,6 +39,16 @@ export function Navbar() {
       .catch(() => {})
   }, [session?.user?.id])
 
+  // Instantly reflect avatar changes from the settings page without a full refresh
+  useEffect(() => {
+    function onAvatarUpdated(e: Event) {
+      const detail = (e as CustomEvent<{ avatar: string }>).detail
+      if (detail?.avatar) setNavAvatar(detail.avatar)
+    }
+    window.addEventListener('avatarUpdated', onAvatarUpdated)
+    return () => window.removeEventListener('avatarUpdated', onAvatarUpdated)
+  }, [])
+
   useEffect(() => {
     if (!userMenuOpen) return
     const close = (e: MouseEvent | Event) => {
