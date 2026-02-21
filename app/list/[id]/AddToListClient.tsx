@@ -1,11 +1,12 @@
 'use client'
 
+console.log('>>> AddToListClient PATCHED v2')
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { MovieSearch } from '@/components/movies/MovieSearch'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 
 interface AddToListClientProps {
@@ -42,19 +43,40 @@ export function AddToListClient({ listId }: AddToListClientProps) {
         Add film
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        {/* On mobile, anchor to top so the search dropdown stays above the keyboard */}
-        <DialogContent className="top-[8%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%]">
-          <DialogHeader>
-            <DialogTitle>Add a film to this list</DialogTitle>
-          </DialogHeader>
-          <MovieSearch
-            onSelect={(movie) => { handleSelect(movie); setOpen(false) }}
-            navigateOnSelect={false}
-            placeholder="Search for a film..."
+      {open && (
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
           />
-        </DialogContent>
-      </Dialog>
+
+          {/*
+            Panel: on mobile — full-width, pinned to top-0 so it's always
+            above the keyboard. On sm+ — centered modal (max-w-lg, rounded).
+          */}
+          <div className="absolute inset-x-0 top-0 z-10 bg-background border-b sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:shadow-xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h2 className="text-base font-semibold">Add a film to this list</h2>
+              <button
+                onClick={() => setOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-4">
+              <MovieSearch
+                onSelect={(movie) => { handleSelect(movie); setOpen(false) }}
+                navigateOnSelect={false}
+                placeholder="Search for a film..."
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

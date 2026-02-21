@@ -48,30 +48,38 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  let body: any
   try {
-    const body = await req.json()
-    console.log('[POST /comments] body:', JSON.stringify(body))
-    const parsed = commentSchema.safeParse(body)
-    if (!parsed.success) {
-      console.error('[POST /comments] validation failed:', parsed.error.errors)
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
+    body = await req.json()
+  } catch (err: any) {
+    console.error('[POST /comments] body parse failed:', err)
+    return NextResponse.json({ error: `Body parse error: ${err?.message}` }, { status: 400 })
+  }
+  console.log('[POST /comments] body:', JSON.stringify(body))
+
+  const parsed = commentSchema.safeParse(body)
+  if (!parsed.success) {
+    console.error('[POST /comments] validation failed:', parsed.error.errors)
+    return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
+  }
+  console.log('[POST /comments] validation OK:', JSON.stringify(parsed.data))
+
+  const { text, parentId, gifUrl } = parsed.data
+
+  // Validate parentId belongs to the same review
+  if (parentId) {
+    const parent = await prisma.comment.findUnique({
+      where: { id: parentId },
+      select: { reviewId: true },
+    })
+    if (!parent || parent.reviewId !== params.id) {
+      return NextResponse.json({ error: 'Invalid parent comment' }, { status: 400 })
     }
-    console.log('[POST /comments] validation OK, data:', JSON.stringify(parsed.data))
+  }
 
-    const { text, parentId, gifUrl } = parsed.data
-
-    // Validate parentId belongs to the same review
-    if (parentId) {
-      const parent = await prisma.comment.findUnique({
-        where: { id: parentId },
-        select: { reviewId: true },
-      })
-      if (!parent || parent.reviewId !== params.id) {
-        return NextResponse.json({ error: 'Invalid parent comment' }, { status: 400 })
-      }
-    }
-
-    const comment = await prisma.comment.create({
+  let comment: any
+  try {
+    comment = await prisma.comment.create({
       data: {
         userId: session.user.id,
         reviewId: params.id,
@@ -83,8 +91,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
       },
     })
+  } catch (err: any) {
+    console.error('[POST /comments] comment.create failed:', err)
+    return NextResponse.json({ error: `DB error: ${err?.message}` }, { status: 500 })
+  }
 
-    // Fetch review for notifications
+  // Notifications are best-effort — never fail the request if they error
+  try {
     const review = await prisma.review.findUnique({
       where: { id: params.id },
       select: { userId: true },
@@ -93,7 +106,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const notifications: Prisma.NotificationCreateManyInput[] = []
 
     if (parentId) {
-      // Notify parent comment author (reply notification)
       const parent = await prisma.comment.findUnique({
         where: { id: parentId },
         select: { userId: true },
@@ -108,7 +120,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         })
       }
     } else if (review && review.userId !== session.user.id) {
-      // Notify review author (top-level comment)
       notifications.push({
         userId: review.userId,
         actorId: session.user.id,
@@ -118,7 +129,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       })
     }
 
-    // Notify @mentioned users (skip anyone already getting a notification above)
     const mentionedUsernames = text ? extractMentions(text) : []
     if (mentionedUsernames.length > 0) {
       const mentionedUsers = await prisma.user.findMany({
@@ -142,10 +152,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (notifications.length > 0) {
       await prisma.notification.createMany({ data: notifications })
     }
-
-    return NextResponse.json(comment, { status: 201 })
   } catch (err) {
-    console.error('Comment error:', err)
-    return NextResponse.json({ error: 'Failed to post comment' }, { status: 500 })
+    console.error('[POST /comments] notification error (non-fatal):', err)
   }
+
+  return NextResponse.json(comment, { status: 201 })
 }

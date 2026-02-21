@@ -1,5 +1,7 @@
 'use client'
 
+console.log('>>> CommentsSection PATCHED v2')
+
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
