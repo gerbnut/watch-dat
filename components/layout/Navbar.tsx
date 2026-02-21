@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 
-import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark, Users, Shuffle } from 'lucide-react'
+import { Film, Home, Plus, LogOut, Settings, User, Users, Shuffle } from 'lucide-react'
 import { WatchDatLogoMark } from './WatchDatLogo'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -17,10 +17,7 @@ import { cn, getInitials } from '@/lib/utils'
 const NAV_LINKS = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/films', label: 'Films', icon: Film },
-  { href: '/diary', label: 'Diary', icon: BookOpen },
-  { href: '/watchlist', label: 'Watchlist', icon: Bookmark },
-  { href: '/lists', label: 'Lists', icon: List },
-  { href: '/friends', label: 'Friends', icon: Users },
+  { href: '/friends', label: 'Members', icon: Users },
   { href: '/pick-tonight', label: 'Pick', icon: Shuffle },
 ]
 
@@ -30,8 +27,6 @@ export function Navbar() {
   const [logOpen, setLogOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [navAvatar, setNavAvatar] = useState<string | null>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-
   // Fetch avatar from DB — session.user.image strips base64 data URLs to stay under 4KB cookie limit
   useEffect(() => {
     if (!session?.user) return
@@ -53,16 +48,9 @@ export function Navbar() {
 
   useEffect(() => {
     if (!userMenuOpen) return
-    const close = (e: MouseEvent | Event) => {
-      if (e instanceof MouseEvent && menuRef.current?.contains(e.target as Node)) return
-      setUserMenuOpen(false)
-    }
-    document.addEventListener('mousedown', close)
-    window.addEventListener('scroll', close, { passive: true, capture: true })
-    return () => {
-      document.removeEventListener('mousedown', close)
-      window.removeEventListener('scroll', close, { capture: true })
-    }
+    const close = () => setUserMenuOpen(false)
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
   }, [userMenuOpen])
 
   return (
@@ -116,9 +104,10 @@ export function Navbar() {
 
                 <NotificationBell />
 
-                <div className="relative" ref={menuRef}>
+                <div className="relative">
                   <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => setUserMenuOpen((v) => !v)}
                   >
                     <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-cinema-500 transition-all">
                       <AvatarImage src={navAvatar ?? session.user.image ?? undefined} />
@@ -129,7 +118,10 @@ export function Navbar() {
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border bg-popover shadow-xl py-1">
+                    <div
+                      className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border bg-popover shadow-xl py-1"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
                       <div className="px-3 py-2 border-b">
                         <p className="text-sm font-medium">{session.user.displayName}</p>
                         <p className="text-xs text-muted-foreground">@{session.user.username}</p>

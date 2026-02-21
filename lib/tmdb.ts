@@ -116,6 +116,10 @@ export async function getNowPlayingMovies(page = 1) {
   return tmdbFetch('/movie/now_playing', { page: String(page) })
 }
 
+export async function getTopRatedMovies(page = 1) {
+  return tmdbFetch('/movie/top_rated', { page: String(page) })
+}
+
 export async function getSimilarMovies(tmdbId: number): Promise<{ results: TMDBSearchResult[] }> {
   return tmdbFetch(`/movie/${tmdbId}/recommendations`)
 }
