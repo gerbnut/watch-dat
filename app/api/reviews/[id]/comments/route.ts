@@ -36,33 +36,28 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       orderBy: { createdAt: 'asc' },
     })
     return NextResponse.json(comments)
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to load comments' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
-  console.log('[POST /comments] reviewId:', params.id, 'sessionUserId:', session?.user?.id ?? 'NONE')
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let body: any
+  let body: unknown
   try {
     body = await req.json()
-  } catch (err: any) {
-    console.error('[POST /comments] body parse failed:', err)
-    return NextResponse.json({ error: `Body parse error: ${err?.message}` }, { status: 400 })
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
-  console.log('[POST /comments] body:', JSON.stringify(body))
 
   const parsed = commentSchema.safeParse(body)
   if (!parsed.success) {
-    console.error('[POST /comments] validation failed:', parsed.error.errors)
     return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
   }
-  console.log('[POST /comments] validation OK:', JSON.stringify(parsed.data))
 
   const { text, parentId, gifUrl } = parsed.data
 
@@ -92,7 +87,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       },
     })
   } catch (err: any) {
-    console.error('[POST /comments] comment.create failed:', err)
     return NextResponse.json({ error: `DB error: ${err?.message}` }, { status: 500 })
   }
 
@@ -152,8 +146,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (notifications.length > 0) {
       await prisma.notification.createMany({ data: notifications })
     }
-  } catch (err) {
-    console.error('[POST /comments] notification error (non-fatal):', err)
+  } catch {
+    // Notification errors are non-fatal — comment was already saved
   }
 
   return NextResponse.json(comment, { status: 201 })

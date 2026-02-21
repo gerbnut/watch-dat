@@ -23,7 +23,6 @@ async function getTrendingFromTMDB() {
   }
 }
 
-
 export default async function HomePage() {
   const session = await auth()
   const trending = await getTrendingFromTMDB()

@@ -3,7 +3,7 @@
 import React, { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Search, Film, Users } from 'lucide-react'
+import { Search, Film, Users, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -11,7 +11,6 @@ import { MovieCard } from '@/components/movies/MovieCard'
 import { useDebounce } from '@/hooks/use-debounce'
 import { cn, getInitials } from '@/lib/utils'
 import Link from 'next/link'
-import { Loader2 } from 'lucide-react'
 
 type Tab = 'films' | 'people'
 
@@ -34,14 +33,14 @@ function SearchContent() {
     }
 
     setLoading(true)
-    Promise.all([
+    Promise.allSettled([
       fetch(`/api/movies/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
       fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
-    ]).then(([movieData, userData]) => {
-      setFilms(movieData.results ?? [])
-      setPeople(Array.isArray(userData) ? userData : [])
+    ]).then(([movieResult, userResult]) => {
+      if (movieResult.status === 'fulfilled') setFilms(movieResult.value.results ?? [])
+      if (userResult.status === 'fulfilled') setPeople(Array.isArray(userResult.value) ? userResult.value : [])
       setLoading(false)
-    }).catch(() => setLoading(false))
+    })
   }, [debouncedQuery])
 
   const toggleFollow = useCallback(async (username: string, userId: string) => {

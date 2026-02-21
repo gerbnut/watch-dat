@@ -572,7 +572,6 @@ export function CommentsSection({
   const submitComment = useCallback(
     async (text: string, gifUrl?: string) => {
       const payload = { text: text || undefined, gifUrl: gifUrl || undefined }
-      console.log('[submitComment] sending', JSON.stringify(payload))
       const res = await fetch(`/api/reviews/${reviewId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -580,7 +579,6 @@ export function CommentsSection({
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        console.error('[submitComment] failed', res.status, err)
         throw new Error(err.error ?? `Server error ${res.status}`)
       }
       const comment = await res.json()

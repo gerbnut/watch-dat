@@ -102,7 +102,7 @@ export function SettingsFormClient({ user }: { user: User }) {
         body: JSON.stringify({ displayName, bio: bio || null, avatar: avatar || null }),
       })
       if (!res.ok) throw new Error('Failed to update')
-      toast({ title: 'Profile updated!', variant: 'success' as any })
+      toast({ title: 'Profile updated!', variant: 'success' })
       router.refresh()
     } catch {
       toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' })

@@ -32,7 +32,7 @@ export function WatchlistButtonClient({ tmdbId, isOnWatchlist: initial }: Watchl
       })
       const data = await res.json()
       setIsOnWatchlist(data.added)
-      toast({ title: data.added ? 'Added to watchlist' : 'Removed from watchlist', variant: 'success' as any })
+      toast({ title: data.added ? 'Added to watchlist' : 'Removed from watchlist', variant: 'success' })
       router.refresh()
     } catch {
       setIsOnWatchlist(prev)

@@ -1,7 +1,5 @@
 'use client'
 
-console.log('>>> AddToListClient PATCHED v2')
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -27,7 +25,7 @@ export function AddToListClient({ listId }: AddToListClientProps) {
         body: JSON.stringify({ tmdbId: movie.id }),
       })
       if (!res.ok) throw new Error('Failed to add')
-      toast({ title: `${movie.title} added to list`, variant: 'success' as any })
+      toast({ title: `${movie.title} added to list`, variant: 'success' })
       router.refresh()
     } catch {
       toast({ title: 'Error', description: 'Failed to add film', variant: 'destructive' })

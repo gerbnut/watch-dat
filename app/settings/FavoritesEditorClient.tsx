@@ -45,7 +45,7 @@ export function FavoritesEditorClient({ username, initialFavorites }: FavoritesE
         body: JSON.stringify({ tmdbIds: favorites.map((f) => f.tmdbId) }),
       })
       if (!res.ok) throw new Error()
-      toast({ title: 'Favorites saved!', variant: 'success' as any })
+      toast({ title: 'Favorites saved!', variant: 'success' })
     } catch {
       toast({ title: 'Error', description: 'Failed to save favorites', variant: 'destructive' })
     } finally {

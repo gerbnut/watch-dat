@@ -32,7 +32,7 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast({ title: 'List created!', variant: 'success' as any })
+      toast({ title: 'List created!', variant: 'success' })
       setOpen(false)
       setName('')
       setDescription('')

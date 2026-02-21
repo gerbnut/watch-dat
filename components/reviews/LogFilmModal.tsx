@@ -87,7 +87,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
           const err = await res.json()
           throw new Error(err.error ?? 'Failed to update')
         }
-        toast({ title: 'Updated!', description: 'Your review has been saved', variant: 'success' as any })
+        toast({ title: 'Updated!', description: 'Your review has been saved', variant: 'success' })
         onSuccess?.()
         handleClose()
         return
@@ -113,7 +113,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
         throw new Error(err.error ?? 'Failed to save')
       }
 
-      toast({ title: 'Logged!', description: `${movie.title} added to your diary`, variant: 'success' as any })
+      toast({ title: 'Logged!', description: `${movie.title} added to your diary`, variant: 'success' })
       onSuccess?.()
       handleClose()
     } catch (err: any) {
