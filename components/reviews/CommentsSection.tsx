@@ -72,9 +72,10 @@ function renderText(text: string | null) {
 
 interface GifPickerProps {
   onSelect: (url: string) => void
+  onClose: () => void
 }
 
-function GifPicker({ onSelect }: GifPickerProps) {
+function GifPicker({ onSelect, onClose }: GifPickerProps) {
   const [query, setQuery] = useState('')
   const [gifs, setGifs] = useState<GiphyResult[]>([])
   const [loading, setLoading] = useState(true)
@@ -99,49 +100,75 @@ function GifPicker({ onSelect }: GifPickerProps) {
   }, [query])
 
   return (
-    <div className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded-xl border border-border bg-popover shadow-xl overflow-hidden">
-      <div className="p-2 border-b border-border">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search GIFs…"
-          autoFocus
-          className="w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        />
-      </div>
-      <div className="h-52 overflow-y-auto p-2">
-        {loading ? (
-          <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        ) : gifs.length === 0 ? (
-          <p className="text-center text-xs text-muted-foreground py-8">No GIFs found</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-1">
-            {gifs.map((gif) => (
-              <button
-                key={gif.id}
-                type="button"
-                onClick={() => onSelect(gif.url)}
-                className="overflow-hidden rounded-md hover:opacity-75 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={gif.previewUrl}
-                  alt={gif.title}
-                  className="w-full h-20 object-cover"
-                  loading="lazy"
-                />
-              </button>
-            ))}
-          </div>
+    <>
+      {/* Mobile backdrop — closes picker on tap outside */}
+      <div
+        className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      {/* Picker panel: bottom-sheet on mobile, popover on sm+ */}
+      <div
+        className={cn(
+          'z-50 overflow-hidden border border-border bg-popover shadow-xl',
+          // Mobile: full-width fixed bottom sheet
+          'fixed bottom-0 left-0 right-0 rounded-t-2xl',
+          // sm+: absolute popover above the GIF button
+          'sm:absolute sm:bottom-full sm:left-auto sm:right-0 sm:mb-2 sm:w-72 sm:rounded-xl',
         )}
+      >
+        <div className="flex items-center gap-2 p-2 border-b border-border">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search GIFs…"
+            autoFocus
+            className="flex-1 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+          {/* Close button visible on mobile only */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close GIF picker"
+            className="sm:hidden flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="h-52 overflow-y-auto p-2">
+          {loading ? (
+            <div className="flex h-full items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : gifs.length === 0 ? (
+            <p className="text-center text-xs text-muted-foreground py-8">No GIFs found</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-1">
+              {gifs.map((gif) => (
+                <button
+                  key={gif.id}
+                  type="button"
+                  onClick={() => onSelect(gif.url)}
+                  className="overflow-hidden rounded-md hover:opacity-75 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={gif.previewUrl}
+                    alt={gif.title}
+                    className="w-full h-20 object-cover"
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="border-t border-border px-2 py-1 bg-muted/40">
+          <p className="text-[10px] text-muted-foreground text-center tracking-wide">Powered by GIPHY</p>
+        </div>
       </div>
-      <div className="border-t border-border px-2 py-1 bg-muted/40">
-        <p className="text-[10px] text-muted-foreground text-center tracking-wide">Powered by GIPHY</p>
-      </div>
-    </div>
+    </>
   )
 }
 
@@ -157,6 +184,7 @@ interface CommentInputProps {
 function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, compact }: CommentInputProps) {
   const [text, setText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionResults, setMentionResults] = useState<any[]>([])
   const [selectedGif, setSelectedGif] = useState<string | null>(null)
@@ -218,12 +246,15 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
     const trimmed = text.trim()
     if ((!trimmed && !selectedGif) || submitting || text.length > 500) return
     setSubmitting(true)
+    setSubmitError(null)
     try {
       await onSubmit(trimmed, selectedGif ?? undefined)
       setText('')
       setSelectedGif(null)
       setMentionQuery(null)
       setMentionResults([])
+    } catch {
+      setSubmitError('Failed to post. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -329,13 +360,18 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
         </div>
       </div>
 
-      {/* GIF Picker popover */}
+      {submitError && (
+        <p className="mt-1 text-xs text-destructive">{submitError}</p>
+      )}
+
+      {/* GIF Picker — popover on desktop, fixed bottom sheet on mobile */}
       {showPicker && (
         <GifPicker
           onSelect={(url) => {
             setSelectedGif(url)
             setShowPicker(false)
           }}
+          onClose={() => setShowPicker(false)}
         />
       )}
     </div>
