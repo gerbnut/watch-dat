@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+
 import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark, Users } from 'lucide-react'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -26,7 +27,17 @@ export function Navbar() {
   const { data: session } = useSession()
   const [logOpen, setLogOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [navAvatar, setNavAvatar] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // Fetch avatar from DB — session.user.image strips base64 data URLs to stay under 4KB cookie limit
+  useEffect(() => {
+    if (!session?.user) return
+    fetch('/api/me')
+      .then((r) => r.json())
+      .then((d) => setNavAvatar(d.avatar ?? null))
+      .catch(() => {})
+  }, [session?.user?.id])
 
   useEffect(() => {
     if (!userMenuOpen) return
@@ -106,7 +117,7 @@ export function Navbar() {
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                   >
                     <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-cinema-500 transition-all">
-                      <AvatarImage src={session.user.image ?? undefined} />
+                      <AvatarImage src={navAvatar ?? session.user.image ?? undefined} />
                       <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
                         {getInitials(session.user.displayName ?? '')}
                       </AvatarFallback>

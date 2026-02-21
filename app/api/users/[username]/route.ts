@@ -9,6 +9,7 @@ const patchSchema = z.object({
   displayName: z.string().trim().min(1).max(50).optional(),
   bio: z.string().trim().max(300).optional().nullable(),
   avatar: z.string().max(2 * 1024 * 1024).optional().nullable(),
+  bannerUrl: z.string().max(4 * 1024 * 1024).optional().nullable(),
 })
 
 export async function GET(req: NextRequest, { params }: { params: { username: string } }) {
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
         username: true,
         displayName: true,
         avatar: true,
+        bannerUrl: true,
         bio: true,
         joinDate: true,
         _count: {
@@ -85,7 +87,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { username: 
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
     }
-    const { displayName, bio, avatar } = parsed.data
+    const { displayName, bio, avatar, bannerUrl } = parsed.data
 
     const updated = await prisma.user.update({
       where: { id: user.id },
@@ -93,12 +95,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { username: 
         ...(displayName ? { displayName } : {}),
         ...(bio !== undefined ? { bio } : {}),
         ...(avatar !== undefined ? { avatar } : {}),
+        ...(bannerUrl !== undefined ? { bannerUrl } : {}),
       },
       select: {
         id: true,
         username: true,
         displayName: true,
         avatar: true,
+        bannerUrl: true,
         bio: true,
       },
     })

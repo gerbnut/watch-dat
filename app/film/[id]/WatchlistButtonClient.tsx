@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Bookmark, BookmarkCheck } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -13,6 +14,7 @@ interface WatchlistButtonClientProps {
 
 export function WatchlistButtonClient({ tmdbId, isOnWatchlist: initial }: WatchlistButtonClientProps) {
   const { data: session } = useSession()
+  const router = useRouter()
   const [isOnWatchlist, setIsOnWatchlist] = useState(initial)
   const [loading, setLoading] = useState(false)
 
@@ -31,6 +33,7 @@ export function WatchlistButtonClient({ tmdbId, isOnWatchlist: initial }: Watchl
       const data = await res.json()
       setIsOnWatchlist(data.added)
       toast({ title: data.added ? 'Added to watchlist' : 'Removed from watchlist', variant: 'success' as any })
+      router.refresh()
     } catch {
       setIsOnWatchlist(prev)
       toast({ title: 'Error', description: 'Failed to update watchlist', variant: 'destructive' })

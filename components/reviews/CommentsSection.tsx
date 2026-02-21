@@ -1,7 +1,5 @@
 'use client'
 
-console.log('>>> CommentsSection PATCHED v2')
-
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -305,7 +303,7 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
         </div>
       )}
 
-      <div className="flex items-end gap-2 w-full min-w-0">
+      <div className="grid gap-2" style={{ gridTemplateColumns: '1fr auto' }}>
         <textarea
           ref={textareaRef}
           value={text}
@@ -320,17 +318,17 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
           rows={compact ? 1 : 2}
           autoFocus={autoFocus}
           className={cn(
-            'flex-1 min-w-0 min-h-[44px] resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm',
+            'min-h-[44px] w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm',
             'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
           )}
         />
-        <div className="flex flex-col items-end gap-1 shrink-0">
+        <div className="flex flex-col items-end gap-1">
           {text.length > 0 && (
             <span className={cn('text-[10px]', text.length > 450 ? 'text-amber-400' : 'text-muted-foreground')}>
               {text.length}/500
             </span>
           )}
-          <div className="flex items-center gap-1">
+          <div className="flex items-end gap-1">
             {/* GIF picker toggle */}
             <button
               type="button"
@@ -527,6 +525,8 @@ interface CommentsSectionProps {
   initialCount: number
   currentUserId?: string
   defaultExpanded?: boolean
+  /** When provided, CommentsSection is controlled — no internal toggle rendered */
+  open?: boolean
 }
 
 export function CommentsSection({
@@ -534,8 +534,12 @@ export function CommentsSection({
   initialCount,
   currentUserId,
   defaultExpanded = false,
+  open: controlledOpen,
 }: CommentsSectionProps) {
-  const [open, setOpen] = useState(defaultExpanded)
+  const isControlled = controlledOpen !== undefined
+  const [internalOpen, setInternalOpen] = useState(defaultExpanded)
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = (v: boolean) => { if (!isControlled) setInternalOpen(v) }
   const [flat, setFlat] = useState<FlatComment[]>([])
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -622,17 +626,19 @@ export function CommentsSection({
 
   return (
     <div>
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className={cn(
-          'flex items-center gap-1.5 text-sm transition-colors',
-          open ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
-        )}
-      >
-        <MessageSquare className="h-4 w-4" />
-        {count > 0 && <span>{count}</span>}
-      </button>
+      {/* Toggle button — only rendered when not externally controlled */}
+      {!isControlled && (
+        <button
+          onClick={() => setOpen(!open)}
+          className={cn(
+            'flex items-center gap-1.5 text-sm transition-colors',
+            open ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <MessageSquare className="h-4 w-4" />
+          {count > 0 && <span>{count}</span>}
+        </button>
+      )}
 
       {open && (
         <div className="mt-3 space-y-3 border-t border-border pt-3">

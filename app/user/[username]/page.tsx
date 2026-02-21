@@ -15,6 +15,7 @@ import { ListCard } from '@/components/lists/ListCard'
 import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { FollowButtonClient } from './FollowButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
+import { BannerSection } from './BannerSection'
 
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const user = await prisma.user.findUnique({
@@ -104,8 +105,12 @@ export default async function UserProfilePage({ params }: { params: { username: 
 
       {/* Profile header */}
       <div className="rounded-xl border bg-card overflow-hidden">
-        {/* Cover gradient */}
-        <div className="h-24 bg-gradient-to-br from-cinema-900 via-film-900 to-cinema-950" />
+        {/* Banner */}
+        <BannerSection
+          bannerUrl={(user as any).bannerUrl ?? null}
+          isOwnProfile={isOwnProfile}
+          username={user.username}
+        />
 
         <div className="px-6 pb-6">
           <div className="flex items-end justify-between -mt-10 mb-4">

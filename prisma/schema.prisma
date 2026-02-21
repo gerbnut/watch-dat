@@ -16,6 +16,7 @@ model User {
   username    String   @unique
   displayName String
   avatar      String?
+  bannerUrl   String?
   bio         String?
   joinDate    DateTime @default(now())
   password    String?

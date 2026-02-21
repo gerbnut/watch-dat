@@ -19,6 +19,7 @@ export default async function SettingsPage() {
       displayName: true,
       bio: true,
       avatar: true,
+      bannerUrl: true,
       favoriteMovies: {
         include: { movie: { select: { tmdbId: true, title: true, poster: true } } },
         orderBy: { order: 'asc' },
@@ -42,7 +43,7 @@ export default async function SettingsPage() {
         <p className="text-muted-foreground text-sm mt-1">Manage your profile and preferences</p>
       </div>
       <SettingsFormClient
-        user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar }}
+        user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
       />
       <FavoritesEditorClient username={user.username} initialFavorites={favorites} />
     </div>

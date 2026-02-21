@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
-import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
+import { FeedTabs } from '@/components/feed/FeedTabs'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { Button } from '@/components/ui/button'
 import { getSimilarMovies, TMDB_IMAGE } from '@/lib/tmdb'
@@ -23,48 +23,6 @@ async function getTrendingFromTMDB() {
   }
 }
 
-async function getHomeFeed(userId: string) {
-  const following = await prisma.follow.findMany({
-    where: { followerId: userId },
-    select: { followingId: true },
-  })
-  const ids = [...following.map((f) => f.followingId), userId]
-
-  const activities = await prisma.activity.findMany({
-    where: { userId: { in: ids } },
-    include: {
-      user: { select: { id: true, username: true, displayName: true, avatar: true } },
-      movie: { select: { id: true, tmdbId: true, title: true, poster: true, backdrop: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 30,
-  })
-
-  const reviewIds = activities.filter((a) => a.reviewId).map((a) => a.reviewId!)
-  const [reviews, likedReviewData] = await Promise.all([
-    reviewIds.length
-      ? prisma.review.findMany({
-          where: { id: { in: reviewIds } },
-          include: { _count: { select: { likes: true, comments: true } } },
-        })
-      : [],
-    reviewIds.length
-      ? prisma.like.findMany({
-          where: { userId, reviewId: { in: reviewIds } },
-          select: { reviewId: true },
-        })
-      : [],
-  ])
-  const reviewMap = new Map(reviews.map((r) => [r.id, r]))
-  const likedSet = new Set(likedReviewData.map((l) => l.reviewId))
-
-  return activities.map((a) => ({
-    ...a,
-    review: a.reviewId
-      ? { ...(reviewMap.get(a.reviewId) ?? null), isLiked: likedSet.has(a.reviewId) }
-      : null,
-  }))
-}
 
 export default async function HomePage() {
   const session = await auth()
@@ -160,17 +118,12 @@ export default async function HomePage() {
     )
   }
 
-  // Authenticated home — fetch feed + most recent diary entry in parallel
-  const [feedResult, recentEntryResult] = await Promise.allSettled([
-    getHomeFeed(session.user.id),
-    prisma.diaryEntry.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { watchedDate: 'desc' },
-      include: { movie: { select: { tmdbId: true, title: true } } },
-    }),
-  ])
-  const feed = feedResult.status === 'fulfilled' ? feedResult.value : []
-  const recentEntry = recentEntryResult.status === 'fulfilled' ? recentEntryResult.value : null
+  // Authenticated home — fetch most recent diary entry for recommendations
+  const recentEntry = await prisma.diaryEntry.findFirst({
+    where: { userId: session.user.id },
+    orderBy: { watchedDate: 'desc' },
+    include: { movie: { select: { tmdbId: true, title: true } } },
+  }).catch(() => null)
 
   // Recommendations: similar films to most recently watched, excluding already-seen
   let recommendations: any[] = []
@@ -198,36 +151,9 @@ export default async function HomePage() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main feed */}
-      <div className="lg:col-span-2 space-y-2">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">Your feed</h1>
-        </div>
-
-        {feed.length === 0 ? (
-          <div className="rounded-xl border bg-card p-12 text-center space-y-4">
-            <Users className="h-10 w-10 mx-auto text-muted-foreground/40" />
-            <div>
-              <p className="font-medium">Your feed is empty</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Follow other cinephiles to see their activity here
-              </p>
-            </div>
-            <Link href="/search">
-              <Button variant="outline" size="sm">Find people to follow</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="rounded-xl border bg-card px-4">
-            {feed.map((activity) => (
-              <ActivityFeedItem
-                key={activity.id}
-                activity={activity as any}
-                currentUserId={session.user.id}
-              />
-            ))}
-          </div>
-        )}
+      {/* Main feed with tabs */}
+      <div className="lg:col-span-2">
+        <FeedTabs currentUserId={session.user.id} />
       </div>
 
       {/* Sidebar */}

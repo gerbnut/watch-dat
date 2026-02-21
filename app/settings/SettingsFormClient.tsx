@@ -16,6 +16,7 @@ interface User {
   displayName: string
   bio: string | null
   avatar: string | null
+  bannerUrl: string | null
 }
 
 /** Compress an image file client-side to stay under maxSizeKB using Canvas. */
@@ -77,9 +78,12 @@ export function SettingsFormClient({ user }: { user: User }) {
   const [displayName, setDisplayName] = useState(user.displayName)
   const [bio, setBio] = useState(user.bio ?? '')
   const [avatar, setAvatar] = useState(user.avatar ?? '')
+  const [bannerUrl, setBannerUrl] = useState(user.bannerUrl ?? '')
   const [uploading, setUploading] = useState(false)
+  const [bannerUploading, setBannerUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const bannerInputRef = useRef<HTMLInputElement>(null)
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -124,6 +128,53 @@ export function SettingsFormClient({ user }: { user: User }) {
     }
   }
 
+  async function handleBannerChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const previewUrl = URL.createObjectURL(file)
+    const previousBanner = bannerUrl
+    setBannerUrl(previewUrl)
+    setBannerUploading(true)
+
+    try {
+      const compressed = await compressImage(file, 800)
+      const formData = new FormData()
+      formData.append('file', compressed)
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? 'Upload failed')
+      }
+      const data = await res.json()
+
+      // Immediately save banner to profile
+      const patchRes = await fetch(`/api/users/${user.username}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bannerUrl: data.url }),
+      })
+      if (!patchRes.ok) throw new Error('Failed to save banner')
+
+      URL.revokeObjectURL(previewUrl)
+      setBannerUrl(data.url)
+      toast({ title: 'Banner updated!', description: 'Your profile banner has been updated' })
+      router.refresh()
+    } catch (err: any) {
+      URL.revokeObjectURL(previewUrl)
+      setBannerUrl(previousBanner)
+      toast({
+        title: 'Upload failed',
+        description: err.message ?? 'Could not upload banner. Try a smaller image.',
+        variant: 'destructive',
+      })
+    } finally {
+      setBannerUploading(false)
+      e.target.value = ''
+    }
+  }
+
   async function handleSave() {
     setLoading(true)
     try {
@@ -144,6 +195,71 @@ export function SettingsFormClient({ user }: { user: User }) {
 
   return (
     <div className="space-y-6">
+      {/* Banner section */}
+      <div className="rounded-xl border bg-card overflow-hidden space-y-0">
+        <div className="relative h-28 overflow-hidden">
+          {bannerUrl && !bannerUrl.startsWith('blob:') ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bannerUrl} alt="Profile banner" className="h-full w-full object-cover" />
+          ) : bannerUrl && bannerUrl.startsWith('blob:') ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bannerUrl} alt="Banner preview" className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full bg-gradient-to-br from-cinema-900 via-film-900 to-cinema-950" />
+          )}
+        </div>
+        <div className="p-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">Profile Banner</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Displayed at the top of your profile · Auto-compressed</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={bannerUploading}
+              className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors disabled:opacity-60"
+            >
+              {bannerUploading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Camera className="h-3.5 w-3.5" />
+              )}
+              {bannerUploading ? 'Uploading…' : 'Change banner'}
+            </button>
+            {bannerUrl && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await fetch(`/api/users/${user.username}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ bannerUrl: null }),
+                    })
+                    setBannerUrl('')
+                    toast({ title: 'Banner removed' })
+                    router.refresh()
+                  } catch {
+                    toast({ title: 'Failed to remove banner', variant: 'destructive' })
+                  }
+                }}
+                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+        <input
+          ref={bannerInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleBannerChange}
+        />
+      </div>
+
       <div className="rounded-xl border bg-card p-6 space-y-4">
         <h2 className="font-semibold">Profile</h2>
 
