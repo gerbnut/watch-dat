@@ -275,6 +275,7 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
               className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent text-left"
             >
               <Avatar className="h-5 w-5 shrink-0">
+                <AvatarImage src={u.avatar ?? undefined} alt={u.displayName} />
                 <AvatarFallback className="text-[9px]">{getInitials(u.displayName)}</AvatarFallback>
               </Avatar>
               <span className="font-medium text-cinema-400">@{u.username}</span>
@@ -411,6 +412,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
       {!comment.deleted && (
         <Link href={`/user/${comment.user.username}`} className="shrink-0 mt-0.5">
           <Avatar className="h-6 w-6">
+            <AvatarImage src={comment.user.avatar ?? undefined} alt={comment.user.displayName} />
             <AvatarFallback className="text-[10px] bg-cinema-900 text-cinema-300">
               {getInitials(comment.user.displayName)}
             </AvatarFallback>

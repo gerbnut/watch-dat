@@ -57,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
       if (!alreadyLogged) {
         const actor = await prisma.user.findUnique({
           where: { id: session.user.id },
-          select: { displayName: true },
+          select: { displayName: true, username: true },
         })
         await Promise.all([
           prisma.activity.create({
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
           sendPushToUser(target.id, {
             title: 'New follower',
             body: `${actor?.displayName ?? 'Someone'} started following you`,
-            url: `/user/${session.user.id}`,
+            url: `/user/${actor?.username ?? session.user.id}`,
           }),
         ])
       }
