@@ -54,15 +54,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       },
     })
 
-    await prisma.activity.create({
-      data: {
-        userId: session.user.id,
-        type: 'ADDED_TO_LIST',
-        movieId: movie.id,
-        listId: params.id,
-      },
-    })
-
     return NextResponse.json(item, { status: 201 })
   } catch (err) {
     return NextResponse.json({ error: 'Failed to add item' }, { status: 500 })

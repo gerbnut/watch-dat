@@ -43,7 +43,8 @@ export function AddToListClient({ listId }: AddToListClientProps) {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        {/* On mobile, anchor to top so the search dropdown stays above the keyboard */}
+        <DialogContent className="top-[8%] translate-y-0 sm:top-[50%] sm:translate-y-[-50%]">
           <DialogHeader>
             <DialogTitle>Add a film to this list</DialogTitle>
           </DialogHeader>

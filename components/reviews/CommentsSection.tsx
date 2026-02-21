@@ -303,7 +303,7 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
         </div>
       )}
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-2 w-full min-w-0">
         <textarea
           ref={textareaRef}
           value={text}
@@ -318,7 +318,7 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, c
           rows={compact ? 1 : 2}
           autoFocus={autoFocus}
           className={cn(
-            'flex-1 min-h-[44px] resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm',
+            'flex-1 min-w-0 min-h-[44px] resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm',
             'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
           )}
         />

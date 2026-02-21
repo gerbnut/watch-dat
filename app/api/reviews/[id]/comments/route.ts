@@ -6,7 +6,7 @@ import { auth } from '@/auth'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
 
-const GIPHY_URL_RE = /^https:\/\/media\d*\.giphy\.com\//
+const GIPHY_URL_RE = /^https:\/\/[\w-]+\.giphy\.com\//
 
 const commentSchema = z
   .object({
