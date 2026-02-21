@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 
-import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark, Users } from 'lucide-react'
+import { Film, Home, BookOpen, List, Plus, LogOut, Settings, User, Bookmark, Users, Shuffle } from 'lucide-react'
 import { WatchDatLogoMark } from './WatchDatLogo'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -21,6 +21,7 @@ const NAV_LINKS = [
   { href: '/watchlist', label: 'Watchlist', icon: Bookmark },
   { href: '/lists', label: 'Lists', icon: List },
   { href: '/friends', label: 'Friends', icon: Users },
+  { href: '/pick-tonight', label: 'Pick', icon: Shuffle },
 ]
 
 export function Navbar() {
