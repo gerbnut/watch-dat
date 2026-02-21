@@ -2,6 +2,7 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { SettingsFormClient } from './SettingsFormClient'
 import { FavoritesEditorClient } from './FavoritesEditorClient'
 
@@ -46,6 +47,12 @@ export default async function SettingsPage() {
         user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
       />
       <FavoritesEditorClient username={user.username} initialFavorites={favorites} />
+
+      {/* Legal links */}
+      <div className="border-t pt-4 flex gap-4 text-xs text-muted-foreground">
+        <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+        <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      </div>
     </div>
   )
 }
