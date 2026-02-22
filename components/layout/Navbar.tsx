@@ -5,13 +5,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 
-import { Film, Home, Plus, LogOut, Settings, User, Users, Shuffle } from 'lucide-react'
+import { Film, Home, LogOut, Settings, User, Users, Shuffle } from 'lucide-react'
 import { WatchDatLogoMark } from './WatchDatLogo'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { MovieSearch } from '@/components/movies/MovieSearch'
-import { LogFilmModal } from '@/components/reviews/LogFilmModal'
 import { cn, getInitials } from '@/lib/utils'
 
 const NAV_LINKS = [
@@ -24,11 +23,11 @@ const NAV_LINKS = [
 export function Navbar() {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const [logOpen, setLogOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [navAvatar, setNavAvatar] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const avatarBtnRef = useRef<HTMLButtonElement>(null)
+
   // Fetch avatar from DB — session.user.image strips base64 data URLs to stay under 4KB cookie limit
   useEffect(() => {
     if (!session?.user) return
@@ -60,116 +59,111 @@ export function Navbar() {
   }, [userMenuOpen])
 
   return (
-    <>
-      <nav className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <WatchDatLogoMark className="text-cinema-400 shrink-0 transition-opacity group-hover:opacity-80" />
-            <span className="hidden sm:block font-black tracking-[0.12em] uppercase text-[14px] leading-none">
-              WATCH<span className="text-cinema-400">DAT</span>
-            </span>
-          </Link>
+    <nav className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
 
-          {/* Search */}
-          <div className="flex-1 max-w-sm">
-            <MovieSearch className="w-full" placeholder="Search films, people..." showPeople />
-          </div>
+        {/* Logo + Wordmark */}
+        <Link href="/" className="flex items-center gap-2 shrink-0 group">
+          <WatchDatLogoMark className="text-cinema-400 shrink-0 transition-opacity group-hover:opacity-80" />
+          <span className="hidden sm:block font-black text-[15px] leading-none tracking-tight">
+            Watch <span className="text-cinema-400">DAT</span>
+          </span>
+        </Link>
 
-          {/* Nav links */}
-          <div className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  pathname === href
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden lg:block">{label}</span>
-              </Link>
-            ))}
-          </div>
+        {/* Search — fills available space, max 400px on desktop */}
+        <div className="flex-1 min-w-0 max-w-[400px]">
+          <MovieSearch className="w-full" placeholder="Search films, people..." showPeople />
+        </div>
 
-          <div className="flex items-center gap-2 ml-auto">
-            {session?.user ? (
-              <>
-                <Button
-                  variant="cinema"
-                  size="sm"
-                  onClick={() => setLogOpen(true)}
-                  className="gap-1.5 flex"
+        {/* Desktop nav links */}
+        <div className="hidden md:flex items-center gap-0.5">
+          {NAV_LINKS.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                pathname === href
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="hidden lg:block">{label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Right — notification bell + avatar */}
+        <div className="flex items-center gap-1 ml-auto shrink-0">
+          {session?.user ? (
+            <>
+              <NotificationBell />
+
+              <div className="relative">
+                {/* Avatar button — 44px tap target for iPhone */}
+                <button
+                  ref={avatarBtnRef}
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full"
+                  aria-label="Account menu"
                 >
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Log</span>
-                </Button>
+                  <Avatar className="h-8 w-8 ring-2 ring-transparent hover:ring-cinema-500 transition-all">
+                    <AvatarImage src={navAvatar ?? session.user.image ?? undefined} />
+                    <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
+                      {getInitials(session.user.displayName ?? '')}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
 
-                <NotificationBell />
-
-                <div className="relative">
-                  <button
-                    ref={avatarBtnRef}
-                    onClick={() => setUserMenuOpen((v) => !v)}
+                {userMenuOpen && (
+                  <div
+                    ref={menuRef}
+                    className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border bg-popover shadow-2xl py-1 overflow-hidden"
                   >
-                    <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-cinema-500 transition-all">
-                      <AvatarImage src={navAvatar ?? session.user.image ?? undefined} />
-                      <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
-                        {getInitials(session.user.displayName ?? '')}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-
-                  {userMenuOpen && (
-                    <div
-                      ref={menuRef}
-                      className="absolute right-0 top-full z-50 mt-1 w-48 rounded-lg border bg-popover shadow-xl py-1"
+                    <div className="px-3 py-2.5 border-b">
+                      <p className="text-sm font-semibold leading-tight">{session.user.displayName}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">@{session.user.username}</p>
+                    </div>
+                    <Link
+                      href={`/user/${session.user.username}`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-accent transition-colors"
                     >
-                      <div className="px-3 py-2 border-b">
-                        <p className="text-sm font-medium">{session.user.displayName}</p>
-                        <p className="text-xs text-muted-foreground">@{session.user.username}</p>
-                      </div>
-                      <Link
-                        href={`/user/${session.user.username}`}
-                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
-                      >
-                        <User className="h-4 w-4" /> Profile
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent"
-                      >
-                        <Settings className="h-4 w-4" /> Settings
-                      </Link>
+                      <User className="h-4 w-4 text-muted-foreground" /> Profile
+                    </Link>
+                    <Link
+                      href="/settings"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-accent transition-colors"
+                    >
+                      <Settings className="h-4 w-4 text-muted-foreground" /> Settings
+                    </Link>
+                    <div className="border-t mt-1 pt-1">
                       <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <LogOut className="h-4 w-4" /> Sign out
                       </button>
                     </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">Sign in</Button>
-                </Link>
-                <Link href="/register">
-                  <Button variant="cinema" size="sm">Join</Button>
-                </Link>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link href="/login">
+                <Button variant="ghost" size="sm">Sign in</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="cinema" size="sm">Join</Button>
+              </Link>
+            </div>
+          )}
         </div>
 
-      </nav>
-
-      <LogFilmModal open={logOpen} onClose={() => setLogOpen(false)} />
-    </>
+      </div>
+    </nav>
   )
 }

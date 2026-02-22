@@ -59,6 +59,7 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
           where: { id: session.user.id },
           select: { displayName: true, username: true },
         })
+        // Activity + notification are critical — await them
         await Promise.all([
           prisma.activity.create({
             data: {
@@ -74,12 +75,14 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
               type: 'NEW_FOLLOWER',
             },
           }),
-          sendPushToUser(target.id, {
-            title: 'New follower',
-            body: `${actor?.displayName ?? 'Someone'} started following you`,
-            url: `/user/${actor?.username ?? session.user.id}`,
-          }),
         ])
+
+        // Push is fire-and-forget — never let it break the follow action
+        sendPushToUser(target.id, {
+          title: 'New follower',
+          body: `${actor?.displayName ?? 'Someone'} started following you`,
+          url: `/user/${actor?.username ?? session.user.id}`,
+        }).catch(() => {})
       }
     }
 
