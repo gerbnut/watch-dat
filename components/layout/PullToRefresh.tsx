@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const THRESHOLD = 72 // px of pull before triggering refresh
-const MAX_PULL = 100  // max pull distance shown
+const THRESHOLD = 72    // px of pull before triggering refresh
+const MAX_PULL = 100    // max visual pull cap
+const DEAD_ZONE = 12    // px before we treat movement as a pull (not a tap)
 
 export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -33,7 +34,9 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
     // Clamp with rubber-band feel
     const clamped = Math.min(dy * 0.5, MAX_PULL)
     setPullDistance(clamped)
-    if (clamped > 0) e.preventDefault()
+    // Only preventDefault after DEAD_ZONE — prevents suppressing click events
+    // on iOS for normal taps that have tiny accidental downward movement
+    if (dy > DEAD_ZONE) e.preventDefault()
   }, [refreshing])
 
   const handleTouchEnd = useCallback(async () => {

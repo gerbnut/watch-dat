@@ -153,27 +153,45 @@ export default async function UserProfilePage({ params }: { params: { username: 
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex items-center gap-2 pb-1">
-              <ShareButton
-                url={`/user/${user.username}`}
-                title={`${user.displayName} on Watch Dat`}
-                text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
-              />
+            {/* Action buttons — responsive layout prevents overflow on iPhone */}
+            <div className="flex items-center gap-2 pb-1 min-w-0">
               {isOwnProfile ? (
-                <Link href="/settings">
-                  <button className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors">
-                    Edit profile
-                  </button>
-                </Link>
-              ) : session?.user && (
                 <>
+                  <ShareButton
+                    url={`/user/${user.username}`}
+                    title={`${user.displayName} on Watch Dat`}
+                    text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
+                  />
+                  <Link href="/settings">
+                    <button className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent active:bg-accent/70 transition-colors">
+                      Edit profile
+                    </button>
+                  </Link>
+                </>
+              ) : session?.user ? (
+                <>
+                  {/* Follow button always visible */}
                   <FollowButtonClient
                     username={user.username}
                     isFollowing={!!isFollowing}
                   />
-                  <BlockButtonClient username={user.username} isBlocked={!!isBlocked} />
-                  <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
+                  {/* Share + Block + Report in a compact overflow row */}
+                  <div className="flex items-center gap-1">
+                    <ShareButton
+                      url={`/user/${user.username}`}
+                      title={`${user.displayName} on Watch Dat`}
+                      text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
+                    />
+                    <BlockButtonClient username={user.username} isBlocked={!!isBlocked} />
+                    <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
+                  </div>
                 </>
+              ) : (
+                <ShareButton
+                  url={`/user/${user.username}`}
+                  title={`${user.displayName} on Watch Dat`}
+                  text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
+                />
               )}
             </div>
           </div>
