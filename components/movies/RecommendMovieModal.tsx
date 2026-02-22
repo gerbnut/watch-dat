@@ -98,9 +98,13 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    // z-[60] beats BottomTabBar (z-50) so modal covers it on iOS
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-md bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[80vh] flex flex-col">
+      {/* max-h uses dvh so it respects the keyboard-reduced visual viewport on iOS */}
+      <div className="relative w-full max-w-md bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 flex flex-col"
+        style={{ maxHeight: 'min(80dvh, 600px)' }}
+      >
         <div>
           <h2 className="font-semibold text-base">Recommend a film</h2>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">"{movieTitle}"</p>
@@ -116,7 +120,6 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search following…"
                 className="pl-8 h-8 text-sm"
-                autoFocus
               />
             </div>
 

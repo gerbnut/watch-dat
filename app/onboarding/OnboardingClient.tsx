@@ -69,15 +69,22 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-28">
+    <div className="max-w-2xl mx-auto space-y-5 pb-32">
       {/* Header */}
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-widest text-cinema-400">Welcome, {displayName}!</p>
-        <h1 className="text-2xl font-bold">Pick your favourite films</h1>
+        <h1 className="text-xl sm:text-2xl font-bold leading-tight">Pick your favourite films</h1>
         <p className="text-sm text-muted-foreground">
-          Choose up to 5 films that defined your taste. They'll appear on your profile and help us personalise your feed.
+          Choose up to 5 films that defined your taste. They'll appear on your profile.
         </p>
       </div>
+
+      {/* Search */}
+      <MovieSearch
+        placeholder="Search for any film…"
+        navigateOnSelect={false}
+        onSelect={handleSearchSelect}
+      />
 
       {/* Selected strip */}
       {selected.length > 0 && (
@@ -86,10 +93,10 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
             <button
               key={film.tmdbId}
               onClick={() => setSelected((prev) => prev.filter((m) => m.tmdbId !== film.tmdbId))}
-              className="relative group"
+              className="relative group shrink-0"
               title={`Remove ${film.title}`}
             >
-              <div className="relative w-14 h-[84px] rounded-md overflow-hidden shadow-md ring-2 ring-cinema-500">
+              <div className="relative w-12 h-[72px] sm:w-14 sm:h-[84px] rounded-md overflow-hidden shadow-md ring-2 ring-cinema-500">
                 {film.poster ? (
                   <Image
                     src={TMDB_IMAGE.poster(film.poster, 'w185')!}
@@ -113,13 +120,6 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
         </div>
       )}
 
-      {/* Search */}
-      <MovieSearch
-        placeholder="Search for any film…"
-        navigateOnSelect={false}
-        onSelect={handleSearchSelect}
-      />
-
       {/* Suggestions grid */}
       <div>
         <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide flex items-center gap-1.5">
@@ -135,7 +135,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
                 onClick={() => toggle(movie)}
                 disabled={isDisabled}
                 className={cn(
-                  'relative rounded-md overflow-hidden transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cinema-500',
+                  'relative rounded-md overflow-hidden transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cinema-500 touch-manipulation',
                   isDisabled ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
                 )}
                 title={movie.title}
@@ -156,7 +156,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
                   )}
                   {isSelected && (
                     <div className="absolute inset-0 bg-cinema-500/70 flex items-center justify-center">
-                      <Check className="h-6 w-6 text-black" />
+                      <Check className="h-5 w-5 sm:h-6 sm:w-6 text-black" />
                     </div>
                   )}
                 </div>
@@ -166,24 +166,32 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
         </div>
       </div>
 
-      {/* Actions — sticky bottom bar */}
-      <div className="fixed bottom-0 inset-x-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm p-4 flex gap-3 justify-end md:bottom-0">
-        <Button variant="ghost" size="sm" onClick={() => handleFinish(true)} disabled={saving}>
-          Skip for now
+      {/* Actions — z-[60] so it sits above the BottomTabBar (z-50) */}
+      <div className="fixed bottom-0 inset-x-0 z-[60] border-t border-border/60 bg-background/95 backdrop-blur-sm p-4 flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleFinish(true)}
+          disabled={saving}
+          className="text-muted-foreground"
+        >
+          Skip
         </Button>
+        <div className="flex-1" />
+        <span className="text-xs text-muted-foreground">{selected.length}/5 selected</span>
         <Button
           variant="cinema"
           size="sm"
           onClick={() => handleFinish(false)}
           disabled={saving}
-          className="min-w-[140px]"
+          className="min-w-[120px]"
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : selected.length > 0 ? (
-            `Save & get started`
+            'Continue →'
           ) : (
-            'Get started'
+            'Skip & start'
           )}
         </Button>
       </div>

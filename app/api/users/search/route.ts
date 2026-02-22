@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
         username: true,
         displayName: true,
         avatar: true,
+        bio: true,
         _count: { select: { reviews: true, followers: true } },
       },
       take: 10,
@@ -57,6 +58,7 @@ export async function GET(req: NextRequest) {
       users.map((u) => ({ ...u, isFollowing: followingIds.has(u.id) }))
     )
   } catch (err) {
-    return NextResponse.json({ error: 'Search failed' }, { status: 500 })
+    console.error('User search error:', err)
+    return NextResponse.json([], { status: 200 })
   }
 }

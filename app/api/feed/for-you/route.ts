@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
+  try {
   // Get popular reviews from last 30 days with text or rating
   let reviews = await prisma.review.findMany({
     where: {
@@ -82,4 +83,8 @@ export async function GET(req: NextRequest) {
     activities,
     nextSkip: hasMore ? skip + limit : null,
   })
+  } catch (err) {
+    console.error('For-you feed error:', err)
+    return NextResponse.json({ error: 'Failed to load feed', activities: [], nextSkip: null }, { status: 500 })
+  }
 }

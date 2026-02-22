@@ -43,13 +43,17 @@ export async function PUT(req: NextRequest, { params }: { params: { username: st
         select: { id: true, tmdbId: true },
       })
 
-      await prisma.favoriteMovie.createMany({
-        data: parsed.data.tmdbIds.map((tmdbId, order) => ({
-          userId: user.id,
-          movieId: movies.find((m) => m.tmdbId === tmdbId)!.id,
-          order,
-        })),
-      })
+      const rows = parsed.data.tmdbIds
+        .map((tmdbId, order) => {
+          const movie = movies.find((m) => m.tmdbId === tmdbId)
+          if (!movie) return null
+          return { userId: user.id, movieId: movie.id, order }
+        })
+        .filter((r): r is NonNullable<typeof r> => r !== null)
+
+      if (rows.length > 0) {
+        await prisma.favoriteMovie.createMany({ data: rows })
+      }
     }
 
     return NextResponse.json({ success: true })

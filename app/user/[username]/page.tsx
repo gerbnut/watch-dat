@@ -77,18 +77,18 @@ export default async function UserProfilePage({ params }: { params: { username: 
   if (!user) notFound()
 
   const isOwnProfile = session?.user?.id === user.id
-  const [isFollowing, isBlocked] = await Promise.all([
-    session?.user?.id && !isOwnProfile
-      ? prisma.follow.findUnique({
-          where: { followerId_followingId: { followerId: session.user.id, followingId: user.id } },
-        }).then(Boolean)
-      : false,
-    session?.user?.id && !isOwnProfile
-      ? prisma.block.findUnique({
-          where: { blockerId_blockedId: { blockerId: session.user.id, blockedId: user.id } },
-        }).then(Boolean)
-      : false,
-  ])
+  // Wrap separately: block table may not exist on older DB migrations
+  const isFollowing = session?.user?.id && !isOwnProfile
+    ? prisma.follow.findUnique({
+        where: { followerId_followingId: { followerId: session.user.id, followingId: user.id } },
+      }).then(Boolean).catch(() => false)
+    : false
+  const isBlocked = session?.user?.id && !isOwnProfile
+    ? prisma.block.findUnique({
+        where: { blockerId_blockedId: { blockerId: session.user.id, blockedId: user.id } },
+      }).then(Boolean).catch(() => false)
+    : false
+  const [resolvedFollowing, resolvedBlocked] = await Promise.all([isFollowing, isBlocked])
 
   const [recentReviews, recentLists, recentActivities] = await Promise.all([
     prisma.review.findMany({
@@ -173,7 +173,7 @@ export default async function UserProfilePage({ params }: { params: { username: 
                   {/* Follow button always visible */}
                   <FollowButtonClient
                     username={user.username}
-                    isFollowing={!!isFollowing}
+                    isFollowing={!!resolvedFollowing}
                   />
                   {/* Share + Block + Report in a compact overflow row */}
                   <div className="flex items-center gap-1">
@@ -182,7 +182,7 @@ export default async function UserProfilePage({ params }: { params: { username: 
                       title={`${user.displayName} on Watch Dat`}
                       text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
                     />
-                    <BlockButtonClient username={user.username} isBlocked={!!isBlocked} />
+                    <BlockButtonClient username={user.username} isBlocked={!!resolvedBlocked} />
                     <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
                   </div>
                 </>
