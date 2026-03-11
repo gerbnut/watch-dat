@@ -4,62 +4,61 @@ interface LogoMarkProps {
 }
 
 /**
- * The Midnight Reeler — minimal owl with film-reel wings.
- * Uses currentColor so wrap in text-cinema-400 etc. for color.
- * White eyes and #0d1117 pupils are hardcoded.
- * Default size=28 matches the navbar.
+ * Watch Dat owl logo — dark body, circular green film-reel wings, green eyes.
+ * `size` sets the rendered width; height scales proportionally (56:48 aspect).
+ * Default size=32 matches the navbar.
  */
-export function WatchDatLogoMark({ className, size = 28 }: LogoMarkProps) {
+export function WatchDatLogoMark({ className, size = 32 }: LogoMarkProps) {
+  const h = Math.round(size * (48 / 56))
   return (
     <svg
       width={size}
-      height={size}
-      viewBox="0 0 44 44"
+      height={h}
+      viewBox="0 0 56 48"
       fill="none"
       className={className}
       aria-hidden="true"
     >
-      {/* Left film-reel wing — pie wedge with perforation holes */}
-      <path
-        fillRule="evenodd"
-        d="M17 23 L5.7 11.7 A16 16 0 0 1 5.7 34.3 Z
-           M8 16.5 h2.5 v2.2 h-2.5 Z
-           M8 26.5 h2.5 v2.2 h-2.5 Z"
-        fill="currentColor"
-        opacity="0.85"
-      />
+      {/* Left film-reel wing */}
+      <circle cx="10" cy="26" r="10" fill="#22c55e" />
+      <circle cx="10" cy="26" r="3.5" fill="#0d1117" />
+      <circle cx="10" cy="19.5" r="1.8" fill="#0d1117" />
+      <circle cx="15.6" cy="29.3" r="1.8" fill="#0d1117" />
+      <circle cx="4.4" cy="29.3" r="1.8" fill="#0d1117" />
 
-      {/* Right film-reel wing — mirror */}
-      <path
-        fillRule="evenodd"
-        d="M27 23 L38.3 11.7 A16 16 0 0 0 38.3 34.3 Z
-           M33.5 16.5 h2.5 v2.2 h-2.5 Z
-           M33.5 26.5 h2.5 v2.2 h-2.5 Z"
-        fill="currentColor"
-        opacity="0.85"
-      />
+      {/* Right film-reel wing */}
+      <circle cx="46" cy="26" r="10" fill="#22c55e" />
+      <circle cx="46" cy="26" r="3.5" fill="#0d1117" />
+      <circle cx="46" cy="19.5" r="1.8" fill="#0d1117" />
+      <circle cx="51.6" cy="29.3" r="1.8" fill="#0d1117" />
+      <circle cx="40.4" cy="29.3" r="1.8" fill="#0d1117" />
 
       {/* Owl body */}
-      <ellipse cx="22" cy="36" rx="10" ry="8.5" fill="currentColor" />
+      <ellipse cx="28" cy="40" rx="9.5" ry="7.5" fill="#1a1a1a" />
 
       {/* Owl head */}
-      <circle cx="22" cy="20" r="13" fill="currentColor" />
+      <circle cx="28" cy="22" r="13.5" fill="#1a1a1a" />
 
-      {/* Left ear tuft */}
-      <polygon points="16,9 12,1 20,11" fill="currentColor" />
+      {/* Ear tufts */}
+      <polygon points="20,10 17,3 24,12" fill="#1a1a1a" />
+      <polygon points="36,10 32,12 39,3" fill="#1a1a1a" />
 
-      {/* Right ear tuft */}
-      <polygon points="28,9 24,11 32,1" fill="currentColor" />
+      {/* Left eye (green) */}
+      <circle cx="22.5" cy="21" r="5.5" fill="#22c55e" />
+      <circle cx="23" cy="21.5" r="3.2" fill="#0d1117" />
+      <circle cx="21.5" cy="19.8" r="1" fill="white" opacity="0.7" />
 
-      {/* Left eye */}
-      <circle cx="17" cy="19" r="5.5" fill="white" />
-      <circle cx="17.5" cy="19.5" r="3.3" fill="#0d1117" />
-      <circle cx="16" cy="17.5" r="1.1" fill="white" />
+      {/* Right eye (green) */}
+      <circle cx="33.5" cy="21" r="5.5" fill="#22c55e" />
+      <circle cx="33" cy="21.5" r="3.2" fill="#0d1117" />
+      <circle cx="32" cy="19.8" r="1" fill="white" opacity="0.7" />
 
-      {/* Right eye */}
-      <circle cx="27" cy="19" r="5.5" fill="white" />
-      <circle cx="26.5" cy="19.5" r="3.3" fill="#0d1117" />
-      <circle cx="26" cy="17.5" r="1.1" fill="white" />
+      {/* Beak */}
+      <polygon points="28,25 26,28.5 30,28.5" fill="#22c55e" />
+
+      {/* Feet */}
+      <path d="M23 46.5 L21 48 M23 46.5 L23 48 M23 46.5 L25 48" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M33 46.5 L31 48 M33 46.5 L33 48 M33 46.5 L35 48" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

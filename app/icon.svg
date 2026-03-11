@@ -1,40 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- Dark rounded background -->
+  <!-- Dark background -->
   <rect width="32" height="32" rx="7" fill="#0d1117"/>
 
   <!-- Left film-reel wing -->
-  <path fill-rule="evenodd"
-    d="M12.4 16.7 L4.1 8.5 A11.6 11.6 0 0 1 4.1 24.9 Z
-       M5.8 12.0 h1.8 v1.6 h-1.8 Z
-       M5.8 19.3 h1.8 v1.6 h-1.8 Z"
-    fill="#22c55e" opacity="0.85"/>
+  <circle cx="5.5" cy="18" r="5.5" fill="#22c55e"/>
+  <circle cx="5.5" cy="18" r="1.9" fill="#0d1117"/>
+  <circle cx="5.5" cy="13.8" r="0.9" fill="#0d1117"/>
+  <circle cx="8.5" cy="20.5" r="0.9" fill="#0d1117"/>
+  <circle cx="2.5" cy="20.5" r="0.9" fill="#0d1117"/>
 
   <!-- Right film-reel wing -->
-  <path fill-rule="evenodd"
-    d="M19.6 16.7 L27.9 8.5 A11.6 11.6 0 0 0 27.9 24.9 Z
-       M24.4 12.0 h1.8 v1.6 h-1.8 Z
-       M24.4 19.3 h1.8 v1.6 h-1.8 Z"
-    fill="#22c55e" opacity="0.85"/>
+  <circle cx="26.5" cy="18" r="5.5" fill="#22c55e"/>
+  <circle cx="26.5" cy="18" r="1.9" fill="#0d1117"/>
+  <circle cx="26.5" cy="13.8" r="0.9" fill="#0d1117"/>
+  <circle cx="29.5" cy="20.5" r="0.9" fill="#0d1117"/>
+  <circle cx="23.5" cy="20.5" r="0.9" fill="#0d1117"/>
 
   <!-- Owl body -->
-  <ellipse cx="16" cy="26.2" rx="7.3" ry="6.2" fill="#22c55e"/>
+  <ellipse cx="16" cy="27.5" rx="5.5" ry="4.5" fill="#1a1a1a"/>
 
   <!-- Owl head -->
-  <circle cx="16" cy="14.5" r="9.5" fill="#22c55e"/>
+  <circle cx="16" cy="14.5" r="8" fill="#1a1a1a"/>
 
-  <!-- Left ear tuft -->
-  <polygon points="11.6,6.5 8.7,0.7 14.5,8.0" fill="#22c55e"/>
+  <!-- Ear tufts -->
+  <polygon points="11.5,7.5 9.5,3 13.5,9" fill="#1a1a1a"/>
+  <polygon points="20.5,7.5 18.5,9 22.5,3" fill="#1a1a1a"/>
 
-  <!-- Right ear tuft -->
-  <polygon points="20.4,6.5 17.5,8.0 23.3,0.7" fill="#22c55e"/>
+  <!-- Left eye (green) -->
+  <circle cx="13" cy="13.5" r="3.2" fill="#22c55e"/>
+  <circle cx="13.3" cy="13.8" r="1.9" fill="#0d1117"/>
+  <circle cx="12.3" cy="12.5" r="0.6" fill="white" opacity="0.7"/>
 
-  <!-- Left eye -->
-  <circle cx="12.4" cy="13.8" r="4.0" fill="white"/>
-  <circle cx="12.8" cy="14.2" r="2.4" fill="#0d1117"/>
-  <circle cx="11.6" cy="12.8" r="0.8" fill="white"/>
+  <!-- Right eye (green) -->
+  <circle cx="19" cy="13.5" r="3.2" fill="#22c55e"/>
+  <circle cx="18.7" cy="13.8" r="1.9" fill="#0d1117"/>
+  <circle cx="18" cy="12.5" r="0.6" fill="white" opacity="0.7"/>
 
-  <!-- Right eye -->
-  <circle cx="19.6" cy="13.8" r="4.0" fill="white"/>
-  <circle cx="19.2" cy="14.2" r="2.4" fill="#0d1117"/>
-  <circle cx="18.4" cy="12.8" r="0.8" fill="white"/>
+  <!-- Beak -->
+  <polygon points="16,16.5 14.8,18.5 17.2,18.5" fill="#22c55e"/>
+
+  <!-- Feet -->
+  <path d="M13.5 31 L12.5 32 M13.5 31 L13.5 32 M13.5 31 L14.5 32" stroke="#22c55e" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M18.5 31 L17.5 32 M18.5 31 L18.5 32 M18.5 31 L19.5 32" stroke="#22c55e" stroke-width="0.9" stroke-linecap="round"/>
 </svg>
