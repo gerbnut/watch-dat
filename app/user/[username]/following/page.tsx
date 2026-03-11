@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Users } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { FollowButtonClient } from '../FollowButtonClient'
@@ -60,7 +60,10 @@ export default async function FollowingPage({ params }: { params: { username: st
       </div>
 
       {follows.length === 0 ? (
-        <p className="text-center text-muted-foreground py-12 text-sm">Not following anyone yet.</p>
+        <div className="rounded-xl border border-dashed bg-card p-12 text-center space-y-3">
+          <Users className="h-10 w-10 mx-auto text-muted-foreground/40" />
+          <p className="font-medium">Not following anyone yet</p>
+        </div>
       ) : (
         <div className="space-y-1">
           {follows.map(({ following }) => (

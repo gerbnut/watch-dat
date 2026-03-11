@@ -166,8 +166,26 @@ export default function FriendsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="max-w-lg space-y-8">
+        <div className="space-y-1.5">
+          <div className="skeleton h-7 w-24 rounded" />
+          <div className="skeleton h-4 w-48 rounded" />
+        </div>
+        <div className="skeleton h-11 w-full rounded-lg" />
+        <div className="space-y-1">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between gap-3 p-3">
+              <div className="flex items-center gap-3">
+                <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                <div className="space-y-1.5">
+                  <div className="skeleton h-4 w-28 rounded" />
+                  <div className="skeleton h-3 w-20 rounded" />
+                </div>
+              </div>
+              <div className="skeleton h-8 w-20 rounded-lg shrink-0" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -242,8 +260,19 @@ export default function FriendsPage() {
         </div>
 
         {loadingFollowing ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <div className="space-y-1">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between gap-3 p-3">
+                <div className="flex items-center gap-3">
+                  <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                  <div className="space-y-1.5">
+                    <div className="skeleton h-4 w-28 rounded" />
+                    <div className="skeleton h-3 w-20 rounded" />
+                  </div>
+                </div>
+                <div className="skeleton h-8 w-20 rounded-lg shrink-0" />
+              </div>
+            ))}
           </div>
         ) : following.length === 0 ? (
           <div className="rounded-lg border border-dashed p-8 text-center">

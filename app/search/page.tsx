@@ -109,6 +109,39 @@ function SearchContent() {
           <Search className="h-10 w-10 mx-auto mb-3 opacity-30" />
           <p>Start typing to search</p>
         </div>
+      ) : loading ? (
+        tab === 'films' ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="skeleton aspect-[2/3] w-full rounded" />
+                <div className="skeleton h-3 w-4/5 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : tab === 'cast' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-2 p-3">
+                <div className="skeleton h-20 w-20 rounded-full" />
+                <div className="skeleton h-3 w-16 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-3 rounded-lg border bg-card p-4">
+                <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="skeleton h-4 w-32 rounded" />
+                  <div className="skeleton h-3 w-24 rounded" />
+                </div>
+                <div className="skeleton h-8 w-20 rounded-lg shrink-0" />
+              </div>
+            ))}
+          </div>
+        )
       ) : tab === 'films' ? (
         films.length > 0 ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
@@ -124,7 +157,7 @@ function SearchContent() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No films found for "{debouncedQuery}"</p>
+          <p className="text-center text-muted-foreground py-8">No films found for &quot;{debouncedQuery}&quot;</p>
         )
       ) : tab === 'cast' ? (
         cast.length > 0 ? (
@@ -160,7 +193,7 @@ function SearchContent() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No cast or crew found for "{debouncedQuery}"</p>
+          <p className="text-center text-muted-foreground py-8">No cast or crew found for &quot;{debouncedQuery}&quot;</p>
         )
       ) : (
         members.length > 0 ? (
@@ -195,7 +228,7 @@ function SearchContent() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground py-8">No members found for "{debouncedQuery}"</p>
+          <p className="text-center text-muted-foreground py-8">No members found for &quot;{debouncedQuery}&quot;</p>
         )
       )}
     </div>
@@ -204,7 +237,21 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="text-center py-12 text-muted-foreground"><Loader2 className="h-6 w-6 mx-auto animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="skeleton h-7 w-20 rounded" />
+            <div className="skeleton h-11 w-full rounded-lg" />
+            <div className="flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="skeleton h-8 w-24 rounded-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+      }
+    >
       <SearchContent />
     </Suspense>
   )
