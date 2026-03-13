@@ -19,11 +19,12 @@ const TABS = [
 export default async function FilmsPage({
   searchParams,
 }: {
-  searchParams: { tab?: string }
+  searchParams: Promise<{ tab?: string }>
 }) {
+  const { tab: rawTab } = await searchParams
   const tab: Tab =
-    searchParams.tab === 'new' ? 'new'
-    : searchParams.tab === 'top-rated' ? 'top-rated'
+    rawTab === 'new' ? 'new'
+    : rawTab === 'top-rated' ? 'top-rated'
     : 'popular'
 
   let content: React.ReactNode
