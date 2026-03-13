@@ -5,8 +5,9 @@ import { Metadata } from 'next'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { BackButton } from '@/components/ui/BackButton'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const tmdbId = Number(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const tmdbId = Number(id)
   if (isNaN(tmdbId)) return { title: 'Person Not Found' }
   try {
     const person = await getPersonDetails(tmdbId)
@@ -16,8 +17,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function PersonPage({ params }: { params: { id: string } }) {
-  const tmdbId = Number(params.id)
+export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const tmdbId = Number(id)
   if (isNaN(tmdbId)) notFound()
 
   let person: Awaited<ReturnType<typeof getPersonDetails>> | null = null

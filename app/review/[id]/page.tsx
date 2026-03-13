@@ -9,9 +9,10 @@ import { ShareButton } from '@/components/ui/ShareButton'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
   const review = await prisma.review.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { displayName: true } },
       movie: { select: { title: true, poster: true } },
@@ -42,11 +43,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function ReviewDetailPage({ params }: { params: { id: string } }) {
+export default async function ReviewDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
+  const { id } = await params
 
   const review = await prisma.review.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { id: true, username: true, displayName: true, avatar: true } },
       movie: { select: { id: true, tmdbId: true, title: true, poster: true, backdrop: true, releaseDate: true } },

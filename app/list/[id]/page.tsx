@@ -10,16 +10,18 @@ import { Badge } from '@/components/ui/badge'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 import { AddToListClient } from './AddToListClient'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const list = await prisma.list.findUnique({ where: { id: params.id }, select: { name: true } })
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const list = await prisma.list.findUnique({ where: { id }, select: { name: true } })
   return { title: list?.name ?? 'List' }
 }
 
-export default async function ListDetailPage({ params }: { params: { id: string } }) {
+export default async function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
+  const { id } = await params
 
   const list = await prisma.list.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { id: true, username: true, displayName: true, avatar: true } },
       items: {

@@ -19,8 +19,9 @@ import { BackButton } from '@/components/ui/BackButton'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const tmdbId = Number(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const tmdbId = Number(id)
   if (isNaN(tmdbId)) return { title: 'Film Not Found' }
   try {
     const movie = await getOrCacheMovie(tmdbId)
@@ -50,8 +51,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function FilmPage({ params }: { params: { id: string } }) {
-  const tmdbId = Number(params.id)
+export default async function FilmPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const tmdbId = Number(id)
   if (isNaN(tmdbId)) notFound()
 
   const session = await auth()
