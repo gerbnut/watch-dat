@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -12,7 +13,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
     const comment = await prisma.comment.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { userId: true, _count: { select: { replies: true } } },
     })
 
@@ -26,13 +27,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (comment._count.replies > 0) {
       // Soft-delete: preserve thread structure, show [deleted] placeholder
       await prisma.comment.update({
-        where: { id: params.id },
+        where: { id },
         data: { deleted: true, text: null, gifUrl: null },
       })
       return NextResponse.json({ deleted: true, softDelete: true })
     } else {
       // Hard delete: no replies, safe to remove
-      await prisma.comment.delete({ where: { id: params.id } })
+      await prisma.comment.delete({ where: { id } })
       return NextResponse.json({ deleted: true, softDelete: false })
     }
   } catch (err) {

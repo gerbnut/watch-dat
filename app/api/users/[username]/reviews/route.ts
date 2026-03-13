@@ -3,14 +3,15 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
-export async function GET(req: NextRequest, { params }: { params: { username: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const { searchParams } = req.nextUrl
   const cursor = searchParams.get('cursor')
   const limit = 20
 
   try {
     const user = await prisma.user.findUnique({
-      where: { username: params.username.toLowerCase() },
+      where: { username: username.toLowerCase() },
       select: { id: true },
     })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
       hasMore,
     })
   } catch (err) {
+    console.error('User reviews error:', err)
     return NextResponse.json({ error: 'Failed to load reviews' }, { status: 500 })
   }
 }

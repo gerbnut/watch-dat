@@ -10,7 +10,8 @@ const schema = z.object({
   tmdbIds: z.array(z.number().int().positive()).max(5),
 })
 
-export async function PUT(req: NextRequest, { params }: { params: { username: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -18,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: { username: st
 
   try {
     const user = await prisma.user.findUnique({
-      where: { username: params.username.toLowerCase() },
+      where: { username: username.toLowerCase() },
       select: { id: true },
     })
     if (!user || user.id !== session.user.id) {
@@ -58,6 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: { username: st
 
     return NextResponse.json({ success: true })
   } catch (err) {
+    console.error('Favorites error:', err)
     return NextResponse.json({ error: 'Failed to update favorites' }, { status: 500 })
   }
 }

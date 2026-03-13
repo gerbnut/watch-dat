@@ -4,14 +4,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const { searchParams } = req.nextUrl
   const cursor = searchParams.get('cursor')
   const limit = 20
 
   try {
     const session = await auth()
-    const tmdbId = Number(params.id)
+    const tmdbId = Number(id)
     const movie = await prisma.movie.findUnique({ where: { tmdbId } })
     if (!movie) return NextResponse.json({ data: [], hasMore: false })
 

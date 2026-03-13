@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     const activities = await prisma.activity.findMany({
       where: {
         userId: { in: ids },
+        type: { notIn: ['FOLLOWED_USER'] },
         ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
       },
       include: {

@@ -5,8 +5,9 @@ import { getOrCacheMovie } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const tmdbId = Number(params.id)
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const tmdbId = Number(id)
   if (isNaN(tmdbId)) {
     return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 })
   }

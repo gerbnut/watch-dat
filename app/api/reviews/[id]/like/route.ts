@@ -5,7 +5,8 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { sendPushToUser } from '@/lib/webpush'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     const existing = await prisma.like.findUnique({
-      where: { userId_reviewId: { userId: session.user.id, reviewId: params.id } },
+      where: { userId_reviewId: { userId: session.user.id, reviewId: id } },
     })
 
     let liked: boolean
@@ -22,14 +23,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       liked = false
     } else {
       await prisma.like.create({
-        data: { userId: session.user.id, reviewId: params.id },
+        data: { userId: session.user.id, reviewId: id },
       })
       liked = true
 
       // Notify review author (not self-likes)
       const [review, actor] = await Promise.all([
         prisma.review.findUnique({
-          where: { id: params.id },
+          where: { id },
           select: { userId: true, movie: { select: { title: true } } },
         }),
         prisma.user.findUnique({
@@ -44,19 +45,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
               userId: review.userId,
               actorId: session.user.id,
               type: 'LIKED_REVIEW',
-              reviewId: params.id,
+              reviewId: id,
             },
           }),
           sendPushToUser(review.userId, {
             title: 'New like',
             body: `${actor?.displayName ?? 'Someone'} liked your review of ${review.movie?.title ?? 'a film'}`,
-            url: `/review/${params.id}`,
+            url: `/review/${id}`,
           }),
         ])
       }
     }
 
-    const likeCount = await prisma.like.count({ where: { reviewId: params.id } })
+    const likeCount = await prisma.like.count({ where: { reviewId: id } })
     return NextResponse.json({ liked, likeCount })
   } catch (err) {
     console.error('Like error:', err)

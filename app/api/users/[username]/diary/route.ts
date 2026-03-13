@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
-export async function GET(req: NextRequest, { params }: { params: { username: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const { searchParams } = req.nextUrl
   const cursor = searchParams.get('cursor')
   const year = searchParams.get('year')
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
 
   try {
     const user = await prisma.user.findUnique({
-      where: { username: params.username.toLowerCase() },
+      where: { username: username.toLowerCase() },
       select: { id: true },
     })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -63,6 +64,7 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
       hasMore,
     })
   } catch (err) {
+    console.error('Diary error:', err)
     return NextResponse.json({ error: 'Failed to load diary' }, { status: 500 })
   }
 }

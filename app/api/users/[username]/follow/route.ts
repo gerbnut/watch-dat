@@ -5,7 +5,8 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { sendPushToUser } from '@/lib/webpush'
 
-export async function POST(req: NextRequest, { params }: { params: { username: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
 
   try {
     const target = await prisma.user.findUnique({
-      where: { username: params.username.toLowerCase() },
+      where: { username: username.toLowerCase() },
       select: { id: true },
     })
     if (!target) return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
             data: {
               userId: session.user.id,
               type: 'FOLLOWED_USER',
-              metadata: { targetUserId: target.id, targetUsername: params.username },
+              metadata: { targetUserId: target.id, targetUsername: username },
             },
           }),
           prisma.notification.create({

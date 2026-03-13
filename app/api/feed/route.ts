@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
     followingIds.push(session.user.id) // Include own activity
 
     const activities = await prisma.activity.findMany({
-      where: { userId: { in: followingIds } },
+      where: {
+        userId: { in: followingIds },
+        type: { notIn: ['FOLLOWED_USER'] },
+      },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
         movie: { select: { id: true, tmdbId: true, title: true, poster: true, backdrop: true } },

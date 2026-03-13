@@ -5,11 +5,12 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { z } from 'zod'
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const session = await auth()
     const list = await prisma.list.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
         items: {
@@ -41,18 +42,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(list)
   } catch (err) {
+    console.error('List error:', err)
     return NextResponse.json({ error: 'Failed to load list' }, { status: 500 })
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const list = await prisma.list.findUnique({ where: { id: params.id } })
+    const list = await prisma.list.findUnique({ where: { id } })
     if (!list) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     if (list.userId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -60,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const body = await req.json()
     const updated = await prisma.list.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: body.name ?? undefined,
         description: body.description ?? undefined,
@@ -70,26 +73,29 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json(updated)
   } catch (err) {
+    console.error('Update list error:', err)
     return NextResponse.json({ error: 'Failed to update list' }, { status: 500 })
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const list = await prisma.list.findUnique({ where: { id: params.id } })
+    const list = await prisma.list.findUnique({ where: { id } })
     if (!list) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     if (list.userId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.list.delete({ where: { id: params.id } })
+    await prisma.list.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (err) {
+    console.error('Delete list error:', err)
     return NextResponse.json({ error: 'Failed to delete list' }, { status: 500 })
   }
 }

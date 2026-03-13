@@ -27,10 +27,11 @@ function extractMentions(text: string): string[] {
   return Array.from(new Set(matches.map((m) => m.slice(1).toLowerCase())))
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const comments = await prisma.comment.findMany({
-      where: { reviewId: params.id },
+      where: { reviewId: id },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
       },
@@ -42,7 +43,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       where: { id: parentId },
       select: { reviewId: true },
     })
-    if (!parent || parent.reviewId !== params.id) {
+    if (!parent || parent.reviewId !== id) {
       return NextResponse.json({ error: 'Invalid parent comment' }, { status: 400 })
     }
   }
@@ -78,7 +80,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     comment = await prisma.comment.create({
       data: {
         userId: session.user.id,
-        reviewId: params.id,
+        reviewId: id,
         parentId: parentId ?? null,
         text: text?.trim() ?? null,
         gifUrl: gifUrl ?? null,
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // Notifications are best-effort — never fail the request if they error
   try {
     const review = await prisma.review.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { userId: true },
     })
 
@@ -110,7 +112,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           userId: parent.userId,
           actorId: session.user.id,
           type: 'REPLIED_COMMENT',
-          reviewId: params.id,
+          reviewId: id,
           commentId: comment.id,
         })
       }
@@ -119,7 +121,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         userId: review.userId,
         actorId: session.user.id,
         type: 'COMMENTED_REVIEW',
-        reviewId: params.id,
+        reviewId: id,
         commentId: comment.id,
       })
     }
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             userId: mu.id,
             actorId: session.user.id,
             type: 'MENTION',
-            reviewId: params.id,
+            reviewId: id,
             commentId: comment.id,
           })
         }
@@ -160,7 +162,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             body: n.type === 'REPLIED_COMMENT'
               ? `${actorName} replied to your comment`
               : `${actorName} commented on your review`,
-            url: `/review/${params.id}`,
+            url: `/review/${id}`,
           })
         )
       )

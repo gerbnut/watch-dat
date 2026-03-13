@@ -14,14 +14,15 @@ const updateSchema = z.object({
   rewatch: z.boolean().optional(),
 })
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const review = await prisma.review.findUnique({ where: { id: params.id } })
+    const review = await prisma.review.findUnique({ where: { id } })
     if (!review) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     if (review.userId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -34,7 +35,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     const updated = await prisma.review.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...parsed.data,
         watchedDate: parsed.data.watchedDate ? new Date(parsed.data.watchedDate) : undefined,
@@ -53,20 +54,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const review = await prisma.review.findUnique({ where: { id: params.id } })
+    const review = await prisma.review.findUnique({ where: { id } })
     if (!review) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     if (review.userId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.review.delete({ where: { id: params.id } })
+    await prisma.review.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Delete review error:', err)

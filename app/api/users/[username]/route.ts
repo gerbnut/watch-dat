@@ -12,12 +12,13 @@ const patchSchema = z.object({
   bannerUrl: z.string().max(4 * 1024 * 1024).optional().nullable(),
 })
 
-export async function GET(req: NextRequest, { params }: { params: { username: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   try {
     const session = await auth()
 
     const user = await prisma.user.findUnique({
-      where: { username: params.username.toLowerCase() },
+      where: { username: username.toLowerCase() },
       select: {
         id: true,
         username: true,
@@ -66,7 +67,8 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { username: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -74,7 +76,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { username: 
 
   try {
     const user = await prisma.user.findUnique({
-      where: { username: params.username.toLowerCase() },
+      where: { username: username.toLowerCase() },
       select: { id: true },
     })
     if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })

@@ -75,6 +75,14 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       await prisma.watchlistItem.delete({ where: { id: existing.id } })
+      // Also remove the feed activity so it disappears from the feed
+      await prisma.activity.deleteMany({
+        where: {
+          userId: session.user.id,
+          type: 'ADDED_TO_WATCHLIST',
+          movieId: movie.id,
+        },
+      })
       return NextResponse.json({ added: false })
     } else {
       await prisma.watchlistItem.create({
@@ -90,6 +98,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ added: true })
     }
   } catch (err) {
+    console.error('Watchlist error:', err)
     return NextResponse.json({ error: 'Failed to update watchlist' }, { status: 500 })
   }
 }
