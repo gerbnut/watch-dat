@@ -11,6 +11,7 @@ import {
   PanInfo,
 } from 'framer-motion'
 import { toast } from '@/hooks/use-toast'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 import { cn } from '@/lib/utils'
@@ -336,6 +337,15 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm space-y-6">
+          <div className="flex items-center">
+            <button
+              onClick={() => router.push('/films')}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              aria-label="Back to films"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          </div>
           <div className="text-center space-y-1">
             <h1 className="text-2xl font-black tracking-tight">Pick Tonight</h1>
             <p className="text-muted-foreground text-sm">What are you in the mood for?</p>
@@ -420,12 +430,21 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
     <div className="min-h-screen flex flex-col items-center px-4 py-6 gap-6">
       {/* Header */}
       <div className="w-full max-w-sm flex items-center justify-between text-sm">
-        <button
-          onClick={handleChangeMood}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          ← Change mood
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => router.push('/films')}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label="Back to films"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleChangeMood}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Change mood
+          </button>
+        </div>
         <span className="font-semibold">
           {selectedMood.emoji} {selectedMood.label}
         </span>
