@@ -30,6 +30,9 @@ interface MovieSearchProps {
   navigateOnSelect?: boolean
   showPeople?: boolean
   className?: string
+  /** When true, disables the mobile full-screen overlay (use inside modals/dialogs
+   *  to avoid being trapped by the dialog's CSS transform stacking context). */
+  inModal?: boolean
 }
 
 export function MovieSearch({
@@ -38,6 +41,7 @@ export function MovieSearch({
   navigateOnSelect = true,
   showPeople = false,
   className,
+  inModal = false,
 }: MovieSearchProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
@@ -244,7 +248,7 @@ export function MovieSearch({
         </div>
       )}
 
-      {/* ── Desktop / fallback input ─────────────────────────────────────── */}
+      {/* ── Desktop / fallback input (also used for inModal on all screen sizes) ── */}
       <div className={cn('relative', className)}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -252,13 +256,13 @@ export function MovieSearch({
             ref={inputRef}
             value={query}
             onPointerDown={(e) => {
-              if (window.innerWidth < 640) {
+              if (!inModal && window.innerWidth < 640) {
                 e.preventDefault()
                 setMobileOpen(true)
               }
             }}
             onFocus={() => {
-              if (window.innerWidth >= 640) setOpen(true)
+              if (inModal || window.innerWidth >= 640) setOpen(true)
             }}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -278,9 +282,13 @@ export function MovieSearch({
           )}
         </div>
 
-        {/* Desktop dropdown */}
+        {/* Inline results — used on desktop always, and on mobile when inModal=true */}
         {open && query.trim().length > 0 && (
-          <div className="hidden sm:block absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border bg-popover shadow-xl overflow-hidden max-h-[60vh] overflow-y-auto">
+          <div className={cn(
+            'absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border bg-popover shadow-xl overflow-hidden',
+            'overflow-y-auto overscroll-contain max-h-[50vh]',
+            inModal ? 'block' : 'hidden sm:block',
+          )}>
             <ResultsList onFilmClick={handleSelectFilm} onUserClick={handleSelectUser} />
           </div>
         )}
