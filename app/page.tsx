@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { FeedTabs } from '@/components/feed/FeedTabs'
 import { MovieCard } from '@/components/movies/MovieCard'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { Button } from '@/components/ui/button'
 import { getSimilarMovies, TMDB_IMAGE } from '@/lib/tmdb'
 import Link from 'next/link'
@@ -100,7 +101,7 @@ export default async function HomePage() {
             <h2 className="text-lg font-semibold">Trending this week</h2>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
-            {trending.map((movie: any) => (
+            {trending.map((movie: any, i: number) => (
               <MovieCard
                 key={movie.id}
                 tmdbId={movie.id}
@@ -109,6 +110,7 @@ export default async function HomePage() {
                 releaseDate={movie.release_date}
                 rating={movie.vote_average}
                 size="md"
+                priority={i < 3}
                 className="shrink-0 snap-start"
               />
             ))}
@@ -198,15 +200,12 @@ export default async function HomePage() {
               <Link key={movie.id} href={`/film/${movie.id}`} className="flex items-center gap-3 hover:bg-accent/50 rounded-md p-1.5 transition-colors">
                 <span className="text-xs text-muted-foreground w-4">{i + 1}</span>
                 <div className="relative h-9 w-6 shrink-0 overflow-hidden rounded">
-                  {movie.poster_path && (
-                    <Image
-                      src={TMDB_IMAGE.poster(movie.poster_path, 'w185')!}
-                      alt={movie.title}
-                      fill
-                      className="object-cover"
-                      sizes="24px"
-                    />
-                  )}
+                  <MoviePoster
+                    poster={movie.poster_path}
+                    title={movie.title}
+                    tmdbSize="w92"
+                    sizes="24px"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{movie.title}</p>
