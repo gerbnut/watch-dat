@@ -31,14 +31,14 @@ export function AnimatedLikeButton({
         isLiked
           ? 'text-cinema-400'
           : 'text-muted-foreground hover:text-cinema-400 active:text-cinema-400',
-        disabled && 'pointer-events-none',
+        disabled && 'opacity-70',
       )}
     >
       <motion.div
         animate={isLiked ? { scale: [1, 1.5, 0.8, 1.15, 1] } : { scale: 1 }}
         transition={{
-          duration: 0.45,
-          times: [0, 0.15, 0.45, 0.75, 1],
+          duration: 0.3,
+          times: [0, 0.2, 0.5, 0.8, 1],
         }}
         className="flex items-center justify-center"
       >

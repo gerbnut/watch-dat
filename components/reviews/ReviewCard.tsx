@@ -59,10 +59,10 @@ export function ReviewCard({
       return
     }
     if (liking) return
-    setLiking(true)
     const newLiked = !isLiked
     setIsLiked(newLiked)
     setLikeCount((c) => (newLiked ? c + 1 : c - 1))
+    setLiking(true)
 
     try {
       const res = await fetch(`/api/reviews/${review.id}/like`, { method: 'POST' })

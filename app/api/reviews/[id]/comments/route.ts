@@ -29,15 +29,24 @@ function extractMentions(text: string): string[] {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const session = await auth()
+  const currentUserId = session?.user?.id ?? null
   try {
     const comments = await prisma.comment.findMany({
       where: { reviewId: id },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
+        _count: { select: { likes: true } },
+        likes: currentUserId ? { where: { userId: currentUserId }, select: { id: true } } : false,
       },
       orderBy: { createdAt: 'asc' },
     })
-    return NextResponse.json(comments)
+    const mapped = comments.map(({ _count, likes, ...c }) => ({
+      ...c,
+      likeCount: _count.likes,
+      isLiked: Array.isArray(likes) ? likes.length > 0 : false,
+    }))
+    return NextResponse.json(mapped)
   } catch {
     return NextResponse.json({ error: 'Failed to load comments' }, { status: 500 })
   }

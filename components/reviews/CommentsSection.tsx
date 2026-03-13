@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { MessageSquare, Send, Loader2, Trash2, Heart, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn, getInitials, formatRelativeTime } from '@/lib/utils'
 import Link from 'next/link'
@@ -23,6 +23,8 @@ interface FlatComment {
   deleted: boolean
   createdAt: string
   user: CommentUser
+  likeCount: number
+  isLiked: boolean
 }
 
 interface Comment extends FlatComment {
@@ -177,12 +179,13 @@ function GifPicker({ onSelect, onClose }: GifPickerProps) {
 interface CommentInputProps {
   onSubmit: (text: string, gifUrl?: string) => Promise<void>
   placeholder?: string
+  initialText?: string
   autoFocus?: boolean
   compact?: boolean
 }
 
-function CommentInput({ onSubmit, placeholder = 'Add a comment…', autoFocus, compact }: CommentInputProps) {
-  const [text, setText] = useState('')
+function CommentInput({ onSubmit, placeholder = 'Add a comment…', initialText = '', autoFocus, compact }: CommentInputProps) {
+  const [text, setText] = useState(initialText)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
@@ -388,12 +391,16 @@ interface CommentItemProps {
   depth?: number
   onReply: (parentId: string, text: string, gifUrl?: string) => Promise<void>
   onDelete: (commentId: string) => Promise<void>
+  onLikeChange: (commentId: string, liked: boolean, newCount: number) => void
 }
 
-function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onDelete }: CommentItemProps) {
+function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onDelete, onLikeChange }: CommentItemProps) {
   const [replying, setReplying] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [isLiked, setIsLiked] = useState(comment.isLiked)
+  const [likeCount, setLikeCount] = useState(comment.likeCount)
+  const [liking, setLiking] = useState(false)
   const isOwn = currentUserId === comment.user.id
   const hasReplies = comment.replies.length > 0
 
@@ -407,8 +414,29 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
     }
   }
 
+  async function handleLike() {
+    if (!currentUserId || liking) return
+    const newLiked = !isLiked
+    const newCount = newLiked ? likeCount + 1 : likeCount - 1
+    setIsLiked(newLiked)
+    setLikeCount(newCount)
+    setLiking(true)
+    try {
+      const res = await fetch(`/api/comments/${comment.id}/like`, { method: 'POST' })
+      const data = await res.json()
+      setIsLiked(data.liked)
+      setLikeCount(data.likeCount)
+      onLikeChange(comment.id, data.liked, data.likeCount)
+    } catch {
+      setIsLiked(!newLiked)
+      setLikeCount(likeCount)
+    } finally {
+      setLiking(false)
+    }
+  }
+
   return (
-    <div className={cn('flex gap-2 animate-fade-in', depth > 0 && 'border-l-2 border-cinema-500/30 pl-3')}>
+    <div className={cn('flex gap-2 animate-fade-in', depth > 0 && 'border-l border-border/50 ml-9 pl-3')}>
       {!comment.deleted && (
         <Link href={`/user/${comment.user.username}`} className="shrink-0 mt-0.5">
           <Avatar className="h-6 w-6">
@@ -453,12 +481,24 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
               {currentUserId && depth < 4 && (
                 <button
                   onClick={() => setReplying(!replying)}
-                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-cinema-400 transition-colors"
+                  className="text-xs text-muted-foreground/60 hover:text-cinema-400 font-medium px-2 py-0.5 rounded-full hover:bg-cinema-500/10 transition-colors"
                 >
-                  <CornerDownRight className="h-3 w-3" />
                   Reply
                 </button>
               )}
+              {/* Like button */}
+              <button
+                onClick={handleLike}
+                disabled={!currentUserId}
+                className={cn(
+                  'flex items-center gap-1 text-[11px] transition-colors',
+                  isLiked ? 'text-red-400' : 'text-muted-foreground/60 hover:text-red-400',
+                  !currentUserId && 'pointer-events-none',
+                )}
+              >
+                <Heart className={cn('h-3 w-3', isLiked && 'fill-current')} />
+                {likeCount > 0 && <span className="tabular-nums">{likeCount}</span>}
+              </button>
               {isOwn && (
                 <button
                   onClick={handleDelete}
@@ -472,11 +512,12 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
           </>
         )}
 
-        {/* Inline reply input */}
+        {/* Inline reply input — pre-filled with @mention */}
         {replying && (
           <div className="mt-2">
             <CommentInput
-              placeholder={`Reply to @${comment.user.username}…`}
+              placeholder={`@${comment.user.username} `}
+              initialText={`@${comment.user.username} `}
               autoFocus
               compact
               onSubmit={async (text, gifUrl) => {
@@ -488,18 +529,21 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
           </div>
         )}
 
-        {/* Replies */}
+        {/* Replies — Instagram-style divider + thread line */}
         {hasReplies && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-2">
             <button
               onClick={() => setShowReplies(!showReplies)}
-              className="flex items-center gap-1 text-[11px] text-cinema-400 hover:text-cinema-300 transition-colors"
+              className="flex items-center gap-2 text-[11px] text-muted-foreground/70 hover:text-cinema-400 transition-colors"
             >
+              <span className="h-px w-4 bg-border/60 inline-block" />
+              {showReplies
+                ? 'Hide replies'
+                : `View ${comment.replies.length} repl${comment.replies.length === 1 ? 'y' : 'ies'}`}
               {showReplies ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {showReplies ? 'Hide' : `View ${comment.replies.length}`} repl{comment.replies.length === 1 ? 'y' : 'ies'}
             </button>
             {showReplies && (
-              <div className="space-y-2">
+              <div className="mt-2 space-y-2">
                 {comment.replies.map((reply) => (
                   <CommentItem
                     key={reply.id}
@@ -509,6 +553,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
                     depth={depth + 1}
                     onReply={onReply}
                     onDelete={onDelete}
+                    onLikeChange={onLikeChange}
                   />
                 ))}
               </div>
@@ -584,7 +629,7 @@ export function CommentsSection({
         throw new Error(err.error ?? `Server error ${res.status}`)
       }
       const comment = await res.json()
-      setFlat((prev) => [...prev, { ...comment, deleted: false }])
+      setFlat((prev) => [...prev, { ...comment, deleted: false, likeCount: 0, isLiked: false }])
       setCount((c) => c + 1)
     },
     [reviewId],
@@ -602,11 +647,17 @@ export function CommentsSection({
         throw new Error(err.error ?? `Server error ${res.status}`)
       }
       const comment = await res.json()
-      setFlat((prev) => [...prev, { ...comment, deleted: false }])
+      setFlat((prev) => [...prev, { ...comment, deleted: false, likeCount: 0, isLiked: false }])
       setCount((c) => c + 1)
     },
     [reviewId],
   )
+
+  const handleLikeChange = useCallback((commentId: string, liked: boolean, newCount: number) => {
+    setFlat((prev) =>
+      prev.map((c) => (c.id === commentId ? { ...c, isLiked: liked, likeCount: newCount } : c))
+    )
+  }, [])
 
   const deleteComment = useCallback(async (commentId: string) => {
     const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' })
@@ -676,6 +727,7 @@ export function CommentsSection({
                     currentUserId={currentUserId}
                     onReply={submitReply}
                     onDelete={deleteComment}
+                    onLikeChange={handleLikeChange}
                   />
                 ))}
               </div>

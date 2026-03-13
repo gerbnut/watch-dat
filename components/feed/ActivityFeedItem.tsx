@@ -55,10 +55,10 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
       return
     }
     if (liking) return
-    setLiking(true)
     const newLiked = !isLiked
     setIsLiked(newLiked)
     setLikeCount((c) => (newLiked ? c + 1 : c - 1))
+    setLiking(true)
     try {
       const res = await fetch(`/api/reviews/${activity.review.id}/like`, { method: 'POST' })
       const data = await res.json()

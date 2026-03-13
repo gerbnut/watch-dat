@@ -32,6 +32,7 @@ model User {
   activities     Activity[]
   favoriteMovies FavoriteMovie[]
   comments       Comment[]
+  commentLikes   CommentLike[]
   notifications  Notification[]  @relation("notified")
   sentNotifications Notification[] @relation("actor")
   sentRecommendations     Recommendation[] @relation("sent_recs")
@@ -189,10 +190,24 @@ model Comment {
   parent   Comment?       @relation("replies", fields: [parentId], references: [id], onDelete: SetNull)
   replies  Comment[]      @relation("replies")
   notifications Notification[]
+  likes    CommentLike[]
 
   @@index([reviewId])
   @@index([userId])
   @@index([parentId])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
 }
 
 model Follow {
