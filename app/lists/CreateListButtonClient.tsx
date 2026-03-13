@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Plus, Loader2, Globe, Lock } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import TextareaAutosize from 'react-textarea-autosize'
+import { cn } from '@/lib/utils'
+import { validateListName, validateListDescription } from '@/lib/form-validation'
+import { FieldError } from '@/components/ui/FieldError'
 
 interface CreateListButtonClientProps {
   variant?: 'default' | 'cinema' | 'outline' | 'ghost'
@@ -20,9 +23,17 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
   const [description, setDescription] = useState('')
   const [isPublic, setIsPublic] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [nameError, setNameError] = useState('')
 
   async function handleCreate() {
-    if (!name.trim()) return
+    const nameErr = validateListName(name)
+    if (nameErr) {
+      setNameError(nameErr)
+      return
+    }
+    if (validateListDescription(description)) {
+      return // description counter already shows the error; just block submit
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/lists', {
@@ -52,7 +63,17 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
         New list
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o)
+          if (!o) {
+            setName('')
+            setDescription('')
+            setNameError('')
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create a new list</DialogTitle>
@@ -62,10 +83,11 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
               <label className="text-sm font-medium">Name</label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => { setName(e.target.value); setNameError('') }}
                 placeholder="e.g. Films that changed my life"
                 autoFocus
               />
+              <FieldError msg={nameError} />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Description (optional)</label>
@@ -77,6 +99,9 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
                 maxRows={5}
                 className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
+              <p className={cn('text-xs', description.length > 500 ? 'text-destructive' : 'text-muted-foreground')}>
+                {description.length}/500
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -92,7 +117,7 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button variant="cinema" onClick={handleCreate} disabled={!name.trim() || loading}>
+              <Button variant="cinema" onClick={handleCreate} disabled={!name.trim() || loading || description.length > 500}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create list'}
               </Button>
             </div>
