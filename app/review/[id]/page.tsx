@@ -3,8 +3,8 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
+import { ReviewBackButton } from './ReviewBackButton'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 import { TMDB_IMAGE } from '@/lib/tmdb'
@@ -70,12 +70,7 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
     <div className="max-w-2xl space-y-6">
       {/* Back link with movie context */}
       <div className="flex items-center gap-3">
-        <Link
-          href={`/film/${review.movie.tmdbId}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
+        <ReviewBackButton fallback={`/film/${review.movie.tmdbId}`} />
         {review.movie.poster && (
           <Link href={`/film/${review.movie.tmdbId}`} className="shrink-0">
             <div className="relative h-12 w-8 overflow-hidden rounded shadow-md">
