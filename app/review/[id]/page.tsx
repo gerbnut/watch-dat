@@ -62,7 +62,7 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
       }))
     : false
 
-  const backdropUrl = TMDB_IMAGE.backdrop((review.movie as any).backdrop ?? null, 'w1280')
+  const backdropUrl = TMDB_IMAGE.backdrop((review.movie as any).backdrop ?? null, 'w780')
 
   return (
     <div className="max-w-2xl space-y-6">
