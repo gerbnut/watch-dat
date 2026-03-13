@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 
@@ -25,6 +26,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ us
 
     if (existing) {
       await prisma.block.delete({ where: { id: existing.id } })
+      revalidatePath('/user/' + username)
       return NextResponse.json({ blocked: false })
     }
 
@@ -41,6 +43,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ us
       }),
     ])
 
+    revalidatePath('/user/' + username)
     return NextResponse.json({ blocked: true })
   } catch (err) {
     console.error('Block error:', err)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ShieldOff, Shield, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
@@ -13,6 +13,8 @@ interface Props {
 export function BlockButtonClient({ username, isBlocked: initial }: Props) {
   const [isBlocked, setIsBlocked] = useState(initial)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => { setIsBlocked(initial) }, [initial])
   const [confirming, setConfirming] = useState(false)
 
   async function toggle() {

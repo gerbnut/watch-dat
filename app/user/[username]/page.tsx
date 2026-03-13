@@ -81,12 +81,12 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   const isFollowing = session?.user?.id && !isOwnProfile
     ? prisma.follow.findUnique({
         where: { followerId_followingId: { followerId: session.user.id, followingId: user.id } },
-      }).then(Boolean).catch(() => false)
+      }).then((r) => !!r)
     : false
   const isBlocked = session?.user?.id && !isOwnProfile
     ? prisma.block.findUnique({
         where: { blockerId_blockedId: { blockerId: session.user.id, blockedId: user.id } },
-      }).then(Boolean).catch(() => false)
+      }).then((r) => !!r)
     : false
   const [resolvedFollowing, resolvedBlocked] = await Promise.all([isFollowing, isBlocked])
 
