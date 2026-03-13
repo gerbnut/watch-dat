@@ -102,94 +102,103 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       {/* max-h uses dvh so it respects the keyboard-reduced visual viewport on iOS */}
-      <div className="relative w-full max-w-md bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 flex flex-col"
-        style={{ maxHeight: 'min(80dvh, 600px)' }}
+      <div
+        className="relative w-full max-w-md bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        style={{ maxHeight: 'min(calc(100svh - env(keyboard-inset-height, 0px) - 4rem), 600px)' }}
       >
-        <div>
-          <h2 className="font-semibold text-base">Recommend a film</h2>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">"{movieTitle}"</p>
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 flex flex-col min-h-0">
+          <div>
+            <h2 className="font-semibold text-base">Recommend a film</h2>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">"{movieTitle}"</p>
+          </div>
+
+          {/* Friend picker */}
+          {!selected ? (
+            <div className="flex-1 overflow-hidden flex flex-col gap-2 min-h-0">
+              <div className="relative shrink-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search following…"
+                  className="pl-8 h-8 text-sm"
+                />
+              </div>
+
+              <div className="overflow-y-auto flex-1 rounded-lg border bg-card divide-y divide-border/50">
+                {loadingFriends ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    {friends.length === 0 ? 'Follow people to recommend films to them' : 'No matches'}
+                  </p>
+                ) : (
+                  filtered.map((friend) => (
+                    <button
+                      key={friend.id}
+                      onClick={() => setSelected(friend)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 transition-colors text-left"
+                    >
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={friend.avatar ?? undefined} />
+                        <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
+                          {getInitials(friend.displayName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{friend.displayName}</p>
+                        <p className="text-xs text-muted-foreground">@{friend.username}</p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Selected friend */}
+              <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={selected.avatar ?? undefined} />
+                  <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
+                    {getInitials(selected.displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{selected.displayName}</p>
+                  <p className="text-xs text-muted-foreground">@{selected.username}</p>
+                </div>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Change
+                </button>
+              </div>
+
+              {/* Optional message */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Add a note (optional)</label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="You'd love this one…"
+                  maxLength={300}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <p className="text-xs text-muted-foreground text-right">{message.length}/300</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Friend picker */}
-        {!selected ? (
-          <div className="flex-1 overflow-hidden flex flex-col gap-2 min-h-0">
-            <div className="relative shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search following…"
-                className="pl-8 h-8 text-sm"
-              />
-            </div>
-
-            <div className="overflow-y-auto flex-1 rounded-lg border bg-card divide-y divide-border/50">
-              {loadingFriends ? (
-                <div className="flex justify-center py-6">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              ) : filtered.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  {friends.length === 0 ? 'Follow people to recommend films to them' : 'No matches'}
-                </p>
-              ) : (
-                filtered.map((friend) => (
-                  <button
-                    key={friend.id}
-                    onClick={() => setSelected(friend)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 transition-colors text-left"
-                  >
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarImage src={friend.avatar ?? undefined} />
-                      <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
-                        {getInitials(friend.displayName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{friend.displayName}</p>
-                      <p className="text-xs text-muted-foreground">@{friend.username}</p>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Selected friend */}
-            <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarImage src={selected.avatar ?? undefined} />
-                <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
-                  {getInitials(selected.displayName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{selected.displayName}</p>
-                <p className="text-xs text-muted-foreground">@{selected.username}</p>
-              </div>
-              <button
-                onClick={() => setSelected(null)}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                Change
-              </button>
-            </div>
-
-            {/* Optional message */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Add a note (optional)</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="You'd love this one…"
-                maxLength={300}
-                rows={3}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <p className="text-xs text-muted-foreground text-right">{message.length}/300</p>
-            </div>
-
+        {/* Sticky send button — only shown after selecting a friend */}
+        {selected && (
+          <div className="shrink-0 border-t border-border px-5 py-4 bg-background">
             <Button
               variant="cinema"
               className="w-full gap-2"
