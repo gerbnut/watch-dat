@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { formatRuntime, getYearFromDate, formatRating, getInitials, cn } from '@/lib/utils'
-import { Clock, Users, Eye } from 'lucide-react'
+import { Clock, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { StarRating } from '@/components/movies/StarRating'
@@ -17,6 +17,7 @@ import { WatchlistButtonClient } from './WatchlistButtonClient'
 import { RecommendButtonClient } from './RecommendButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { ShareButton } from '@/components/ui/ShareButton'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const tmdbId = Number(params.id)
@@ -109,8 +110,11 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
   const streamingProviders = watchProvidersData?.results?.['US'] ?? null
   const isOnWatchlist = !!watchlistItem
 
-  const backdropUrl = TMDB_IMAGE.backdrop(movie.backdrop, 'w1280')
-  const posterUrl = TMDB_IMAGE.poster(movie.poster, 'w500')
+  const HERO_BLUR_URL = `data:image/svg+xml;base64,${Buffer.from(
+    '<svg xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/></svg>'
+  ).toString('base64')}`
+
+  const backdropUrl = TMDB_IMAGE.backdrop(movie.backdrop, 'w780')
   const genres = (movie.genres as any[]) ?? []
   const directors = (movie.directors as any[]) ?? []
   const cast = (movie.cast as any[]) ?? []
@@ -126,7 +130,16 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
       {/* Backdrop */}
       {backdropUrl ? (
         <div className="relative -mx-4 h-52 sm:h-96 overflow-hidden">
-          <Image src={backdropUrl} alt={movie.title} fill className="object-cover object-top" priority sizes="100vw" />
+          <Image
+            src={backdropUrl}
+            alt={movie.title}
+            fill
+            className="object-cover object-top"
+            priority
+            sizes="100vw"
+            placeholder="blur"
+            blurDataURL={HERO_BLUR_URL}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           <div className="absolute top-3 left-4 z-10">
             <BackButton />
@@ -144,13 +157,13 @@ export default async function FilmPage({ params }: { params: { id: string } }) {
         {/* Poster */}
         <div className="relative w-28 sm:w-44 shrink-0 mx-auto sm:mx-0">
           <div className="relative overflow-hidden rounded-lg shadow-2xl aspect-[2/3]">
-            {posterUrl ? (
-              <Image src={posterUrl} alt={movie.title} fill className="object-cover" priority sizes="(max-width: 640px) 112px, 176px" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-muted rounded-lg">
-                <Eye className="h-10 w-10 text-muted-foreground/30" />
-              </div>
-            )}
+            <MoviePoster
+              poster={movie.poster}
+              title={movie.title}
+              tmdbSize="w500"
+              sizes="(max-width: 640px) 112px, 176px"
+              priority
+            />
           </div>
         </div>
 
