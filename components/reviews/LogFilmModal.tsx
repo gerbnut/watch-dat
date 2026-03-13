@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { StarRating } from '@/components/movies/StarRating'
 import { MovieSearch } from '@/components/movies/MovieSearch'
-import { Heart, Flag, RefreshCw, Film, Loader2 } from 'lucide-react'
+import { Heart, Flag, RefreshCw, Loader2 } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import { FieldError } from '@/components/ui/FieldError'
-import { TMDB_IMAGE } from '@/lib/tmdb'
-import Image from 'next/image'
 import { toast } from '@/hooks/use-toast'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import TextareaAutosize from 'react-textarea-autosize'
 
 interface SelectedMovie {
@@ -145,8 +144,6 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
     onClose()
   }
 
-  const posterUrl = movie?.poster_path ? TMDB_IMAGE.poster(movie.poster_path, 'w185') : null
-
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -166,13 +163,12 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
           {movie && (
             <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
               <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded">
-                {posterUrl ? (
-                  <Image src={posterUrl} alt={movie.title} fill className="object-cover" sizes="44px" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-muted rounded">
-                    <Film className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                )}
+                <MoviePoster
+                  poster={movie.poster_path}
+                  title={movie.title}
+                  tmdbSize="w154"
+                  sizes="44px"
+                />
               </div>
               <div>
                 <p className="font-semibold">{movie.title}</p>

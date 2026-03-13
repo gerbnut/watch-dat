@@ -2,10 +2,9 @@
 
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Lock } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { TMDB_IMAGE } from '@/lib/tmdb'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { cn, getInitials, formatRelativeTime } from '@/lib/utils'
 
 interface ListCardProps {
@@ -40,17 +39,13 @@ export function ListCard({ id, name, description, isPublic, updatedAt, user, ite
           {previewPosters.length > 0 ? (
             previewPosters.map((item, i) => (
               <div key={i} className="relative flex-1 overflow-hidden">
-                {item.movie.poster ? (
-                  <Image
-                    src={TMDB_IMAGE.poster(item.movie.poster, 'w185')!}
-                    alt={item.movie.title}
-                    fill
-                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                    sizes="100px"
-                  />
-                ) : (
-                  <div className="h-full bg-muted/50" />
-                )}
+                <MoviePoster
+                  poster={item.movie.poster}
+                  title={item.movie.title ?? ''}
+                  tmdbSize="w185"
+                  sizes="100px"
+                  className="opacity-80 group-hover:opacity-100 transition-opacity"
+                />
               </div>
             ))
           ) : (

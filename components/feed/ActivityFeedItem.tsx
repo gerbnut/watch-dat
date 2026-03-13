@@ -2,15 +2,14 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { Eye, Star, Heart, BookOpen, List, UserPlus, Bookmark, MessageSquare, Share2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StarRating } from '@/components/movies/StarRating'
 import { CommentsSection } from '@/components/reviews/CommentsSection'
 import { AnimatedLikeButton } from '@/components/ui/AnimatedLikeButton'
 import { formatRelativeTime, getInitials, cn } from '@/lib/utils'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 import type { ActivityWithRelations } from '@/types'
 import ReactMarkdown from 'react-markdown'
 
@@ -41,8 +40,6 @@ interface ActivityFeedItemProps {
 
 export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemProps) {
   const label = ACTIVITY_LABELS[activity.type] ?? activity.type
-  const posterUrl = activity.movie?.poster ? TMDB_IMAGE.poster(activity.movie.poster, 'w185') : null
-  const [imgLoaded, setImgLoaded] = useState(false)
 
   const [likeCount, setLikeCount] = useState<number>(activity.review?._count?.likes ?? 0)
   const [isLiked, setIsLiked] = useState<boolean>(activity.review?.isLiked ?? false)
@@ -159,25 +156,19 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
 
           {/* Review content */}
           <div className="relative z-10 flex gap-3 p-3 pointer-events-none">
-            {posterUrl && activity.movie && (
+            {activity.movie && (
               <Link
                 href={`/film/${activity.movie.tmdbId}`}
                 className="shrink-0 pointer-events-auto"
                 tabIndex={-1}
               >
                 <div className="relative w-[52px] h-[78px] rounded-md overflow-hidden bg-muted">
-                  <Image
-                    src={posterUrl}
-                    alt={activity.movie.title}
-                    fill
-                    className={cn(
-                      'object-cover transition-opacity duration-300',
-                      imgLoaded ? 'opacity-100' : 'opacity-0',
-                    )}
+                  <MoviePoster
+                    poster={activity.movie.poster}
+                    title={activity.movie.title}
+                    tmdbSize="w154"
                     sizes="52px"
-                    onLoad={() => setImgLoaded(true)}
                   />
-                  {!imgLoaded && <div className="absolute inset-0 skeleton" />}
                 </div>
               </Link>
             )}
@@ -246,18 +237,17 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
       )}
 
       {/* Non-review activity poster */}
-      {!hasReview && activity.movie && posterUrl && (
+      {!hasReview && activity.movie && (
         <Link href={`/film/${activity.movie.tmdbId}`} className="inline-block">
           <motion.div
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             className="relative h-20 w-14 overflow-hidden rounded-lg bg-muted shadow-md"
           >
-            <Image
-              src={posterUrl}
-              alt={activity.movie.title}
-              fill
-              className="object-cover"
+            <MoviePoster
+              poster={activity.movie.poster}
+              title={activity.movie.title}
+              tmdbSize="w154"
               sizes="56px"
             />
           </motion.div>

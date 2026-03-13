@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, X, Film, Loader2, ArrowLeft, User } from 'lucide-react'
-import Image from 'next/image'
-import { TMDB_IMAGE } from '@/lib/tmdb'
+import { Search, X, Loader2, ArrowLeft, User } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { Input } from '@/components/ui/input'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -141,19 +140,12 @@ export function MovieSearch({
                       onClick={() => onFilmClick(movie)}
                     >
                       <div className="relative h-12 w-8 shrink-0 overflow-hidden rounded bg-muted">
-                        {movie.poster_path ? (
-                          <Image
-                            src={TMDB_IMAGE.poster(movie.poster_path, 'w185')!}
-                            alt={movie.title}
-                            fill
-                            className="object-cover"
-                            sizes="32px"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <Film className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        )}
+                        <MoviePoster
+                          poster={movie.poster_path}
+                          title={movie.title}
+                          tmdbSize="w92"
+                          sizes="32px"
+                        />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{movie.title}</p>
