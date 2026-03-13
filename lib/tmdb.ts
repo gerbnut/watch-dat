@@ -7,9 +7,9 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p'
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
 
 export const TMDB_IMAGE = {
-  poster: (path: string | null, size: 'w185' | 'w342' | 'w500' | 'w780' | 'original' = 'w342') =>
+  poster: (path: string | null, size: 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original' = 'w342') =>
     path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null,
-  backdrop: (path: string | null, size: 'w780' | 'w1280' | 'original' = 'w1280') =>
+  backdrop: (path: string | null, size: 'w780' | 'w1280' | 'original' = 'w780') =>
     path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null,
   profile: (path: string | null, size: 'w45' | 'w185' | 'h632' | 'original' = 'w185') =>
     path ? `${TMDB_IMAGE_BASE}/${size}${path}` : null,
