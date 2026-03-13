@@ -3,10 +3,10 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { ShareButton } from '@/components/ui/ShareButton'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -77,11 +77,10 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
         {review.movie.poster && (
           <Link href={`/film/${review.movie.tmdbId}`} className="shrink-0">
             <div className="relative h-12 w-8 overflow-hidden rounded shadow-md">
-              <Image
-                src={TMDB_IMAGE.poster(review.movie.poster, 'w185')!}
-                alt={review.movie.title}
-                fill
-                className="object-cover"
+              <MoviePoster
+                poster={review.movie.poster}
+                title={review.movie.title}
+                tmdbSize="w92"
                 sizes="32px"
               />
             </div>

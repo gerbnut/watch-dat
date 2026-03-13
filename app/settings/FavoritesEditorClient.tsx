@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { X, Loader2, Plus } from 'lucide-react'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 import { Button } from '@/components/ui/button'
 import { MovieSearch } from '@/components/movies/MovieSearch'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { toast } from '@/hooks/use-toast'
 
 interface FavoriteMovie {
@@ -69,19 +68,12 @@ export function FavoritesEditorClient({ username, initialFavorites }: FavoritesE
         {favorites.map((film) => (
           <div key={film.tmdbId} className="relative group">
             <div className="relative w-[60px] h-[90px] rounded-md overflow-hidden bg-muted shadow-md">
-              {film.poster ? (
-                <Image
-                  src={TMDB_IMAGE.poster(film.poster, 'w185')!}
-                  alt={film.title}
-                  fill
-                  className="object-cover"
-                  sizes="60px"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-muted-foreground text-[10px] text-center px-1 leading-tight">
-                  {film.title}
-                </div>
-              )}
+              <MoviePoster
+                poster={film.poster}
+                title={film.title}
+                tmdbSize="w154"
+                sizes="60px"
+              />
             </div>
             <button
               onClick={() => handleRemove(film.tmdbId)}

@@ -2,13 +2,12 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 import { formatDate, getInitials, getYearFromDate } from '@/lib/utils'
 import { Globe, Lock, Film } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { AddToListClient } from './AddToListClient'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -87,7 +86,6 @@ export default async function ListDetailPage({ params }: { params: { id: string 
       ) : (
         <div className="space-y-2">
           {list.items.map((item, i) => {
-            const posterUrl = TMDB_IMAGE.poster(item.movie.poster, 'w185')
             const directors = (item.movie.directors as any[]) ?? []
             const genres = (item.movie.genres as any[]) ?? []
 
@@ -97,11 +95,12 @@ export default async function ListDetailPage({ params }: { params: { id: string 
 
                 <Link href={`/film/${item.movie.tmdbId}`}>
                   <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded">
-                    {posterUrl ? (
-                      <Image src={posterUrl} alt={item.movie.title} fill className="object-cover" sizes="44px" />
-                    ) : (
-                      <div className="h-full bg-muted rounded" />
-                    )}
+                    <MoviePoster
+                      poster={item.movie.poster}
+                      title={item.movie.title}
+                      tmdbSize="w154"
+                      sizes="44px"
+                    />
                   </div>
                 </Link>
 
