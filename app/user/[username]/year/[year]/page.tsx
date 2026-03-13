@@ -3,11 +3,10 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowLeft, ArrowRight, Film, Clock, Star, RotateCcw, Calendar, Clapperboard } from 'lucide-react'
 import { MonthlyChart } from '@/components/stats/MonthlyChart'
 import { GenreChart } from '@/components/stats/GenreChart'
-import { TMDB_IMAGE } from '@/lib/tmdb'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { formatDate } from '@/lib/utils'
 import { ShareButton } from '@/components/ui/ShareButton'
 
@@ -265,19 +264,7 @@ export default async function YearWrappedPage({
             {topFilms.map((entry) => (
               <Link key={entry.id} href={`/film/${entry.movie.tmdbId}`} className="group">
                 <div className="relative w-24 overflow-hidden rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105 group-hover:shadow-glow-green aspect-[2/3] bg-muted">
-                  {entry.movie.poster ? (
-                    <Image
-                      src={TMDB_IMAGE.poster(entry.movie.poster, 'w185')!}
-                      alt={entry.movie.title}
-                      fill
-                      className="object-cover"
-                      sizes="96px"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Film className="h-6 w-6 text-muted-foreground/40" />
-                    </div>
-                  )}
+                  <MoviePoster poster={entry.movie.poster} title={entry.movie.title} tmdbSize="w185" sizes="96px" />
                   {entry.rating && (
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-1.5 py-1">
                       <span className="text-[10px] font-bold text-cinema-400">
@@ -311,15 +298,7 @@ export default async function YearWrappedPage({
               <Link key={label} href={`/film/${entry.movie.tmdbId}`}>
                 <div className="rounded-xl border bg-card p-4 flex gap-3 items-center hover:bg-accent transition-colors">
                   <div className="relative w-10 shrink-0 overflow-hidden rounded bg-muted aspect-[2/3]">
-                    {entry.movie.poster && (
-                      <Image
-                        src={TMDB_IMAGE.poster(entry.movie.poster, 'w185')!}
-                        alt={entry.movie.title}
-                        fill
-                        className="object-cover"
-                        sizes="40px"
-                      />
-                    )}
+                    <MoviePoster poster={entry.movie.poster} title={entry.movie.title} tmdbSize="w154" sizes="40px" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>

@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { Check, Loader2, Shuffle } from 'lucide-react'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 import { Button } from '@/components/ui/button'
 import { MovieSearch } from '@/components/movies/MovieSearch'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { cn } from '@/lib/utils'
 
 interface SuggestedMovie {
@@ -97,19 +96,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
               title={`Remove ${film.title}`}
             >
               <div className="relative w-12 h-[72px] sm:w-14 sm:h-[84px] rounded-md overflow-hidden shadow-md ring-2 ring-cinema-500">
-                {film.poster ? (
-                  <Image
-                    src={TMDB_IMAGE.poster(film.poster, 'w185')!}
-                    alt={film.title}
-                    fill
-                    className="object-cover"
-                    sizes="56px"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[9px] text-center px-1 leading-tight text-muted-foreground bg-muted">
-                    {film.title}
-                  </div>
-                )}
+                <MoviePoster poster={film.poster} title={film.title} tmdbSize="w185" sizes="56px" />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="text-[10px] text-white font-medium">Remove</span>
                 </div>
@@ -141,19 +128,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
                 title={movie.title}
               >
                 <div className="relative w-full aspect-[2/3] bg-muted">
-                  {movie.poster_path ? (
-                    <Image
-                      src={TMDB_IMAGE.poster(movie.poster_path, 'w185')!}
-                      alt={movie.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 25vw, (max-width: 768px) 16.6vw, 12.5vw"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[9px] text-center px-1 leading-tight text-muted-foreground">
-                      {movie.title}
-                    </div>
-                  )}
+                  <MoviePoster poster={movie.poster_path} title={movie.title} tmdbSize="w185" sizes="(max-width: 640px) 25vw, (max-width: 768px) 16.6vw, 12.5vw" />
                   {isSelected && (
                     <div className="absolute inset-0 bg-cinema-500/70 flex items-center justify-center">
                       <Check className="h-5 w-5 sm:h-6 sm:w-6 text-black" />

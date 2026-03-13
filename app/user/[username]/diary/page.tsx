@@ -2,9 +2,8 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowLeft, CalendarDays, RefreshCw } from 'lucide-react'
-import { TMDB_IMAGE } from '@/lib/tmdb'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { formatDate } from '@/lib/utils'
 import { StarRating } from '@/components/movies/StarRating'
 
@@ -86,7 +85,6 @@ export default async function UserDiaryPage({ params }: { params: { username: st
 
               <div className="space-y-1">
                 {monthEntries.map((entry) => {
-                  const posterUrl = TMDB_IMAGE.poster(entry.movie.poster, 'w185')
                   const genres = (entry.movie.genres as any[]) ?? []
 
                   return (
@@ -100,11 +98,7 @@ export default async function UserDiaryPage({ params }: { params: { username: st
 
                       <Link href={`/film/${entry.movie.tmdbId}`}>
                         <div className="relative h-16 w-10 shrink-0 overflow-hidden rounded bg-muted">
-                          {posterUrl ? (
-                            <Image src={posterUrl} alt={entry.movie.title} fill className="object-cover" sizes="40px" />
-                          ) : (
-                            <div className="h-full bg-muted" />
-                          )}
+                          <MoviePoster poster={entry.movie.poster} title={entry.movie.title} tmdbSize="w154" sizes="44px" />
                         </div>
                       </Link>
 

@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   motion,
@@ -13,13 +12,8 @@ import {
 } from 'framer-motion'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
+import { MoviePoster } from '@/components/movies/MoviePoster'
 import { cn } from '@/lib/utils'
-
-// ── Inline TMDB image helper (no lib/tmdb import — avoids Prisma bundling) ──
-const TMDB_BASE = 'https://image.tmdb.org/t/p'
-function tmdbPoster(path: string | null, size = 'w500') {
-  return path ? `${TMDB_BASE}/${size}${path}` : null
-}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface PickMovie {
@@ -65,8 +59,6 @@ function SwipeCard({ movie, isTop, stackOffset, onSwipe, onTap }: SwipeCardProps
   const skipBadge = useTransform(x, [-120, -40, 0], [1, 0, 0])
   const didDragRef = useRef(false)
 
-  const posterUrl = tmdbPoster(movie.poster)
-
   function handleDragStart() {
     didDragRef.current = false
   }
@@ -102,11 +94,7 @@ function SwipeCard({ movie, isTop, stackOffset, onSwipe, onTap }: SwipeCardProps
           willChange: 'transform',
         }}
       >
-        {posterUrl ? (
-          <Image src={posterUrl} alt={movie.title} fill className="object-cover" />
-        ) : (
-          <div className="absolute inset-0 bg-muted" />
-        )}
+        <MoviePoster poster={movie.poster} title={movie.title} tmdbSize="w342" sizes="(max-width: 640px) 100vw, 400px" />
       </div>
     )
   }
@@ -129,13 +117,7 @@ function SwipeCard({ movie, isTop, stackOffset, onSwipe, onTap }: SwipeCardProps
       whileTap={{ cursor: 'grabbing' }}
     >
       {/* Poster */}
-      {posterUrl ? (
-        <Image src={posterUrl} alt={movie.title} fill className="object-cover" sizes="320px" priority />
-      ) : (
-        <div className="absolute inset-0 bg-muted flex items-center justify-center">
-          <span className="text-muted-foreground text-4xl">🎬</span>
-        </div>
-      )}
+      <MoviePoster poster={movie.poster} title={movie.title} tmdbSize="w342" sizes="(max-width: 640px) 100vw, 400px" priority />
 
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
@@ -407,22 +389,13 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
 
           {likedCards.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center">
-              {likedCards.map((m) => {
-                const url = tmdbPoster(m.poster, 'w185')
-                return (
+              {likedCards.map((m) => (
                   <Link key={m.tmdbId} href={`/film/${m.tmdbId}`} className="shrink-0">
                     <div className="w-20 h-28 rounded-lg overflow-hidden bg-muted relative">
-                      {url ? (
-                        <Image src={url} alt={m.title} fill className="object-cover" sizes="80px" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-2xl">
-                          🎬
-                        </div>
-                      )}
+                      <MoviePoster poster={m.poster} title={m.title} tmdbSize="w185" sizes="80px" />
                     </div>
                   </Link>
-                )
-              })}
+                ))}
             </div>
           )}
 
