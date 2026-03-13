@@ -24,27 +24,19 @@ export async function POST(req: NextRequest) {
   const { targetType, targetId, reason, details } = parsed.data
 
   try {
-    await prisma.report.upsert({
-      where: {
-        reporterId_targetType_targetId: {
-          reporterId: session.user.id,
-          targetType,
-          targetId,
-        },
-      },
-      create: {
-        reporterId: session.user.id,
-        targetType,
-        targetId,
-        reason,
-        details: details?.trim() || null,
-      },
-      update: {
-        reason,
-        details: details?.trim() || null,
-        resolved: false,
-      },
+    const existing = await prisma.report.findFirst({
+      where: { reporterId: session.user.id, targetType, targetId },
     })
+    if (existing) {
+      await prisma.report.update({
+        where: { id: existing.id },
+        data: { reason, details: details?.trim() || null, resolved: false },
+      })
+    } else {
+      await prisma.report.create({
+        data: { reporterId: session.user.id, targetType, targetId, reason, details: details?.trim() || null },
+      })
+    }
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Report error:', err)
