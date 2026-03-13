@@ -20,6 +20,7 @@ interface MovieCardProps {
   showRating?: boolean
   showYear?: boolean
   onClick?: () => void
+  priority?: boolean
 }
 
 const SIZES = {
@@ -41,6 +42,7 @@ export function MovieCard({
   showRating = false,
   showYear = true,
   onClick,
+  priority = false,
 }: MovieCardProps) {
   const posterUrl = TMDB_IMAGE.poster(poster, 'w342')
   const year = getYearFromDate(releaseDate ?? null)
@@ -67,6 +69,7 @@ export function MovieCard({
               )}
               sizes="(max-width: 768px) 30vw, 200px"
               onLoad={() => setImgLoaded(true)}
+              priority={priority}
             />
             {!imgLoaded && <div className="absolute inset-0 skeleton" />}
           </>
