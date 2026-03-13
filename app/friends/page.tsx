@@ -3,11 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Search, Users, UserPlus, UserMinus, Loader2 } from 'lucide-react'
+import { Search, Users, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { getInitials } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 
 interface UserResult {
@@ -53,19 +52,18 @@ function FollowToggle({
   }
 
   return (
-    <Button
-      variant={isFollowing ? 'outline' : 'cinema'}
-      size="sm"
+    <button
       onClick={toggle}
       disabled={loading}
-      className="shrink-0 gap-1.5"
-    >
-      {isFollowing ? (
-        <><UserMinus className="h-4 w-4 mr-1" />Unfollow</>
-      ) : (
-        <><UserPlus className="h-4 w-4 mr-1" />Follow</>
+      className={cn(
+        'relative shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-200',
+        isFollowing
+          ? 'border border-border bg-muted text-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive'
+          : 'bg-cinema-500 text-black hover:bg-cinema-400'
       )}
-    </Button>
+    >
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isFollowing ? 'Following' : 'Follow'}
+    </button>
   )
 }
 
