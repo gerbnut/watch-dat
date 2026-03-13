@@ -8,6 +8,7 @@ import { StarRating } from '@/components/movies/StarRating'
 import { MovieSearch } from '@/components/movies/MovieSearch'
 import { Heart, Flag, RefreshCw, Film, Loader2 } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
+import { FieldError } from '@/components/ui/FieldError'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import Image from 'next/image'
 import { toast } from '@/hooks/use-toast'
@@ -50,6 +51,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
   const [rewatch, setRewatch] = useState(false)
   const [watchedDate, setWatchedDate] = useState(formatDate(new Date(), 'yyyy-MM-dd'))
   const [submitting, setSubmitting] = useState(false)
+  const [dateError, setDateError] = useState('')
 
   // Pre-populate fields when opening in edit mode
   React.useEffect(() => {
@@ -68,6 +70,14 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
   }, [preselectedMovie])
 
   async function handleSubmit() {
+    const today = formatDate(new Date(), 'yyyy-MM-dd')
+    if (watchedDate && watchedDate > today) {
+      setDateError("Watched date can't be in the future")
+      return
+    }
+    if (text.length > 10000) {
+      return // text counter already shows the error state visually
+    }
     setSubmitting(true)
     try {
       if (editMode) {
@@ -131,6 +141,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
     setHasSpoiler(false)
     setRewatch(false)
     setWatchedDate(formatDate(new Date(), 'yyyy-MM-dd'))
+    setDateError('')
     onClose()
   }
 
@@ -194,9 +205,10 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
             <Input
               type="date"
               value={watchedDate}
-              onChange={(e) => setWatchedDate(e.target.value)}
+              onChange={(e) => { setWatchedDate(e.target.value); setDateError('') }}
               max={formatDate(new Date(), 'yyyy-MM-dd')}
             />
+            <FieldError msg={dateError} />
           </div>
 
           <div className="space-y-2">
@@ -209,6 +221,14 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
               maxRows={10}
               className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
+            {text.length > 8000 && (
+              <p className={cn('text-xs', text.length > 10000 ? 'text-destructive' : 'text-muted-foreground')}>
+                {text.length.toLocaleString()}/10,000
+              </p>
+            )}
+            {text.length > 10000 && (
+              <FieldError msg="Review must be 10,000 characters or less" />
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -248,7 +268,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={handleClose}>Cancel</Button>
-            <Button variant="cinema" onClick={handleSubmit} disabled={(!movie && !editMode) || submitting}>
+            <Button variant="cinema" onClick={handleSubmit} disabled={(!movie && !editMode) || submitting || text.length > 10000}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
             </Button>
           </div>
