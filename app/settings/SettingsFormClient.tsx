@@ -8,7 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ImageCropperModal } from '@/components/ui/ImageCropperModal'
 import { Camera, Loader2 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
-import { getInitials } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
+import { validateDisplayName } from '@/lib/form-validation'
+import { FieldError } from '@/components/ui/FieldError'
 import TextareaAutosize from 'react-textarea-autosize'
 
 interface User {
@@ -47,6 +49,7 @@ export function SettingsFormClient({ user }: { user: User }) {
   const [cropTarget, setCropTarget] = useState<CropTarget | null>(null)
   const [uploading, setUploading] = useState<'avatar' | 'bannerUrl' | null>(null)
   const [saving, setSaving] = useState(false)
+  const [displayNameError, setDisplayNameError] = useState('')
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const bannerInputRef = useRef<HTMLInputElement>(null)
 
@@ -94,6 +97,15 @@ export function SettingsFormClient({ user }: { user: User }) {
   }
 
   async function handleSave() {
+    const dnErr = validateDisplayName(displayName)
+    if (dnErr) {
+      setDisplayNameError(dnErr)
+      return
+    }
+    if (bio.length > 300) {
+      toast({ title: 'Bio must be 300 characters or less', variant: 'destructive' })
+      return
+    }
     setSaving(true)
     try {
       const res = await fetch(`/api/users/${user.username}`, {
@@ -251,9 +263,10 @@ export function SettingsFormClient({ user }: { user: User }) {
             <label className="text-sm font-medium">Display name</label>
             <Input
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => { setDisplayName(e.target.value); setDisplayNameError('') }}
               placeholder="Your display name"
             />
+            <FieldError msg={displayNameError} />
           </div>
 
           <div className="space-y-1.5">
@@ -266,6 +279,9 @@ export function SettingsFormClient({ user }: { user: User }) {
               maxRows={6}
               className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
+            <p className={cn('text-xs', bio.length > 300 ? 'text-destructive' : 'text-muted-foreground')}>
+              {bio.length}/300
+            </p>
           </div>
 
           <div className="flex justify-end">
