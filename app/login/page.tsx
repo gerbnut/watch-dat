@@ -8,7 +8,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { WatchDatLogoMark } from '@/components/layout/WatchDatLogo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from '@/hooks/use-toast'
+import { FieldError } from '@/components/ui/FieldError'
 
 function LoginContent() {
   const router = useRouter()
@@ -19,6 +19,7 @@ function LoginContent() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,7 +34,7 @@ function LoginContent() {
     setLoading(false)
 
     if (result?.error) {
-      toast({ title: 'Sign in failed', description: 'Invalid email or password', variant: 'destructive' })
+      setAuthError('Invalid email or password')
     } else {
       router.push(callbackUrl)
       router.refresh()
@@ -56,7 +57,7 @@ function LoginContent() {
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => { setEmail(e.target.value); setAuthError('') }}
             placeholder="you@example.com"
             autoComplete="email"
             required
@@ -69,7 +70,7 @@ function LoginContent() {
             <Input
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setAuthError('') }}
               placeholder="••••••••"
               autoComplete="current-password"
               required
@@ -84,6 +85,7 @@ function LoginContent() {
             </button>
           </div>
         </div>
+        <FieldError msg={authError} />
 
         <Button type="submit" variant="cinema" size="lg" className="w-full" disabled={loading}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
