@@ -46,8 +46,10 @@ export async function GET(req: NextRequest) {
   const friendRecMap = new Map<number, { username: string; avatar: string | null; rating: number }[]>()
   const favTmdbIds: number[] = []
 
+  const preferredGenreIds = new Set<number>()
+
   if (userId) {
-    const [diary, follows, favorites] = await Promise.all([
+    const [diary, follows, favorites, highRated] = await Promise.all([
       prisma.diaryEntry.findMany({
         where: { userId },
         take: 1000,
@@ -63,10 +65,20 @@ export async function GET(req: NextRequest) {
         orderBy: { order: 'asc' },
         include: { movie: { select: { tmdbId: true } } },
       }),
+      prisma.review.findMany({
+        where: { userId, rating: { gte: 8 } },
+        take: 50,
+        include: { movie: { select: { genres: true } } },
+      }),
     ])
 
     for (const e of diary) watchedTmdbIds.add(e.movie.tmdbId)
     for (const f of favorites) favTmdbIds.push(f.movie.tmdbId)
+    for (const r of highRated) {
+      for (const g of (r.movie.genres as any[]) ?? []) {
+        if (g?.id) preferredGenreIds.add(g.id)
+      }
+    }
 
     const followingIds = follows.map((f) => f.followingId)
     if (followingIds.length > 0) {
@@ -91,12 +103,15 @@ export async function GET(req: NextRequest) {
   const shuffledFavs = fisherYates(favTmdbIds)
   const [fav1, fav2] = shuffledFavs
 
-  const promises: Promise<{ results: TMDBSearchResult[] }>[] = [
-    getTrendingMovies('week'),
-    getPopularMovies(safePage),
-  ]
+  const promises: Promise<{ results: TMDBSearchResult[] }>[] = []
   if (genreId !== undefined) {
+    // Genre selected — discover only within that genre
     promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 200 }))
+    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 100 }))
+  } else {
+    // Any — use trending + popular
+    promises.push(getTrendingMovies('week'))
+    promises.push(getPopularMovies(safePage))
   }
   if (fav1) promises.push(getSimilarMovies(fav1))
   if (fav2) promises.push(getSimilarMovies(fav2))
@@ -117,7 +132,15 @@ export async function GET(req: NextRequest) {
   }
 
   const filtered = allResults.filter((m) => !watchedTmdbIds.has(m.id))
-  const shuffled = fisherYates(filtered)
+
+  // Boost movies matching user's preferred genres (from high-rated reviews)
+  const preferred = preferredGenreIds.size > 0
+    ? fisherYates(filtered.filter((m) => m.genre_ids?.some((id) => preferredGenreIds.has(id))))
+    : []
+  const rest = preferredGenreIds.size > 0
+    ? fisherYates(filtered.filter((m) => !m.genre_ids?.some((id) => preferredGenreIds.has(id))))
+    : fisherYates(filtered)
+  const shuffled = preferred.length > 0 ? [...preferred, ...rest] : rest
   const page20 = shuffled.slice(0, 20)
   const nextPage = shuffled.length > 20 ? safePage + 1 : null
 
