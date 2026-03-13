@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
@@ -8,8 +8,9 @@ import { Loader2, Eye, EyeOff, Check, X } from 'lucide-react'
 import { WatchDatLogoMark } from '@/components/layout/WatchDatLogo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { validateEmail, validateUsernameFormat, validateDisplayName, validatePassword } from '@/lib/form-validation'
+import { FieldError } from '@/components/ui/FieldError'
 
 function PasswordStrength({ password }: { password: string }) {
   const rules = [
@@ -38,16 +39,102 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [checkingUsername, setCheckingUsername] = useState(false)
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+  const usernameAbortRef = useRef<AbortController | null>(null)
+  const usernameCheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }))
     if (errors[field]) setErrors((e) => ({ ...e, [field]: '' }))
   }
 
+  function handleEmailBlur() {
+    const err = validateEmail(form.email)
+    if (err) setErrors((e) => ({ ...e, email: err }))
+  }
+
+  function handleDisplayNameBlur() {
+    const err = validateDisplayName(form.displayName)
+    if (err) setErrors((e) => ({ ...e, displayName: err }))
+  }
+
+  function handleUsernameBlur() {
+    const formatErr = validateUsernameFormat(form.username)
+    if (formatErr) {
+      setErrors((e) => ({ ...e, username: formatErr }))
+      setUsernameAvailable(null)
+      return
+    }
+    // Debounce 400ms before firing the availability check
+    if (usernameCheckTimerRef.current) clearTimeout(usernameCheckTimerRef.current)
+    usernameCheckTimerRef.current = setTimeout(() => checkUsernameAvailability(form.username), 400)
+  }
+
+  async function checkUsernameAvailability(username: string) {
+    usernameAbortRef.current?.abort()
+    const controller = new AbortController()
+    usernameAbortRef.current = controller
+
+    setCheckingUsername(true)
+    setUsernameAvailable(null)
+    setErrors((e) => ({ ...e, username: '' }))
+
+    try {
+      const res = await fetch(`/api/users/${username}`, { signal: controller.signal })
+      if (res.status === 404) {
+        setUsernameAvailable(true)
+      } else if (res.ok) {
+        setUsernameAvailable(false)
+        setErrors((e) => ({ ...e, username: 'Username taken' }))
+      } else {
+        setUsernameAvailable(null)
+        setErrors((e) => ({ ...e, username: "Couldn't check availability, try again" }))
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return
+      setUsernameAvailable(null)
+      setErrors((e) => ({ ...e, username: "Couldn't check availability, try again" }))
+    } finally {
+      setCheckingUsername(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
 
+    const emailErr = validateEmail(form.email)
+    const usernameErr = validateUsernameFormat(form.username)
+    const displayNameErr = validateDisplayName(form.displayName)
+    const passwordErr = validatePassword(form.password)
+
+    const newErrors: Record<string, string> = {}
+    if (emailErr) newErrors.email = emailErr
+    if (usernameErr) newErrors.username = usernameErr
+    if (displayNameErr) newErrors.displayName = displayNameErr
+    // Password errors: PasswordStrength component shows rules visually, but
+    // block submit and surface a general note so user knows why it failed
+    if (passwordErr) newErrors.general = 'Please complete the password requirements above'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      // Focus the first invalid field
+      const firstId = emailErr
+        ? 'reg-email'
+        : usernameErr
+        ? 'reg-username'
+        : displayNameErr
+        ? 'reg-displayName'
+        : 'reg-password'
+      document.getElementById(firstId)?.focus()
+      return
+    }
+
+    if (checkingUsername || (usernameAvailable !== true && form.username.length >= 3)) {
+      return
+    }
+
+    setLoading(true)
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -58,12 +145,29 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setErrors({ general: data.error ?? 'Registration failed' })
+        const msg = (data.error ?? 'Registration failed') as string
+        const lower = msg.toLowerCase()
+        if (lower.includes('email')) {
+          setErrors((e) => ({ ...e, email: msg }))
+          document.getElementById('reg-email')?.focus()
+        } else if (lower.includes('username')) {
+          setErrors((e) => ({ ...e, username: msg }))
+          document.getElementById('reg-username')?.focus()
+        } else if (lower.includes('display')) {
+          setErrors((e) => ({ ...e, displayName: msg }))
+          document.getElementById('reg-displayName')?.focus()
+        } else if (lower.includes('password')) {
+          setErrors((e) => ({ ...e, password: msg }))
+          document.getElementById('reg-password')?.focus()
+        } else if (lower.includes('attempts')) {
+          setErrors((e) => ({ ...e, general: 'Too many attempts. Please try again later.' }))
+        } else {
+          setErrors((e) => ({ ...e, general: msg }))
+        }
         setLoading(false)
         return
       }
 
-      // Auto sign in
       const result = await signIn('credentials', {
         email: form.email.toLowerCase(),
         password: form.password,
@@ -101,44 +205,59 @@ export default function RegisterPage() {
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Email</label>
           <Input
+            id="reg-email"
             type="email"
             value={form.email}
             onChange={(e) => update('email', e.target.value)}
+            onBlur={handleEmailBlur}
             placeholder="you@example.com"
-            required
           />
+          <FieldError msg={errors.email} />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Username</label>
-          <Input
-            value={form.username}
-            onChange={(e) => update('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-            placeholder="cinephile42"
-            required
-          />
-          <p className="text-xs text-muted-foreground">Letters, numbers, underscores only</p>
+          <div className="relative">
+            <Input
+              id="reg-username"
+              value={form.username}
+              onChange={(e) => update('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              onBlur={handleUsernameBlur}
+              placeholder="cinephile42"
+            />
+            {checkingUsername && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          {!checkingUsername && usernameAvailable === true && !errors.username && (
+            <p className="text-xs text-emerald-400 mt-1">Username available</p>
+          )}
+          <FieldError msg={errors.username} />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Display name</label>
           <Input
+            id="reg-displayName"
             value={form.displayName}
             onChange={(e) => update('displayName', e.target.value)}
+            onBlur={handleDisplayNameBlur}
             placeholder="Your Name"
-            required
           />
+          <FieldError msg={errors.displayName} />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Password</label>
           <div className="relative">
             <Input
+              id="reg-password"
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={(e) => update('password', e.target.value)}
               placeholder="••••••••"
-              required
               className="pr-9"
             />
             <button
@@ -150,9 +269,16 @@ export default function RegisterPage() {
             </button>
           </div>
           <PasswordStrength password={form.password} />
+          <FieldError msg={errors.password} />
         </div>
 
-        <Button type="submit" variant="cinema" size="lg" className="w-full mt-2" disabled={loading}>
+        <Button
+          type="submit"
+          variant="cinema"
+          size="lg"
+          className="w-full mt-2"
+          disabled={loading || checkingUsername || (usernameAvailable !== true && form.username.length >= 3)}
+        >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create account'}
         </Button>
       </form>
