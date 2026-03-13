@@ -8,15 +8,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
 import { FollowButtonClient } from '../FollowButtonClient'
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  return { title: `Following · @${params.username}` }
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  return { title: `Following · @${username}` }
 }
 
-export default async function FollowingPage({ params }: { params: { username: string } }) {
+export default async function FollowingPage({ params }: { params: Promise<{ username: string }> }) {
   const session = await auth()
+  const { username } = await params
 
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: { id: true, username: true, displayName: true },
   })
   if (!user) notFound()

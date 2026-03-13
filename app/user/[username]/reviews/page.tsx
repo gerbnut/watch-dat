@@ -6,15 +6,17 @@ import Link from 'next/link'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  return { title: `Reviews · @${params.username}` }
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  return { title: `Reviews · @${username}` }
 }
 
-export default async function UserReviewsPage({ params }: { params: { username: string } }) {
+export default async function UserReviewsPage({ params }: { params: Promise<{ username: string }> }) {
   const session = await auth()
+  const { username } = await params
 
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: { id: true, username: true, displayName: true },
   })
   if (!user) notFound()

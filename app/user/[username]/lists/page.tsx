@@ -6,15 +6,17 @@ import Link from 'next/link'
 import { ArrowLeft, List } from 'lucide-react'
 import { ListCard } from '@/components/lists/ListCard'
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  return { title: `Lists · @${params.username}` }
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  return { title: `Lists · @${username}` }
 }
 
-export default async function UserListsPage({ params }: { params: { username: string } }) {
+export default async function UserListsPage({ params }: { params: Promise<{ username: string }> }) {
   const session = await auth()
+  const { username } = await params
 
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: { id: true, username: true, displayName: true },
   })
   if (!user) notFound()

@@ -10,20 +10,22 @@ import { MoviePoster } from '@/components/movies/MoviePoster'
 import { formatDate } from '@/lib/utils'
 import { ShareButton } from '@/components/ui/ShareButton'
 
-export async function generateMetadata({ params }: { params: { username: string; year: string } }): Promise<Metadata> {
-  return { title: `${params.year} Wrapped · @${params.username}` }
+export async function generateMetadata({ params }: { params: Promise<{ username: string; year: string }> }): Promise<Metadata> {
+  const { username, year } = await params
+  return { title: `${year} Wrapped · @${username}` }
 }
 
 export default async function YearWrappedPage({
   params,
 }: {
-  params: { username: string; year: string }
+  params: Promise<{ username: string; year: string }>
 }) {
-  const year = Number(params.year)
+  const { username, year: yearStr } = await params
+  const year = Number(yearStr)
   if (isNaN(year) || year < 1900 || year > 2100) notFound()
 
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: { id: true, username: true, displayName: true },
   })
   if (!user) notFound()

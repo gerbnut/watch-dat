@@ -7,8 +7,9 @@ import { MoviePoster } from '@/components/movies/MoviePoster'
 import { formatDate } from '@/lib/utils'
 import { StarRating } from '@/components/movies/StarRating'
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  return { title: `Diary · @${params.username}` }
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  return { title: `Diary · @${username}` }
 }
 
 function groupByMonth(entries: any[]) {
@@ -21,9 +22,10 @@ function groupByMonth(entries: any[]) {
   return groups
 }
 
-export default async function UserDiaryPage({ params }: { params: { username: string } }) {
+export default async function UserDiaryPage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: { id: true, username: true, displayName: true },
   })
   if (!user) notFound()

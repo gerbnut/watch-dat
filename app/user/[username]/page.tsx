@@ -18,9 +18,10 @@ import { BannerSection } from './BannerSection'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { ReportButton } from '@/components/ui/ReportButton'
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: {
       displayName: true,
       username: true,
@@ -49,11 +50,12 @@ export async function generateMetadata({ params }: { params: { username: string 
   }
 }
 
-export default async function UserProfilePage({ params }: { params: { username: string } }) {
+export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const session = await auth()
+  const { username } = await params
 
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     include: {
       _count: {
         select: {

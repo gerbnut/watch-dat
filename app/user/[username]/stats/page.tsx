@@ -9,13 +9,15 @@ import { GenreChart } from '@/components/stats/GenreChart'
 import { RatingChart } from '@/components/stats/RatingChart'
 import { formatRating } from '@/lib/utils'
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  return { title: `Stats · @${params.username}` }
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  return { title: `Stats · @${username}` }
 }
 
-export default async function StatsPage({ params }: { params: { username: string } }) {
+export default async function StatsPage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
   const user = await prisma.user.findUnique({
-    where: { username: params.username.toLowerCase() },
+    where: { username: username.toLowerCase() },
     select: { id: true, username: true, displayName: true },
   })
   if (!user) notFound()
