@@ -44,7 +44,7 @@ export function WatchlistButtonClient({ tmdbId, isOnWatchlist: initial }: Watchl
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={toggle} disabled={loading} className="overflow-hidden min-w-[110px]">
+    <Button variant={isOnWatchlist ? 'cinema-outline' : 'outline'} size="sm" onClick={toggle} disabled={loading} className="overflow-hidden min-w-[110px]">
       <AnimatePresence mode="wait" initial={false}>
         {isOnWatchlist ? (
           <motion.span

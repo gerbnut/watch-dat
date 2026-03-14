@@ -38,7 +38,7 @@ export function LogFilmButtonClient({ tmdbId, title, posterPath, releaseDate, ex
   return (
     <>
       <Button
-        variant={logged ? 'secondary' : 'cinema'}
+        variant={logged ? 'cinema-outline' : 'cinema'}
         size="sm"
         onClick={() => setOpen(true)}
       >
