@@ -33,7 +33,7 @@ export function ListCard({ id, name, description, isPublic, updatedAt, user, ite
 
   return (
     <Link href={`/list/${id}`}>
-      <div className={cn('group rounded-lg border bg-card hover:bg-card/80 transition-colors overflow-hidden', className)}>
+      <div className={cn('group rounded-2xl border border-white/[0.04] bg-card/80 hover:shadow-card-hover transition-all duration-300 overflow-hidden', className)}>
         {/* Poster strip */}
         <div className="flex h-28 bg-muted">
           {previewPosters.length > 0 ? (

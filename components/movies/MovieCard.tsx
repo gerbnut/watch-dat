@@ -53,7 +53,7 @@ export function MovieCard({
     <div className={cn('group flex flex-col gap-1.5', card, className)}>
       <div
         className={cn(
-          'relative overflow-hidden rounded-md bg-muted transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-glow-green active:scale-[0.97]',
+          'relative overflow-hidden rounded-lg bg-muted transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-glow-green active:scale-[0.97]',
           img
         )}
       >
@@ -74,10 +74,12 @@ export function MovieCard({
             {!imgLoaded && <div className="absolute inset-0 skeleton" />}
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted">
-            <Film className="h-8 w-8 text-muted-foreground/40" />
+          <div className="flex h-full w-full items-center justify-center bg-white/[0.02]">
+            <Film className="h-8 w-8 text-muted-foreground/20" />
           </div>
         )}
+        {/* Inner ring overlay for depth */}
+        <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/[0.06] pointer-events-none" />
         {/* Community rating — slides up on hover */}
         {rating && !userRating && (
           <div className="absolute inset-x-0 bottom-0 px-2 py-2 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none">

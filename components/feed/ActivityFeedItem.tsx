@@ -145,7 +145,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
 
       {/* Review card — tappable on mobile, rich on desktop */}
       {hasReview && (
-        <div className="relative rounded-xl border bg-card overflow-hidden group hover:border-border/80 transition-colors">
+        <div className="relative rounded-xl border border-white/[0.04] bg-card/60 overflow-hidden group hover:border-white/[0.06] transition-colors">
           {/* Full-card tap target — goes to review page */}
           <Link
             href={`/review/${activity.review.id}`}
@@ -194,7 +194,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
           </div>
 
           {/* Action bar — always interactive (z-20 above the tap overlay) */}
-          <div className="relative z-20 flex items-center gap-1 px-3 py-2 border-t border-border/50">
+          <div className="relative z-20 flex items-center gap-1 px-3 py-2 border-t border-white/[0.04]">
             <AnimatedLikeButton
               isLiked={isLiked}
               likeCount={likeCount}
@@ -224,7 +224,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
 
           {/* Comments */}
           {commentsOpen && (
-            <div className="relative z-20 border-t border-border/50 px-3 py-3">
+            <div className="relative z-20 border-t border-white/[0.04] px-3 py-3">
               <CommentsSection
                 reviewId={activity.review.id}
                 initialCount={commentCount}

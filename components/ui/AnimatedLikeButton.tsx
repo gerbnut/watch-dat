@@ -29,8 +29,8 @@ export function AnimatedLikeButton({
         'flex items-center gap-1.5 text-sm select-none touch-manipulation',
         'transition-colors duration-150',
         isLiked
-          ? 'text-cinema-400'
-          : 'text-muted-foreground hover:text-cinema-400 active:text-cinema-400',
+          ? 'text-red-400'
+          : 'text-muted-foreground/60 hover:text-red-400/70 active:text-red-400',
         disabled && 'opacity-70',
       )}
     >
