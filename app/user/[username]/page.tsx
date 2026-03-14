@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { formatDate, getInitials, formatRating } from '@/lib/utils'
-import { BarChart2, Calendar, Film } from 'lucide-react'
+import { Calendar, Film } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
@@ -13,7 +13,6 @@ import { ListCard } from '@/components/lists/ListCard'
 import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { FollowButtonClient } from './FollowButtonClient'
 import { BlockButtonClient } from './BlockButtonClient'
-import { BackButton } from '@/components/ui/BackButton'
 import { BannerSection } from './BannerSection'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { ReportButton } from '@/components/ui/ReportButton'
@@ -77,7 +76,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   if (!user) notFound()
 
   const isOwnProfile = session?.user?.id === user.id
-  // Wrap separately: block table may not exist on older DB migrations
   const isFollowing = session?.user?.id && !isOwnProfile
     ? prisma.follow.findUnique({
         where: { followerId_followingId: { followerId: session.user.id, followingId: user.id } },
@@ -131,124 +129,122 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     _avg: { rating: true },
   })
 
-  return (
-    <div className="space-y-6">
-      {!isOwnProfile && <BackButton />}
+  const stats = [
+    { label: 'Films', value: user._count.diaryEntries, href: `/user/${user.username}/diary` },
+    { label: 'Reviews', value: user._count.reviews, href: `/user/${user.username}/reviews` },
+    { label: 'Lists', value: user._count.lists, href: `/user/${user.username}/lists` },
+    { label: 'Followers', value: user._count.followers, href: `/user/${user.username}/followers` },
+    { label: 'Following', value: user._count.following, href: `/user/${user.username}/following` },
+  ]
 
-      {/* Profile header */}
-      <div className="rounded-xl border bg-card overflow-hidden">
-        {/* Banner */}
+  return (
+    <div className="-mt-6">
+      {/* ── Banner ── */}
+      <div className="relative -mx-4">
         <BannerSection
           bannerUrl={(user as any).bannerUrl ?? null}
           isOwnProfile={isOwnProfile}
           username={user.username}
         />
+      </div>
 
-        <div className="px-6 pb-6">
-          <div className="flex items-end justify-between -mt-10 mb-4">
-            <Avatar className="h-20 w-20 border-4 border-background shadow-xl">
-              <AvatarImage src={user.avatar ?? undefined} />
-              <AvatarFallback className="text-2xl bg-cinema-900 text-cinema-300">
-                {getInitials(user.displayName)}
-              </AvatarFallback>
-            </Avatar>
+      {/* ── Avatar + Info ── */}
+      <div className="relative -mt-12 sm:-mt-16 z-10">
+        <div className="flex items-end justify-between gap-3">
+          {/* Avatar */}
+          <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-background shadow-[0_8px_25px_-8px_rgba(0,0,0,0.4)] ml-4 sm:ml-6 shrink-0">
+            <AvatarImage src={user.avatar ?? undefined} />
+            <AvatarFallback className="text-2xl sm:text-3xl bg-cinema-900 text-cinema-300 ring-1 ring-white/[0.06]">
+              {getInitials(user.displayName)}
+            </AvatarFallback>
+          </Avatar>
 
-            {/* Action buttons — responsive layout prevents overflow on iPhone */}
-            <div className="flex items-center gap-2 pb-1 min-w-0">
-              {isOwnProfile ? (
-                <>
-                  <ShareButton
-                    url={`/user/${user.username}`}
-                    title={`${user.displayName} on Watch Dat`}
-                    text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
-                  />
-                  <Link href="/settings">
-                    <button className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent active:bg-accent/70 transition-colors">
-                      Edit profile
-                    </button>
-                  </Link>
-                </>
-              ) : session?.user ? (
-                <>
-                  {/* Follow button always visible */}
-                  <FollowButtonClient
-                    username={user.username}
-                    isFollowing={!!resolvedFollowing}
-                  />
-                  {/* Share + Block + Report in a compact overflow row */}
-                  <div className="flex items-center gap-1">
-                    <ShareButton
-                      url={`/user/${user.username}`}
-                      title={`${user.displayName} on Watch Dat`}
-                      text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
-                    />
-                    <BlockButtonClient username={user.username} isBlocked={!!resolvedBlocked} />
-                    <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
-                  </div>
-                </>
-              ) : (
+          {/* Action buttons — top-right of profile area */}
+          <div className="flex items-center gap-2 pb-1 mr-1 shrink-0">
+            {isOwnProfile ? (
+              <>
                 <ShareButton
                   url={`/user/${user.username}`}
                   title={`${user.displayName} on Watch Dat`}
                   text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
                 />
-              )}
-            </div>
+                <Link href="/settings">
+                  <button className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-sm font-medium hover:bg-white/[0.06] active:bg-white/[0.08] transition-colors">
+                    Edit profile
+                  </button>
+                </Link>
+              </>
+            ) : session?.user ? (
+              <>
+                <FollowButtonClient
+                  username={user.username}
+                  isFollowing={!!resolvedFollowing}
+                />
+                <div className="flex items-center gap-1">
+                  <ShareButton
+                    url={`/user/${user.username}`}
+                    title={`${user.displayName} on Watch Dat`}
+                    text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
+                  />
+                  <BlockButtonClient username={user.username} isBlocked={!!resolvedBlocked} />
+                  <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
+                </div>
+              </>
+            ) : (
+              <ShareButton
+                url={`/user/${user.username}`}
+                title={`${user.displayName} on Watch Dat`}
+                text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Name + bio */}
+        <div className="mt-3 px-1 space-y-1.5">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{user.displayName}</h1>
+            <p className="text-sm text-muted-foreground/70">@{user.username}</p>
           </div>
 
-          <div className="space-y-2">
-            <div>
-              <h1 className="text-xl font-bold">{user.displayName}</h1>
-              <p className="text-sm text-muted-foreground">@{user.username}</p>
-            </div>
+          {user.bio && (
+            <p className="text-sm text-muted-foreground/80 leading-relaxed max-w-md line-clamp-3">{user.bio}</p>
+          )}
 
-            {user.bio && (
-              <p className="text-sm leading-relaxed max-w-lg">{user.bio}</p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-4 text-sm pt-1">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>Joined {formatDate(user.joinDate, 'MMMM yyyy')}</span>
-              </div>
-            </div>
-
-            {/* Stats row */}
-            <div className="flex flex-wrap gap-6 pt-2">
-              {[
-                { label: 'Films', value: user._count.diaryEntries, href: `/user/${user.username}/diary` },
-                { label: 'Reviews', value: user._count.reviews, href: `/user/${user.username}` },
-                { label: 'Lists', value: user._count.lists, href: `/user/${user.username}/lists` },
-                { label: 'Following', value: user._count.following, href: `/user/${user.username}/following` },
-                { label: 'Followers', value: user._count.followers, href: `/user/${user.username}/followers` },
-              ].map(({ label, value, href }) => (
-                <Link key={label} href={href} className="text-center hover:text-cinema-400 transition-colors">
-                  <span className="block text-lg font-bold">{value.toLocaleString()}</span>
-                  <span className="text-xs text-muted-foreground">{label}</span>
-                </Link>
-              ))}
-              {avgRating._avg.rating && (
-                <div className="text-center">
-                  <span className="block text-lg font-bold text-cinema-400">
-                    ★ {formatRating(avgRating._avg.rating)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">Avg rating</span>
-                </div>
-              )}
-              <Link href={`/user/${user.username}/stats`} className="text-center hover:text-cinema-400 transition-colors">
-                <BarChart2 className="h-5 w-5 mx-auto mb-0.5" />
-                <span className="text-xs text-muted-foreground">Stats</span>
-              </Link>
-            </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
+            <Calendar className="h-3 w-3" />
+            <span>Joined {formatDate(user.joinDate, 'MMMM yyyy')}</span>
           </div>
         </div>
       </div>
 
-      {/* Favorite films */}
+      {/* ── Stats Pills ── */}
+      <div className="flex items-center gap-3 sm:gap-4 py-4 mt-2 overflow-x-auto scrollbar-hide">
+        {stats.map(({ label, value, href }) => (
+          <Link
+            key={label}
+            href={href}
+            className="flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit hover:bg-white/[0.04] transition-colors"
+          >
+            <span className="text-lg sm:text-xl font-bold tracking-tight tabular-nums">{value.toLocaleString()}</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
+          </Link>
+        ))}
+        {avgRating._avg.rating && (
+          <div className="flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit">
+            <span className="text-lg sm:text-xl font-bold tracking-tight text-cinema-400 tabular-nums">
+              ★ {formatRating(avgRating._avg.rating)}
+            </span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground/60 uppercase tracking-wider">Avg</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Favorite Films ── */}
       {user.favoriteMovies.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Favorite films</h2>
-          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-pl-4">
+        <div className="mt-2 mb-6">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground/40 mb-2">Favorites</p>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
             {user.favoriteMovies.map(({ movie }) => (
               <MovieCard
                 key={movie.id}
@@ -256,28 +252,37 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                 title={movie.title}
                 poster={movie.poster}
                 releaseDate={movie.releaseDate}
-                size="md"
-                className="shrink-0 snap-start"
+                size="xs"
+                showYear={false}
+                className="shrink-0 snap-start !w-16 sm:!w-20"
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Tabs */}
+      {/* ── Tab Navigation ── */}
       <Tabs defaultValue="activity">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          <TabsTrigger value="diary">Diary</TabsTrigger>
-          <TabsTrigger value="lists">Lists</TabsTrigger>
+        <TabsList className="w-full justify-start gap-1 overflow-x-auto scrollbar-hide bg-transparent rounded-none border-b border-white/[0.04] p-0 pb-px h-auto">
+          <TabsTrigger value="activity" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Activity
+          </TabsTrigger>
+          <TabsTrigger value="reviews" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Reviews
+          </TabsTrigger>
+          <TabsTrigger value="diary" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Diary
+          </TabsTrigger>
+          <TabsTrigger value="lists" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Lists
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="activity" className="mt-4">
           {recentActivities.length > 0 ? (
-            <div className="rounded-xl border bg-card divide-y divide-border">
+            <div className="space-y-3">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="px-4">
+                <div key={activity.id}>
                   <ActivityFeedItem activity={activity as any} currentUserId={session?.user?.id} />
                 </div>
               ))}
@@ -312,7 +317,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
 
         <TabsContent value="diary" className="mt-4">
           <Link href={`/user/${user.username}/diary`}>
-            <div className="rounded-lg border bg-card p-6 text-center hover:bg-accent/50 transition-colors">
+            <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-6 text-center hover:bg-white/[0.03] transition-colors">
               <Film className="h-8 w-8 mx-auto mb-2 text-cinema-400" />
               <p className="font-medium">{user._count.diaryEntries} films watched</p>
               <p className="text-sm text-muted-foreground mt-1">View full diary →</p>

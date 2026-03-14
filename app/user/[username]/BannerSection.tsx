@@ -85,17 +85,20 @@ export function BannerSection({ bannerUrl: initialUrl, isOwnProfile, username }:
 
       <div className="relative h-36 sm:h-48 overflow-hidden">
         {bannerUrl ? (
-          <Image
-            src={bannerUrl}
-            alt="Profile banner"
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-            unoptimized={bannerUrl.startsWith('blob:')}
-          />
+          <>
+            <Image
+              src={bannerUrl}
+              alt="Profile banner"
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+              unoptimized={bannerUrl.startsWith('blob:')}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+          </>
         ) : (
-          <div className="h-full bg-gradient-to-br from-cinema-900 via-film-900 to-cinema-950" />
+          <div className="h-full bg-gradient-to-br from-cinema-950/50 via-card to-background" />
         )}
 
         {uploading && (

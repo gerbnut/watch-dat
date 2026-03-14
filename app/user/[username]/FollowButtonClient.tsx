@@ -33,7 +33,7 @@ export function FollowButtonClient({ username, isFollowing: initial }: FollowBut
 
   return (
     <Button
-      variant={isFollowing ? 'outline' : 'cinema'}
+      variant={isFollowing ? 'cinema-outline' : 'cinema'}
       size="sm"
       onClick={toggle}
       disabled={loading}
