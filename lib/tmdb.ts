@@ -47,6 +47,8 @@ export interface TMDBMovie {
   runtime: number
   genres: { id: number; name: string }[]
   tagline: string
+  budget: number
+  production_countries: { iso_3166_1: string; name: string }[]
   original_language: string
   vote_average: number
   vote_count: number
@@ -215,6 +217,8 @@ export async function getOrCacheMovie(tmdbId: number) {
         cast,
         tagline: data.tagline ?? null,
         language: data.original_language ?? null,
+        budget: data.budget ?? null,
+        productionCountries: data.production_countries ?? [],
         cachedAt: new Date(),
       },
       create: {
@@ -231,6 +235,8 @@ export async function getOrCacheMovie(tmdbId: number) {
         cast,
         tagline: data.tagline ?? null,
         language: data.original_language ?? null,
+        budget: data.budget ?? null,
+        productionCountries: data.production_countries ?? [],
       },
     })
 

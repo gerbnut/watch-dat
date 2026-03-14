@@ -240,6 +240,22 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
         )}
       </div>
 
+      {/* ── Wrapped CTA ── */}
+      {user._count.diaryEntries >= 10 && (
+        <Link
+          href={`/user/${user.username}/wrapped`}
+          className="block mt-2 mb-4"
+        >
+          <div className="rounded-xl bg-gradient-to-r from-cinema-950 via-cinema-900/50 to-cinema-950 border border-cinema-500/20 p-4 flex items-center justify-between hover:border-cinema-500/40 hover:shadow-glow-green-xs transition-all">
+            <div>
+              <p className="font-bold text-sm">Your Film Wrapped</p>
+              <p className="text-xs text-muted-foreground/60">Your all-time cinema story</p>
+            </div>
+            <span className="text-cinema-400 text-lg">→</span>
+          </div>
+        </Link>
+      )}
+
       {/* ── Favorite Films ── */}
       {user.favoriteMovies.length > 0 && (
         <div className="mt-2 mb-6">

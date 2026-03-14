@@ -103,9 +103,11 @@ model Movie {
   genres      Json? // Array of {id, name}
   directors   Json? // Array of {id, name}
   cast        Json? // Array of {id, name, character, profile_path}
-  tagline     String?
-  language    String?
-  cachedAt    DateTime  @default(now())
+  tagline             String?
+  language            String?
+  budget              Int?
+  productionCountries Json?     // Array of {iso_3166_1, name}
+  cachedAt            DateTime  @default(now())
 
   reviews         Review[]
   diaryEntries    DiaryEntry[]

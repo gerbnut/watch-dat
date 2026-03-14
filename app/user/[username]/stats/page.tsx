@@ -114,6 +114,22 @@ export default async function StatsPage({ params }: { params: Promise<{ username
         </span>
       </div>
 
+      {/* Wrapped CTA */}
+      {watchCount >= 10 && (
+        <Link
+          href={`/user/${user.username}/wrapped`}
+          className="block"
+        >
+          <div className="rounded-xl bg-gradient-to-r from-cinema-950 via-cinema-900/50 to-cinema-950 border border-cinema-500/20 p-4 flex items-center justify-between hover:border-cinema-500/40 hover:shadow-glow-green-xs transition-all">
+            <div>
+              <p className="font-bold text-sm">Film Wrapped</p>
+              <p className="text-xs text-muted-foreground/60">Your all-time cinema story</p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-cinema-400" />
+          </div>
+        </Link>
+      )}
+
       {/* Overview cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
