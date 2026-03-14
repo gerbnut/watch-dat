@@ -103,20 +103,12 @@ function GifPicker({ onSelect, onClose }: GifPickerProps) {
 
   return (
     <>
-      {/* Mobile backdrop — closes picker on tap outside */}
-      <div
-        className="fixed inset-0 z-40 bg-black/50 sm:hidden"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      {/* Picker panel: bottom-sheet on mobile, popover on sm+ */}
+      {/* Picker panel: popover above the GIF button */}
       <div
         className={cn(
           'z-50 overflow-hidden border border-border bg-popover shadow-xl',
-          // Mobile: full-width fixed bottom sheet
-          'fixed bottom-0 left-0 right-0 rounded-t-2xl',
-          // sm+: absolute popover above the GIF button
-          'sm:absolute sm:bottom-full sm:left-auto sm:right-0 sm:mb-2 sm:w-72 sm:rounded-xl',
+          'absolute bottom-full left-0 right-0 mb-2 rounded-xl',
+          'sm:left-auto sm:w-72',
         )}
       >
         <div className="flex items-center gap-2 p-2 border-b border-border">
@@ -128,12 +120,11 @@ function GifPicker({ onSelect, onClose }: GifPickerProps) {
             autoFocus
             className="flex-1 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
-          {/* Close button visible on mobile only */}
           <button
             type="button"
             onClick={onClose}
             aria-label="Close GIF picker"
-            className="sm:hidden flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input text-muted-foreground hover:text-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-input text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -474,8 +465,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
               <img
                 src={comment.gifUrl}
                 alt="GIF"
-                className="mt-1.5 max-w-[240px] rounded-lg"
-                loading="lazy"
+                className="mt-1.5 max-w-[240px] rounded-lg block"
               />
             )}
 
