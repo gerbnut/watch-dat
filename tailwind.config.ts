@@ -43,6 +43,7 @@ const config: Config = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        elevated: 'hsl(225 13% 9%)',
         // Watch Dat brand colors — matrix green accent
         cinema: {
           50:  '#f0fdf4',
@@ -72,14 +73,21 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'var(--font-geist-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-geist-mono)', 'monospace'],
-        display: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'var(--font-geist-sans)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        'glow-green': '0 0 20px -5px rgba(34, 197, 94, 0.2), 0 0 40px -10px rgba(34, 197, 94, 0.1)',
+        'glow-green-sm': '0 0 15px -3px rgba(34, 197, 94, 0.15)',
+        'glow-green-xs': '0 0 8px -2px rgba(34, 197, 94, 0.12)',
+        'glass': '0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+        'card-hover': '0 8px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03)',
       },
       keyframes: {
         'accordion-down': {
@@ -107,18 +115,35 @@ const config: Config = {
           '70%':  { transform: 'scale(0.92)' },
           '100%': { transform: 'scale(1)' },
         },
+        press: {
+          '0%':   { transform: 'scale(1)' },
+          '50%':  { transform: 'scale(0.97)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.15' },
+          '50%':      { opacity: '0.25' },
+        },
+        'slide-up-fade': {
+          from: { opacity: '0', transform: 'translateY(4px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.95)' },
+          to:   { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         shimmer: 'shimmer 1.5s infinite',
         'fade-in': 'fade-in 0.3s ease-out',
-        'page-enter': 'page-enter 0.25s ease-out',
+        'page-enter': 'page-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         'star-pop': 'star-pop 0.2s ease-out',
-      },
-      boxShadow: {
-        'glow-green': '0 0 20px rgba(34, 197, 94, 0.18), 0 0 40px rgba(34, 197, 94, 0.06)',
-        'glow-green-sm': '0 0 12px rgba(34, 197, 94, 0.15)',
+        press: 'press 0.15s ease-out',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+        'slide-up-fade': 'slide-up-fade 0.15s ease-out',
+        'scale-in': 'scale-in 0.15s ease-out',
       },
     },
   },

@@ -4,28 +4,31 @@
 
 @layer base {
   :root {
-    /* Near-black base — dark cinema feel */
-    --background: 220 13% 5%;
+    /* Deep cinema black with cool blue undertone */
+    --background: 225 15% 4%;
     --foreground: 210 18% 92%;
-    --card: 220 12% 8%;
+    --card: 225 14% 7%;
     --card-foreground: 210 18% 92%;
-    --popover: 220 12% 7%;
+    --popover: 225 14% 6%;
     --popover-foreground: 210 18% 92%;
-    /* Matrix green primary */
+    /* Cinema green primary */
     --primary: 140 65% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 12% 13%;
+    --primary-glow: 140 65% 45%;
+    --secondary: 225 12% 13%;
     --secondary-foreground: 210 18% 92%;
-    --muted: 220 12% 11%;
-    /* Cool slate secondary text */
-    --muted-foreground: 215 20% 54%;
-    --accent: 220 12% 13%;
+    --muted: 225 12% 11%;
+    /* Slightly warmer gray for secondary text */
+    --muted-foreground: 220 15% 50%;
+    --accent: 225 12% 13%;
     --accent-foreground: 210 18% 92%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 12% 15%;
-    --input: 220 12% 15%;
+    --border: 225 12% 12%;
+    --border-subtle: 225 12% 9%;
+    --input: 225 12% 12%;
     --ring: 140 65% 45%;
+    --glass: 225 14% 8%;
     --radius: 0.5rem;
   }
 
@@ -61,6 +64,7 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     -webkit-tap-highlight-color: transparent;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 197, 94, 0.03), transparent);
   }
 
   /* Remove tap highlight and default appearance on all interactive elements */
@@ -80,13 +84,14 @@
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-muted/30;
+    @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full;
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+    background: rgba(34, 197, 94, 0.35);
   }
 }
 
@@ -111,7 +116,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(34, 197, 94, 0.05) 50%,
+    rgba(255, 255, 255, 0.04) 50%,
     transparent 100%
   );
   animation: shimmer 1.8s ease-in-out infinite;
@@ -129,11 +134,11 @@
 
 /* Page transition wrapper */
 .page-content {
-  animation: page-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: page-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -149,4 +154,29 @@
   pointer-events: none;
   box-shadow: 0 0 8px hsl(140 65% 45% / 0.6);
   opacity: 0;
+}
+
+/* ─── Glass utilities ─────────────────────────────────────────── */
+.glass {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: hsl(var(--glass) / 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Glow utilities ──────────────────────────────────────────── */
+.glow-sm {
+  box-shadow: 0 0 15px -3px hsl(var(--primary-glow) / 0.15);
+}
+
+.glow-md {
+  box-shadow: 0 0 25px -5px hsl(var(--primary-glow) / 0.2);
+}
+
+.glow-ring {
+  box-shadow: 0 0 0 1px hsl(var(--primary-glow) / 0.15), 0 0 15px -3px hsl(var(--primary-glow) / 0.1);
 }
