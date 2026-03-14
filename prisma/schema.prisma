@@ -22,25 +22,29 @@ model User {
   password    String?
 
   // Social
-  reviews        Review[]
-  likes          Like[]
-  lists          List[]
-  watchlist      WatchlistItem[]
-  diaryEntries   DiaryEntry[]
-  followers      Follow[]        @relation("following")
-  following      Follow[]        @relation("follower")
-  activities     Activity[]
-  favoriteMovies FavoriteMovie[]
-  comments       Comment[]
-  commentLikes   CommentLike[]
-  notifications  Notification[]  @relation("notified")
-  sentNotifications Notification[] @relation("actor")
-  sentRecommendations     Recommendation[] @relation("sent_recs")
-  receivedRecommendations Recommendation[] @relation("received_recs")
-  blocking                Block[]          @relation("blocker")
-  blockedBy               Block[]          @relation("blocked")
+  reviews                 Review[]
+  likes                   Like[]
+  lists                   List[]
+  watchlist               WatchlistItem[]
+  diaryEntries            DiaryEntry[]
+  followers               Follow[]           @relation("following")
+  following               Follow[]           @relation("follower")
+  activities              Activity[]
+  favoriteMovies          FavoriteMovie[]
+  comments                Comment[]
+  commentLikes            CommentLike[]
+  notifications           Notification[]     @relation("notified")
+  sentNotifications       Notification[]     @relation("actor")
+  sentRecommendations     Recommendation[]   @relation("sent_recs")
+  receivedRecommendations Recommendation[]   @relation("received_recs")
+  blocking                Block[]            @relation("blocker")
+  blockedBy               Block[]            @relation("blocked")
   reports                 Report[]
   pushSubscriptions       PushSubscription[]
+  letterboxdImports       LetterboxdImport[]
+
+  letterboxdImportedAt DateTime?
+  letterboxdEntryCount Int?
 
   accounts Account[]
   sessions Session[]
@@ -96,38 +100,39 @@ model Movie {
   overview    String?
   releaseDate DateTime?
   runtime     Int?
-  genres      Json?     // Array of {id, name}
-  directors   Json?     // Array of {id, name}
-  cast        Json?     // Array of {id, name, character, profile_path}
+  genres      Json? // Array of {id, name}
+  directors   Json? // Array of {id, name}
+  cast        Json? // Array of {id, name, character, profile_path}
   tagline     String?
   language    String?
   cachedAt    DateTime  @default(now())
 
-  reviews          Review[]
-  diaryEntries     DiaryEntry[]
-  listItems        ListItem[]
-  activities       Activity[]
-  favorites        FavoriteMovie[]
-  watchlistItems   WatchlistItem[]
-  recommendations  Recommendation[]
-  notifications    Notification[]
+  reviews         Review[]
+  diaryEntries    DiaryEntry[]
+  listItems       ListItem[]
+  activities      Activity[]
+  favorites       FavoriteMovie[]
+  watchlistItems  WatchlistItem[]
+  recommendations Recommendation[]
+  notifications   Notification[]
 
   @@index([tmdbId])
   @@index([title])
 }
 
 model Review {
-  id          String    @id @default(cuid())
-  userId      String
-  movieId     String
-  rating      Float?    // 1-10 in 0.5 increments, nullable for watch-only
-  text        String?   @db.Text
-  liked       Boolean   @default(false)
-  hasSpoiler  Boolean   @default(false)
-  watchedDate DateTime?
-  rewatch     Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  userId       String
+  movieId      String
+  rating       Float? // 1-10 in 0.5 increments, nullable for watch-only
+  text         String?   @db.Text
+  liked        Boolean   @default(false)
+  hasSpoiler   Boolean   @default(false)
+  watchedDate  DateTime?
+  rewatch      Boolean   @default(false)
+  importSource String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie         Movie          @relation(fields: [movieId], references: [id])
@@ -143,14 +148,15 @@ model Review {
 }
 
 model DiaryEntry {
-  id          String   @id @default(cuid())
-  userId      String
-  movieId     String
-  watchedDate DateTime
-  rating      Float?
-  rewatch     Boolean  @default(false)
-  reviewId    String?
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  movieId      String
+  watchedDate  DateTime
+  rating       Float?
+  rewatch      Boolean  @default(false)
+  reviewId     String?
+  importSource String?
+  createdAt    DateTime @default(now())
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie Movie @relation(fields: [movieId], references: [id])
@@ -185,12 +191,12 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  review   Review         @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  parent   Comment?       @relation("replies", fields: [parentId], references: [id], onDelete: SetNull)
-  replies  Comment[]      @relation("replies")
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review        Review         @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  parent        Comment?       @relation("replies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies       Comment[]      @relation("replies")
   notifications Notification[]
-  likes    CommentLike[]
+  likes         CommentLike[]
 
   @@index([reviewId])
   @@index([userId])
@@ -256,11 +262,12 @@ model ListItem {
 }
 
 model WatchlistItem {
-  id      String   @id @default(cuid())
-  userId  String
-  movieId String
-  addedAt DateTime @default(now())
-  note    String?
+  id           String   @id @default(cuid())
+  userId       String
+  movieId      String
+  addedAt      DateTime @default(now())
+  note         String?
+  importSource String?
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie Movie @relation(fields: [movieId], references: [id])
@@ -283,10 +290,10 @@ model FavoriteMovie {
 }
 
 model Block {
-  id          String   @id @default(cuid())
-  blockerId   String
-  blockedId   String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
 
   blocker User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
   blocked User @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
@@ -300,7 +307,7 @@ model Report {
   id         String       @id @default(cuid())
   reporterId String
   targetType ReportTarget
-  targetId   String       // reviewId or userId
+  targetId   String // reviewId or userId
   reason     ReportReason
   details    String?      @db.Text
   resolved   Boolean      @default(false)
@@ -365,8 +372,8 @@ model Activity {
 
 model Notification {
   id        String           @id @default(cuid())
-  userId    String           // who receives it
-  actorId   String           // who triggered it
+  userId    String // who receives it
+  actorId   String // who triggered it
   type      NotificationType
   reviewId  String?
   commentId String?
@@ -406,12 +413,26 @@ enum NotificationType {
 }
 
 model PushSubscription {
-  id       String @id @default(cuid())
-  userId   String
-  endpoint String @unique
-  p256dh   String
-  auth     String
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
   createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model LetterboxdImport {
+  id         String   @id @default(cuid())
+  userId     String
+  importedAt DateTime @default(now())
+  totalItems Int
+  matched    Int
+  skipped    Int
+  failed     Int
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

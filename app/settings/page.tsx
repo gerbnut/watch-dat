@@ -5,6 +5,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { SettingsFormClient } from './SettingsFormClient'
 import { FavoritesEditorClient } from './FavoritesEditorClient'
+import { LetterboxdSettingsClient } from './LetterboxdSettingsClient'
 import { DeleteAccountClient } from './DeleteAccountClient'
 
 export const metadata: Metadata = { title: 'Settings' }
@@ -22,6 +23,8 @@ export default async function SettingsPage() {
       bio: true,
       avatar: true,
       bannerUrl: true,
+      letterboxdImportedAt: true,
+      letterboxdEntryCount: true,
       favoriteMovies: {
         include: { movie: { select: { tmdbId: true, title: true, poster: true } } },
         orderBy: { order: 'asc' },
@@ -48,6 +51,11 @@ export default async function SettingsPage() {
         user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
       />
       <FavoritesEditorClient username={user.username} initialFavorites={favorites} />
+
+      <LetterboxdSettingsClient
+        importedAt={user.letterboxdImportedAt?.toISOString() ?? null}
+        entryCount={user.letterboxdEntryCount}
+      />
 
       <DeleteAccountClient />
 
