@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProvider>
           <QueryProvider>
             <Navbar />
-            <main className="mx-auto max-w-6xl px-4 pt-6 pb-28 md:pb-8">
+            <main className="mx-auto max-w-6xl px-4 pt-6 pb-24 md:pb-8">
               <PullToRefresh>
                 <LayoutTransition>{children}</LayoutTransition>
               </PullToRefresh>

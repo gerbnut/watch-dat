@@ -169,7 +169,7 @@ export function NotificationBell() {
       <button
         ref={bellRef}
         onClick={openPanel}
-        className="relative flex h-11 w-11 items-center justify-center rounded-full hover:bg-accent active:bg-accent/70 transition-colors -mr-1.5"
+        className="relative flex h-11 w-11 items-center justify-center rounded-lg hover:bg-white/[0.05] active:bg-white/[0.08] transition-colors -mr-1.5"
         aria-label="Notifications"
       >
         <Bell className="h-[18px] w-[18px]" />
@@ -260,7 +260,7 @@ export function NotificationBell() {
                 top: bellRect.bottom + 8,
                 right: window.innerWidth - bellRect.right,
               }}
-              className="hidden md:flex md:flex-col w-80 max-h-[480px] rounded-xl border bg-popover shadow-2xl z-[60] overflow-hidden"
+              className="hidden md:flex md:flex-col w-80 max-h-[480px] rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] z-[60] overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">

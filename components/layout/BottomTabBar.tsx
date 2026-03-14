@@ -19,38 +19,37 @@ export function BottomTabBar() {
     ? pathname.startsWith(`/user/${username}`) || pathname === '/settings'
     : false
 
+  const tabs = [
+    { href: '/', label: 'Home', icon: Home, active: pathname === '/' },
+    { href: '/films', label: 'Films', icon: Film, active: pathname.startsWith('/films') },
+    { href: '/friends', label: 'Friends', icon: Users, active: pathname.startsWith('/friends') },
+    { href: meHref, label: 'Me', icon: User, active: meActive },
+  ]
+
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm"
+        className="md:hidden fixed bottom-0 inset-x-0 z-50 backdrop-blur-xl bg-[hsl(225_14%_5%_/_0.85)] border-t border-white/[0.04] shadow-[0_-2px_10px_rgba(0,0,0,0.3)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex h-14 items-center">
-          {/* Home */}
-          <Link
-            href="/"
-            className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
-              pathname === '/' ? 'text-cinema-400' : 'text-muted-foreground'
-            )}
-          >
-            <Home className="h-5 w-5" />
-            Home
-          </Link>
+        <div className="flex h-16 items-center">
+          {/* Home + Films */}
+          {tabs.slice(0, 2).map(({ href, label, icon: Icon, active }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200',
+                active ? 'text-cinema-400' : 'text-muted-foreground/60'
+              )}
+            >
+              <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]')} />
+              {label}
+              {active && <span className="h-1 w-1 rounded-full bg-cinema-400 mt-0.5" />}
+            </Link>
+          ))}
 
-          {/* Films */}
-          <Link
-            href="/films"
-            className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
-              pathname.startsWith('/films') ? 'text-cinema-400' : 'text-muted-foreground'
-            )}
-          >
-            <Film className="h-5 w-5" />
-            Films
-          </Link>
-
-          {/* Center Log button */}
+          {/* Center Log button — floating action */}
           <div className="flex flex-1 flex-col items-center justify-center">
             <button
               onClick={() => {
@@ -60,36 +59,28 @@ export function BottomTabBar() {
                   window.location.href = '/login'
                 }
               }}
-              className="h-12 w-12 rounded-full bg-cinema-500 text-black shadow-lg -mt-3 flex items-center justify-center"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-cinema-500 text-black -mt-5 ring-4 ring-[hsl(225_15%_4%)] shadow-[0_0_20px_-3px_rgba(34,197,94,0.4)] hover:bg-cinema-400 hover:shadow-[0_0_30px_-3px_rgba(34,197,94,0.5)] active:scale-90 active:bg-cinema-600 transition-all duration-200"
               aria-label="Log film"
             >
               <Plus className="h-6 w-6" />
             </button>
           </div>
 
-          {/* Friends */}
-          <Link
-            href="/friends"
-            className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
-              pathname.startsWith('/friends') ? 'text-cinema-400' : 'text-muted-foreground'
-            )}
-          >
-            <Users className="h-5 w-5" />
-            Friends
-          </Link>
-
-          {/* Me */}
-          <Link
-            href={meHref}
-            className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
-              meActive ? 'text-cinema-400' : 'text-muted-foreground'
-            )}
-          >
-            <User className="h-5 w-5" />
-            Me
-          </Link>
+          {/* Friends + Me */}
+          {tabs.slice(2).map(({ href, label, icon: Icon, active }) => (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200',
+                active ? 'text-cinema-400' : 'text-muted-foreground/60'
+              )}
+            >
+              <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]')} />
+              {label}
+              {active && <span className="h-1 w-1 rounded-full bg-cinema-400 mt-0.5" />}
+            </Link>
+          ))}
         </div>
       </nav>
 

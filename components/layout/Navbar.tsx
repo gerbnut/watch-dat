@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import { motion } from 'framer-motion'
 
 import { Film, Home, LogOut, Settings, User, Users, Shuffle } from 'lucide-react'
 import { WatchDatLogoMark } from './WatchDatLogo'
@@ -59,12 +60,12 @@ export function Navbar() {
   }, [userMenuOpen])
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-40 backdrop-blur-xl bg-[hsl(225_14%_6%_/_0.8)] border-b border-white/[0.04] shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
 
         {/* Logo + Wordmark */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
-          <WatchDatLogoMark className="text-cinema-400 shrink-0 transition-opacity group-hover:opacity-80" />
+          <WatchDatLogoMark className="text-cinema-400 shrink-0 transition-all group-hover:drop-shadow-[0_0_6px_rgba(34,197,94,0.3)]" />
           <span className="hidden sm:block font-black text-[15px] leading-none tracking-tight">
             Watch <span className="text-cinema-400">DAT</span>
           </span>
@@ -77,21 +78,27 @@ export function Navbar() {
 
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-0.5">
-          {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                pathname === href
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span className="hidden lg:block">{label}</span>
-            </Link>
-          ))}
+          {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+                  isActive
+                    ? 'bg-white/[0.06] text-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="hidden lg:block">{label}</span>
+                {isActive && (
+                  <span className="absolute -bottom-[1px] left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-cinema-400" />
+                )}
+              </Link>
+            )
+          })}
         </div>
 
         {/* Right — notification bell + avatar */}
@@ -108,7 +115,7 @@ export function Navbar() {
                   className="flex h-11 w-11 items-center justify-center rounded-full"
                   aria-label="Account menu"
                 >
-                  <Avatar className="h-8 w-8 ring-2 ring-transparent hover:ring-cinema-500 transition-all">
+                  <Avatar className="h-8 w-8 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
                     <AvatarImage src={navAvatar ?? session.user.image ?? undefined} />
                     <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
                       {getInitials(session.user.displayName ?? '')}
@@ -117,29 +124,32 @@ export function Navbar() {
                 </button>
 
                 {userMenuOpen && (
-                  <div
+                  <motion.div
                     ref={menuRef}
-                    className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border bg-popover shadow-2xl py-1 overflow-hidden"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] py-1 overflow-hidden"
                   >
-                    <div className="px-3 py-2.5 border-b">
+                    <div className="px-3 py-2.5 border-b border-white/[0.06]">
                       <p className="text-sm font-semibold leading-tight">{session.user.displayName}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">@{session.user.username}</p>
                     </div>
                     <Link
                       href={`/user/${session.user.username}`}
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-accent transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
                     >
                       <User className="h-4 w-4 text-muted-foreground" /> Profile
                     </Link>
                     <Link
                       href="/settings"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-accent transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
                     >
                       <Settings className="h-4 w-4 text-muted-foreground" /> Settings
                     </Link>
-                    <div className="border-t mt-1 pt-1">
+                    <div className="border-t border-white/[0.06] mt-1 pt-1">
                       <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
                         className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
@@ -147,7 +157,7 @@ export function Navbar() {
                         <LogOut className="h-4 w-4" /> Sign out
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </div>
             </>
