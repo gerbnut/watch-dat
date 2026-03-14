@@ -269,13 +269,13 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', initialText 
     <div ref={wrapperRef} className="relative">
       {/* @mention dropdown — above the textarea, capped to 35dvh so it stays inside the viewport above the keyboard */}
       {mentionResults.length > 0 && (
-        <div className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-[35dvh] overflow-y-auto rounded-lg border bg-popover shadow-lg">
+        <div className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-[35dvh] overflow-y-auto rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] p-1">
           {mentionResults.map((u: any) => (
             <button
               key={u.id}
               type="button"
               onClick={() => selectMention(u.username)}
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent text-left"
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-white/[0.05] rounded-lg text-left transition-colors"
             >
               <Avatar className="h-5 w-5 shrink-0">
                 <AvatarImage src={u.avatar ?? undefined} alt={u.displayName} />
@@ -322,8 +322,8 @@ function CommentInput({ onSubmit, placeholder = 'Add a comment…', initialText 
           rows={compact ? 1 : 2}
           autoFocus={autoFocus}
           className={cn(
-            'min-h-[44px] w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm',
-            'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+            'min-h-[44px] w-full resize-none rounded-xl bg-white/[0.03] border border-white/[0.04] px-3 py-2 text-sm',
+            'placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:border-cinema-500/30 focus-visible:ring-2 focus-visible:ring-cinema-500/10',
           )}
         />
         <div className="flex flex-col items-end gap-1">
@@ -438,10 +438,10 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
   }
 
   return (
-    <div className={cn('flex gap-2 animate-fade-in', depth > 0 && 'border-l border-border/50 ml-9 pl-3')}>
+    <div className={cn('flex gap-2 animate-fade-in', depth > 0 && 'border-l-2 border-white/[0.04] ml-8 sm:ml-10 pl-4')}>
       {!comment.deleted && (
         <Link href={`/user/${comment.user.username}`} className="shrink-0 mt-0.5">
-          <Avatar className="h-6 w-6">
+          <Avatar className="h-6 w-6 ring-1 ring-white/[0.06]">
             <AvatarImage src={comment.user.avatar ?? undefined} alt={comment.user.displayName} />
             <AvatarFallback className="text-[10px] bg-cinema-900 text-cinema-300">
               {getInitials(comment.user.displayName)}
@@ -458,7 +458,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
               <Link href={`/user/${comment.user.username}`} className="text-xs font-semibold hover:underline">
                 {comment.user.displayName}
               </Link>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground/50">
                 {formatRelativeTime(new Date(comment.createdAt))}
               </span>
             </div>
@@ -697,7 +697,7 @@ export function CommentsSection({
       )}
 
       {open && (
-        <div className="mt-3 space-y-3 border-t border-border pt-3">
+        <div className="mt-3 space-y-3 border-t border-white/[0.03] pt-3">
           {loading ? (
             <div className="flex justify-center py-3">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

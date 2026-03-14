@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { StarRating } from '@/components/movies/StarRating'
 import { MovieSearch } from '@/components/movies/MovieSearch'
-import { Heart, Flag, RefreshCw, Loader2 } from 'lucide-react'
+import { Heart, Flag, RefreshCw, Loader2, X } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import { FieldError } from '@/components/ui/FieldError'
 import { toast } from '@/hooks/use-toast'
@@ -162,8 +162,8 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
           )}
 
           {movie && (
-            <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-              <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded">
+            <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.04] p-3">
+              <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg ring-1 ring-white/[0.06]">
                 <MoviePoster
                   poster={movie.poster_path}
                   title={movie.title}
@@ -171,14 +171,19 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
                   sizes="44px"
                 />
               </div>
-              <div>
-                <p className="font-semibold">{movie.title}</p>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{movie.title}</p>
                 {movie.release_date && (
                   <p className="text-xs text-muted-foreground">
                     {new Date(movie.release_date).getFullYear()}
                   </p>
                 )}
               </div>
+              {!preselectedMovie && !editMode && (
+                <button onClick={() => setMovie(null)} className="text-muted-foreground/40 hover:text-foreground transition-colors shrink-0">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           )}
 
@@ -216,10 +221,10 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
               placeholder="What did you think? Markdown supported..."
               minRows={3}
               maxRows={10}
-              className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-full resize-none rounded-xl bg-white/[0.03] border border-white/[0.04] px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:border-cinema-500/30 focus-visible:ring-2 focus-visible:ring-cinema-500/10"
             />
             {text.length > 8000 && (
-              <p className={cn('text-xs', text.length > 10000 ? 'text-destructive' : 'text-muted-foreground')}>
+              <p className={cn('text-xs text-right', text.length > 10000 ? 'text-destructive' : 'text-muted-foreground/40')}>
                 {text.length.toLocaleString()}/10,000
               </p>
             )}
@@ -228,46 +233,52 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setLiked(!liked)}
               className={cn(
-                'flex items-center gap-1.5 text-sm transition-colors',
-                liked ? 'text-red-500' : 'text-muted-foreground hover:text-red-400'
+                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all duration-200 active:scale-95',
+                liked
+                  ? 'border-red-500/30 bg-red-500/10 text-red-400'
+                  : 'border-white/[0.06] text-muted-foreground/60 bg-transparent hover:border-red-500/20 hover:text-red-400/70'
               )}
             >
-              <Heart className={cn('h-4 w-4', liked && 'fill-current')} />
-              Liked it
+              <Heart className={cn('h-3.5 w-3.5', liked && 'fill-current')} />
+              Liked
             </button>
             <button
               onClick={() => setRewatch(!rewatch)}
               className={cn(
-                'flex items-center gap-1.5 text-sm transition-colors',
-                rewatch ? 'text-blue-400' : 'text-muted-foreground hover:text-blue-400'
+                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all duration-200 active:scale-95',
+                rewatch
+                  ? 'border-cinema-500/30 bg-cinema-500/10 text-cinema-400'
+                  : 'border-white/[0.06] text-muted-foreground/60 bg-transparent hover:border-cinema-500/20 hover:text-cinema-400/70'
               )}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-3.5 w-3.5" />
               Rewatch
             </button>
             {text && (
               <button
                 onClick={() => setHasSpoiler(!hasSpoiler)}
                 className={cn(
-                  'flex items-center gap-1.5 text-sm transition-colors',
-                  hasSpoiler ? 'text-amber-400' : 'text-muted-foreground hover:text-amber-400'
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all duration-200 active:scale-95',
+                  hasSpoiler
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                    : 'border-white/[0.06] text-muted-foreground/60 bg-transparent hover:border-amber-500/20 hover:text-amber-400/70'
                 )}
               >
-                <Flag className="h-4 w-4" />
+                <Flag className="h-3.5 w-3.5" />
                 Spoiler
               </button>
             )}
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" onClick={handleClose}>Cancel</Button>
-            <Button variant="cinema" onClick={handleSubmit} disabled={(!movie && !editMode) || submitting || text.length > 10000}>
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+          <div className="pt-2 space-y-2">
+            <Button variant="cinema" className="w-full" onClick={handleSubmit} disabled={(!movie && !editMode) || submitting || text.length > 10000}>
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : editMode ? 'Save Changes' : 'Log Film'}
             </Button>
+            <Button variant="ghost" className="w-full" onClick={handleClose}>Cancel</Button>
           </div>
         </div>
       </DialogContent>

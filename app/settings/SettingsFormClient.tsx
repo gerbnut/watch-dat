@@ -171,13 +171,13 @@ export function SettingsFormClient({ user }: { user: User }) {
 
       <div className="space-y-6">
         {/* Banner section */}
-        <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="rounded-2xl bg-card/80 border border-white/[0.04] overflow-hidden">
           <div className="relative h-28 overflow-hidden">
             {bannerUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={bannerUrl} alt="Profile banner" className="h-full w-full object-cover" />
             ) : (
-              <div className="h-full bg-gradient-to-br from-cinema-900 via-film-900 to-cinema-950" />
+              <div className="h-full bg-gradient-to-br from-cinema-950/50 via-card to-background" />
             )}
             {uploading === 'bannerUrl' && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
@@ -195,7 +195,7 @@ export function SettingsFormClient({ user }: { user: User }) {
                 type="button"
                 onClick={() => openFilePicker('bannerUrl')}
                 disabled={!!uploading}
-                className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-accent transition-colors disabled:opacity-60"
+                className="flex items-center gap-1.5 rounded-md border border-white/[0.06] px-3 py-1.5 text-sm hover:bg-white/[0.05] transition-colors disabled:opacity-60"
               >
                 <Camera className="h-3.5 w-3.5" />
                 Change banner
@@ -214,12 +214,12 @@ export function SettingsFormClient({ user }: { user: User }) {
         </div>
 
         {/* Profile section */}
-        <div className="rounded-xl border bg-card p-6 space-y-4">
-          <h2 className="font-semibold">Profile</h2>
+        <div className="rounded-2xl bg-card/80 border border-white/[0.04] p-5 sm:p-6 space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Profile</h2>
 
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Avatar className="h-16 w-16">
+              <Avatar className="h-16 w-16 ring-2 ring-white/[0.06] hover:ring-cinema-500/30 transition-all cursor-pointer" onClick={() => openFilePicker('avatar')}>
                 <AvatarImage src={avatar || undefined} />
                 <AvatarFallback className="text-xl bg-cinema-900 text-cinema-300">
                   {getInitials(displayName)}
@@ -277,9 +277,9 @@ export function SettingsFormClient({ user }: { user: User }) {
               placeholder="Tell people a bit about yourself..."
               minRows={2}
               maxRows={6}
-              className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="w-full resize-none rounded-xl bg-white/[0.03] border border-white/[0.04] px-3 py-2 text-sm placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:border-cinema-500/30 focus-visible:ring-2 focus-visible:ring-cinema-500/10"
             />
-            <p className={cn('text-xs', bio.length > 300 ? 'text-destructive' : 'text-muted-foreground')}>
+            <p className={cn('text-xs text-right', bio.length > 300 ? 'text-destructive' : 'text-muted-foreground/40')}>
               {bio.length}/300
             </p>
           </div>

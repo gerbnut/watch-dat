@@ -139,11 +139,11 @@ export function MovieSearch({
                 {results.map((movie) => (
                   <li key={movie.id}>
                     <button
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-accent active:bg-accent transition-colors"
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-white/[0.05] rounded-lg transition-colors"
                       onMouseDown={() => onFilmClick(movie)}
                       onClick={() => onFilmClick(movie)}
                     >
-                      <div className="relative h-12 w-8 shrink-0 overflow-hidden rounded bg-muted">
+                      <div className="relative h-12 w-8 shrink-0 overflow-hidden rounded-md ring-1 ring-white/[0.06] bg-muted">
                         <MoviePoster
                           poster={movie.poster_path}
                           title={movie.title}
@@ -168,14 +168,14 @@ export function MovieSearch({
 
           {showPeople && people.length > 0 && (
             <>
-              <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-t border-border/50">
+              <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-t border-white/[0.04]">
                 People
               </p>
               <ul>
                 {people.map((user) => (
                   <li key={user.id}>
                     <button
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-accent active:bg-accent transition-colors"
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-white/[0.05] rounded-lg transition-colors"
                       onMouseDown={() => onUserClick(user)}
                       onClick={() => onUserClick(user)}
                     >
@@ -195,7 +195,7 @@ export function MovieSearch({
           )}
         </div>
       ) : query.trim().length > 0 ? (
-        <p className="p-8 text-center text-sm text-muted-foreground">No results for "{query}"</p>
+        <p className="py-6 text-center text-sm text-muted-foreground/60">No results for "{query}"</p>
       ) : null}
     </>
   )
@@ -270,7 +270,7 @@ export function MovieSearch({
             }}
             onBlur={() => setTimeout(() => setOpen(false), 150)}
             placeholder={placeholder}
-            className="pl-9 pr-9 bg-muted/50 border-muted focus:bg-background"
+            className="pl-9 pr-9 bg-white/[0.03] border-white/[0.04] focus:bg-white/[0.05]"
           />
           {query && (
             <button
@@ -285,7 +285,7 @@ export function MovieSearch({
         {/* Inline results — used on desktop always, and on mobile when inModal=true */}
         {open && query.trim().length > 0 && (
           <div className={cn(
-            'absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border bg-popover shadow-xl overflow-hidden',
+            'absolute top-full left-0 right-0 z-50 mt-1 rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden p-1',
             'overflow-y-auto overscroll-contain max-h-[50vh]',
             inModal ? 'block' : 'hidden sm:block',
           )}>

@@ -39,10 +39,10 @@ export default async function SettingsPage() {
   }))
 
   return (
-    <div className="max-w-lg space-y-8">
+    <div className="max-w-xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage your profile and preferences</p>
+        <h1 className="text-lg font-semibold tracking-tight">Settings</h1>
+        <p className="text-sm text-muted-foreground/70 mt-1">Manage your profile and preferences</p>
       </div>
       <SettingsFormClient
         user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
@@ -52,7 +52,7 @@ export default async function SettingsPage() {
       <DeleteAccountClient />
 
       {/* Legal links */}
-      <div className="border-t pt-4 flex gap-4 text-xs text-muted-foreground">
+      <div className="border-t border-white/[0.04] pt-4 flex gap-4 text-xs text-muted-foreground">
         <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
         <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
       </div>

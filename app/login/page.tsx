@@ -42,13 +42,14 @@ function LoginContent() {
   }
 
   return (
-    <div className="mx-auto max-w-sm pt-12 pb-20">
-      <div className="mb-8 text-center space-y-2">
+    <div className="mx-auto max-w-sm mt-12 sm:mt-20 pb-20">
+      <div className="rounded-2xl bg-card/80 border border-white/[0.04] p-6 sm:p-8 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)]">
+      <div className="mb-6 text-center space-y-2">
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cinema-950 border border-cinema-800/60 mb-3">
           <WatchDatLogoMark className="text-cinema-400" size={30} />
         </div>
-        <h1 className="text-2xl font-bold">Welcome back</h1>
-        <p className="text-muted-foreground text-sm">Sign in to your Watch Dat account</p>
+        <h1 className="text-xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-sm text-muted-foreground/70">Sign in to your Watch Dat account</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,6 +99,7 @@ function LoginContent() {
           Create one free
         </Link>
       </p>
+      </div>
     </div>
   )
 }

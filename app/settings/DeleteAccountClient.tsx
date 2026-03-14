@@ -23,7 +23,7 @@ export function DeleteAccountClient() {
   }
 
   return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">
+    <div className="rounded-2xl border border-destructive/10 bg-destructive/5 p-5 sm:p-6 space-y-3">
       <div>
         <h2 className="font-semibold text-destructive">Danger zone</h2>
         <p className="text-sm text-muted-foreground mt-0.5">

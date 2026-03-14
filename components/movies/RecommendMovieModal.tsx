@@ -103,7 +103,7 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       {/* max-h uses dvh so it respects the keyboard-reduced visual viewport on iOS */}
       <div
-        className="relative w-full max-w-md bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-md backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] rounded-t-2xl sm:rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
         style={{ maxHeight: 'min(calc(100svh - env(keyboard-inset-height, 0px) - 4rem), 600px)' }}
       >
         {/* Scrollable body */}
@@ -126,7 +126,7 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
                 />
               </div>
 
-              <div className="overflow-y-auto flex-1 rounded-lg border bg-card divide-y divide-border/50">
+              <div className="overflow-y-auto flex-1 rounded-xl border border-white/[0.04] bg-white/[0.02] divide-y divide-white/[0.03]">
                 {loadingFriends ? (
                   <div className="flex justify-center py-6">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -140,7 +140,7 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
                     <button
                       key={friend.id}
                       onClick={() => setSelected(friend)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.05] transition-colors text-left"
                     >
                       <Avatar className="h-8 w-8 shrink-0">
                         <AvatarImage src={friend.avatar ?? undefined} />
@@ -160,7 +160,7 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
           ) : (
             <div className="space-y-4">
               {/* Selected friend */}
-              <div className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
+              <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.04] px-3 py-2.5">
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={selected.avatar ?? undefined} />
                   <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
@@ -188,7 +188,7 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
                   placeholder="You'd love this one…"
                   maxLength={300}
                   rows={3}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full rounded-xl bg-white/[0.03] border border-white/[0.04] px-3 py-2 text-sm resize-none placeholder:text-muted-foreground/40 focus:outline-none focus:border-cinema-500/30 focus:ring-2 focus:ring-cinema-500/10"
                 />
                 <p className="text-xs text-muted-foreground text-right">{message.length}/300</p>
               </div>
@@ -198,7 +198,7 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
 
         {/* Sticky send button — only shown after selecting a friend */}
         {selected && (
-          <div className="shrink-0 border-t border-border px-5 py-4 bg-background">
+          <div className="shrink-0 border-t border-white/[0.04] px-5 py-4">
             <Button
               variant="cinema"
               className="w-full gap-2"
