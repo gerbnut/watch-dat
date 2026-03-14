@@ -392,14 +392,16 @@ interface CommentItemProps {
   onReply: (parentId: string, text: string, gifUrl?: string) => Promise<void>
   onDelete: (commentId: string) => Promise<void>
   onLikeChange: (commentId: string, liked: boolean, newCount: number) => void
+  replyingToId: string | null
+  setReplyingToId: (id: string | null) => void
 }
 
-function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onDelete, onLikeChange }: CommentItemProps) {
-  const [replying, setReplying] = useState(false)
+function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onDelete, onLikeChange, replyingToId, setReplyingToId }: CommentItemProps) {
+  const replying = replyingToId === comment.id
   const [showReplies, setShowReplies] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [isLiked, setIsLiked] = useState(comment.isLiked)
-  const [likeCount, setLikeCount] = useState(comment.likeCount)
+  const [isLiked, setIsLiked] = useState(comment.isLiked ?? false)
+  const [likeCount, setLikeCount] = useState(comment.likeCount ?? 0)
   const [liking, setLiking] = useState(false)
   const isOwn = currentUserId === comment.user.id
   const hasReplies = comment.replies.length > 0
@@ -480,7 +482,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
             <div className="flex items-center gap-3 mt-1">
               {currentUserId && depth < 4 && (
                 <button
-                  onClick={() => setReplying(!replying)}
+                  onClick={() => setReplyingToId(replying ? null : comment.id)}
                   className="text-xs text-muted-foreground/60 hover:text-cinema-400 font-medium px-2 py-0.5 rounded-full hover:bg-cinema-500/10 transition-colors"
                 >
                   Reply
@@ -522,7 +524,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
               compact
               onSubmit={async (text, gifUrl) => {
                 await onReply(comment.id, text, gifUrl)
-                setReplying(false)
+                setReplyingToId(null)
                 setShowReplies(true)
               }}
             />
@@ -554,6 +556,8 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
                     onReply={onReply}
                     onDelete={onDelete}
                     onLikeChange={onLikeChange}
+                    replyingToId={replyingToId}
+                    setReplyingToId={setReplyingToId}
                   />
                 ))}
               </div>
@@ -592,6 +596,7 @@ export function CommentsSection({
   const [loaded, setLoaded] = useState(false)
   const [count, setCount] = useState(initialCount)
   const [showAll, setShowAll] = useState(false)
+  const [replyingToId, setReplyingToId] = useState<string | null>(null)
 
   useEffect(() => {
     if (open && !loaded) {
@@ -728,6 +733,8 @@ export function CommentsSection({
                     onReply={submitReply}
                     onDelete={deleteComment}
                     onLikeChange={handleLikeChange}
+                    replyingToId={replyingToId}
+                    setReplyingToId={setReplyingToId}
                   />
                 ))}
               </div>
@@ -740,14 +747,14 @@ export function CommentsSection({
             </>
           )}
 
-          {/* Input or sign-in prompt */}
-          {currentUserId ? (
+          {/* Input or sign-in prompt — hidden when a reply input is active */}
+          {currentUserId && !replyingToId ? (
             <CommentInput onSubmit={submitComment} />
-          ) : (
+          ) : !currentUserId ? (
             <p className="text-xs text-muted-foreground text-center py-2">
               <Link href="/login" className="text-cinema-400 hover:underline">Sign in</Link> to join the conversation
             </p>
-          )}
+          ) : null}
         </div>
       )}
     </div>

@@ -64,7 +64,7 @@ export function ReportModal({ open, onClose, targetType, targetId, targetLabel }
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative w-full max-w-sm bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4">
+      <div className="relative w-full max-w-sm bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 overflow-y-auto max-h-[70vh] pb-20 sm:pb-5">
         <div className="flex items-center gap-2">
           <Flag className="h-4 w-4 text-destructive" />
           <h2 className="font-semibold text-base">Report {targetType.toLowerCase()}</h2>
