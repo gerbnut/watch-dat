@@ -77,9 +77,9 @@ function UserRow({
   onToggle: (username: string, nowFollowing: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg p-3 hover:bg-accent/50 transition-colors">
+    <div className="flex items-center justify-between gap-3 rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
       <Link href={`/user/${user.username}`} className="flex items-center gap-3 min-w-0">
-        <Avatar className="h-10 w-10 shrink-0">
+        <Avatar className="h-10 w-10 shrink-0 ring-1 ring-white/[0.06]">
           <AvatarImage src={user.avatar ?? undefined} />
           <AvatarFallback className="text-sm bg-cinema-900 text-cinema-300">
             {getInitials(user.displayName)}
@@ -227,11 +227,11 @@ export default function FriendsPage() {
         </div>
 
         {showSearchResults && (
-          <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="rounded-2xl border border-white/[0.04] bg-card/80 overflow-hidden">
             {searchResults.length === 0 && !searching ? (
               <p className="text-sm text-muted-foreground text-center py-6">No users found.</p>
             ) : (
-              <div className="divide-y divide-border/50">
+              <div className="divide-y divide-white/[0.04]">
                 {searchResults.map((user) => (
                   <UserRow
                     key={user.id}
@@ -273,15 +273,15 @@ export default function FriendsPage() {
             ))}
           </div>
         ) : following.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-8 text-center">
-            <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground/50" />
+          <div className="rounded-2xl border border-white/[0.06] border-dashed p-8 text-center">
+            <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground/20" />
             <p className="text-sm text-muted-foreground">You&apos;re not following anyone yet.</p>
             <p className="text-xs text-muted-foreground mt-1">
               Search above to find people to follow.
             </p>
           </div>
         ) : (
-          <div className="rounded-lg border bg-card overflow-hidden divide-y divide-border/50">
+          <div className="rounded-2xl border border-white/[0.04] bg-card/80 overflow-hidden divide-y divide-white/[0.04]">
             {following.map((user) => (
               <UserRow
                 key={user.id}

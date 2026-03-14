@@ -132,6 +132,10 @@ const config: Config = {
           from: { opacity: '0', transform: 'scale(0.95)' },
           to:   { opacity: '1', transform: 'scale(1)' },
         },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%':      { transform: 'translateY(-6px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -144,6 +148,7 @@ const config: Config = {
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
         'slide-up-fade': 'slide-up-fade 0.15s ease-out',
         'scale-in': 'scale-in 0.15s ease-out',
+        float: 'float 3s ease-in-out infinite',
       },
     },
   },

@@ -34,8 +34,9 @@ export default async function HomePage() {
     return (
       <div className="space-y-16">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cinema-950 via-cinema-900/30 to-film-950 py-12 sm:py-20 px-5 sm:px-8 text-center">
-          <div className="absolute inset-0 opacity-20">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cinema-950 via-cinema-900/40 to-film-950 py-16 sm:py-24 px-5 sm:px-8 text-center">
+          {/* Dimmed backdrop mosaic */}
+          <div className="absolute inset-0 opacity-10 blur-[2px]">
             <div className="flex gap-1 h-full">
               {trending.slice(0, 8).map((m: any) => (
                 m.backdrop_path && (
@@ -52,13 +53,15 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+          {/* Radial glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(34,197,94,0.08)_0%,_transparent_70%)]" />
           <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-cinema-500/20 border border-cinema-500/30 px-4 py-1.5 text-sm text-cinema-300">
+            <div className="inline-flex items-center gap-2 rounded-full bg-cinema-500/15 border border-cinema-500/20 px-4 py-1.5 text-sm text-cinema-300 animate-float">
               <Film className="h-4 w-4" /> Your digital film diary
             </div>
-            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight">
+            <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
               Track every film<br />
-              <span className="text-cinema-400">you've ever watched.</span>
+              <span className="text-cinema-400">you&apos;ve ever watched.</span>
             </h1>
             <p className="text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto">
               Rate, review, and discover films with a community of cinephiles.
@@ -66,12 +69,12 @@ export default async function HomePage() {
             </p>
             <div className="flex items-center justify-center gap-3">
               <Link href="/register">
-                <Button variant="cinema" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base">
+                <Button variant="cinema" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base shadow-glow-green-sm">
                   Start your diary
                 </Button>
               </Link>
               <Link href="/films">
-                <Button variant="outline" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base">
+                <Button variant="glass" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base">
                   Explore films
                 </Button>
               </Link>
@@ -86,7 +89,7 @@ export default async function HomePage() {
             { icon: Star, label: 'Reviews written', value: '2.5k+' },
             { icon: Users, label: 'Cinephiles', value: '500+' },
           ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="rounded-lg border bg-card p-6">
+            <div key={label} className="rounded-2xl border border-white/[0.04] bg-card/50 p-6">
               <Icon className="h-6 w-6 mx-auto mb-2 text-cinema-400" />
               <p className="text-2xl font-bold">{value}</p>
               <p className="text-sm text-muted-foreground">{label}</p>
@@ -100,20 +103,24 @@ export default async function HomePage() {
             <TrendingUp className="h-5 w-5 text-cinema-400" />
             <h2 className="text-lg font-semibold">Trending this week</h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
-            {trending.map((movie: any, i: number) => (
-              <MovieCard
-                key={movie.id}
-                tmdbId={movie.id}
-                title={movie.title}
-                poster={movie.poster_path}
-                releaseDate={movie.release_date}
-                rating={movie.vote_average}
-                size="md"
-                priority={i < 3}
-                className="shrink-0 snap-start"
-              />
-            ))}
+          <div className="relative">
+            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+              {trending.map((movie: any, i: number) => (
+                <MovieCard
+                  key={movie.id}
+                  tmdbId={movie.id}
+                  title={movie.title}
+                  poster={movie.poster_path}
+                  releaseDate={movie.release_date}
+                  rating={movie.vote_average}
+                  size="md"
+                  priority={i < 3}
+                  className="shrink-0 snap-start"
+                />
+              ))}
+            </div>
+            {/* Right fade gradient */}
+            <div className="absolute top-0 right-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           </div>
         </section>
       </div>
@@ -164,7 +171,7 @@ export default async function HomePage() {
       <aside className="space-y-6">
         {/* Because you watched X */}
         {recommendations.length > 0 && (
-          <div className="rounded-xl border bg-card p-4">
+          <div className="rounded-2xl border border-white/[0.04] bg-card/50 p-4">
             <div className="flex items-start gap-2 mb-3">
               <Sparkles className="h-4 w-4 text-cinema-400 mt-0.5 shrink-0" />
               <div className="min-w-0">
@@ -190,16 +197,16 @@ export default async function HomePage() {
         )}
 
         {/* Trending */}
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-2xl border border-white/[0.04] bg-card/50 p-4">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="h-4 w-4 text-cinema-400" />
             <h2 className="text-sm font-semibold">Trending</h2>
           </div>
           <div className="space-y-2">
             {trending.slice(0, 5).map((movie: any, i: number) => (
-              <Link key={movie.id} href={`/film/${movie.id}`} className="flex items-center gap-3 hover:bg-accent/50 rounded-md p-1.5 transition-colors">
-                <span className="text-xs text-muted-foreground w-4">{i + 1}</span>
-                <div className="relative h-9 w-6 shrink-0 overflow-hidden rounded">
+              <Link key={movie.id} href={`/film/${movie.id}`} className="flex items-center gap-3 hover:bg-white/[0.04] rounded-lg p-1.5 transition-colors">
+                <span className="text-xs text-muted-foreground/60 w-4 tabular-nums">{i + 1}</span>
+                <div className="relative h-9 w-6 shrink-0 overflow-hidden rounded ring-1 ring-inset ring-white/[0.06]">
                   <MoviePoster
                     poster={movie.poster_path}
                     title={movie.title}

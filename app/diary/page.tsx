@@ -68,8 +68,8 @@ export default async function DiaryPage() {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center space-y-4">
-          <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/40" />
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] p-12 text-center space-y-4">
+          <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/20" />
           <div className="space-y-1.5">
             <p className="font-medium">Your diary is empty</p>
             <p className="text-sm text-muted-foreground">Every film you log appears here, organised by month</p>
@@ -82,10 +82,10 @@ export default async function DiaryPage() {
         <div className="space-y-8">
           {Object.entries(grouped).map(([month, monthEntries]) => (
             <section key={month}>
-              <div className="sticky top-14 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b border-border/50 mb-4">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="sticky top-14 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b border-white/[0.04] mb-4">
+                <h2 className="text-sm font-semibold text-muted-foreground/70 uppercase tracking-wider">
                   {month}
-                  <span className="ml-2 text-xs font-normal">({monthEntries.length})</span>
+                  <span className="ml-2 text-xs font-normal text-muted-foreground/40">({monthEntries.length})</span>
                 </h2>
               </div>
 
@@ -94,7 +94,7 @@ export default async function DiaryPage() {
                   const genres = (entry.movie.genres as any[]) ?? []
 
                   return (
-                    <div key={entry.id} className="flex items-center gap-3 rounded-lg hover:bg-accent/30 transition-colors p-2 -mx-2 group">
+                    <div key={entry.id} className="flex items-center gap-3 rounded-xl hover:bg-white/[0.03] transition-colors p-2 -mx-2 group border-b border-white/[0.02] last:border-0">
                       {/* Date */}
                       <div className="w-16 shrink-0 text-right">
                         <p className="text-xs font-medium">{formatDate(entry.watchedDate, 'EEE')}</p>
@@ -105,7 +105,7 @@ export default async function DiaryPage() {
 
                       {/* Poster */}
                       <Link href={`/film/${entry.movie.tmdbId}`}>
-                        <div className="relative h-16 w-10 shrink-0 overflow-hidden rounded bg-muted">
+                        <div className="relative h-16 w-10 shrink-0 overflow-hidden rounded ring-1 ring-inset ring-white/[0.06] bg-muted">
                           <MoviePoster poster={entry.movie.poster} title={entry.movie.title} tmdbSize="w154" sizes="44px" />
                         </div>
                       </Link>

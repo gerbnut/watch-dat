@@ -161,33 +161,26 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex items-center border-b border-border mb-4">
+      <div className="flex items-center gap-2 mb-4">
         {(['following', 'for-you'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              'px-4 py-2 text-sm font-medium transition-colors relative touch-manipulation',
+              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors touch-manipulation',
               activeTab === tab
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-cinema-500/10 text-cinema-400 border border-cinema-500/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border border-transparent',
             )}
           >
             {tab === 'following' ? 'Following' : 'For You'}
-            {activeTab === tab && (
-              <motion.span
-                layoutId="feed-tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-cinema-400 rounded-full"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
           </button>
         ))}
       </div>
 
       {/* Feed content */}
       {currentState.loading && currentItems.length === 0 ? (
-        <div className="rounded-xl border bg-card divide-y divide-border/50">
+        <div className="rounded-2xl border border-white/[0.04] bg-card/80 divide-y divide-white/[0.04]">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex gap-3 p-4">
               <div className="skeleton h-9 w-9 rounded-full shrink-0" />
@@ -205,8 +198,8 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
           ))}
         </div>
       ) : currentItems.length === 0 && currentState.loaded ? (
-        <div className="rounded-xl border bg-card p-12 text-center space-y-4">
-          <Users className="h-10 w-10 mx-auto text-muted-foreground/40" />
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] p-12 text-center space-y-4">
+          <Users className="h-10 w-10 mx-auto text-muted-foreground/20" />
           <div>
             {activeTab === 'following' ? (
               <>
@@ -236,7 +229,7 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="rounded-xl border bg-card px-4"
+          className="rounded-2xl border border-white/[0.04] bg-card/80 px-4"
         >
           {currentItems.map((activity) => (
             <motion.div key={activity.id} variants={itemVariants}>

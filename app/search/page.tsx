@@ -79,7 +79,7 @@ function SearchContent() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search films, cast & crew, members..."
-            className="pl-10 h-11 text-base bg-muted/50"
+            className="pl-10 h-11 text-base bg-white/[0.03] border-white/[0.04]"
             autoFocus
           />
           {loading && (
@@ -93,8 +93,8 @@ function SearchContent() {
               key={id}
               onClick={() => setTab(id)}
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
-                tab === id ? 'bg-cinema-500 text-white' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors border',
+                tab === id ? 'bg-cinema-500/10 text-cinema-400 border-cinema-500/20' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border-transparent'
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -131,7 +131,7 @@ function SearchContent() {
         ) : (
           <div className="space-y-2">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-3 rounded-lg border bg-card p-4">
+              <div key={i} className="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-card/80 p-4">
                 <div className="skeleton h-10 w-10 rounded-full shrink-0" />
                 <div className="flex-1 space-y-1.5">
                   <div className="skeleton h-4 w-32 rounded" />
@@ -166,7 +166,7 @@ function SearchContent() {
               <Link
                 key={person.id}
                 href={`/person/${person.id}`}
-                className="group flex flex-col items-center gap-2 rounded-xl p-3 hover:bg-accent transition-colors"
+                className="group flex flex-col items-center gap-2 rounded-xl p-3 hover:bg-white/[0.04] transition-colors"
               >
                 <div className="relative w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0">
                   {person.profile_path ? (
@@ -199,9 +199,9 @@ function SearchContent() {
         members.length > 0 ? (
           <div className="space-y-2">
             {members.map((user: any) => (
-              <div key={user.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
+              <div key={user.id} className="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-card/80 p-4">
                 <Link href={`/user/${user.username}`} className="flex items-center gap-3 flex-1 min-w-0">
-                  <Avatar className="h-10 w-10 shrink-0">
+                  <Avatar className="h-10 w-10 shrink-0 ring-1 ring-white/[0.06]">
                     <AvatarImage src={user.avatar ?? undefined} />
                     <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                   </Avatar>

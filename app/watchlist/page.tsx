@@ -31,8 +31,8 @@ export default async function WatchlistPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center space-y-4">
-          <Bookmark className="h-10 w-10 mx-auto text-muted-foreground/40" />
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.01] p-12 text-center space-y-4">
+          <Bookmark className="h-10 w-10 mx-auto text-muted-foreground/20" />
           <div className="space-y-1.5">
             <p className="font-medium">Your watchlist is empty</p>
             <p className="text-sm text-muted-foreground">Save films you want to watch — they'll all be here</p>

@@ -134,10 +134,10 @@ export default async function FilmsPage({
             key={id}
             href={href}
             className={cn(
-              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors border',
               tab === id
-                ? 'bg-cinema-500 text-black'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
+                ? 'bg-cinema-500/10 text-cinema-400 border-cinema-500/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border-transparent'
             )}
           >
             {label}
@@ -145,7 +145,7 @@ export default async function FilmsPage({
         ))}
         <Link
           href="/pick-tonight"
-          className="rounded-full px-4 py-1.5 text-sm font-medium border border-cinema-500 text-cinema-400 hover:bg-cinema-500/10 transition-colors flex items-center gap-1.5"
+          className="rounded-full px-4 py-1.5 text-sm font-medium border border-cinema-500/30 text-cinema-400 hover:bg-cinema-500/10 transition-colors flex items-center gap-1.5"
         >
           <Shuffle className="h-3.5 w-3.5" />
           Tonight

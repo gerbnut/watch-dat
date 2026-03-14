@@ -357,10 +357,10 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
                 key={chip.label}
                 onClick={() => setSelectedMood(chip)}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-4 text-sm font-medium transition-all',
+                  'flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-sm font-medium transition-all',
                   selectedMood.label === chip.label
-                    ? 'border-cinema-500 bg-cinema-500/20 text-foreground'
-                    : 'border-border text-muted-foreground hover:border-cinema-500/50 hover:text-foreground',
+                    ? 'border-cinema-500/40 bg-cinema-500/15 text-foreground shadow-glow-green-xs'
+                    : 'border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-cinema-500/30 hover:bg-white/[0.04] hover:text-foreground',
                 )}
               >
                 <span className="text-2xl">{chip.emoji}</span>
@@ -370,7 +370,8 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
           </div>
 
           <Button
-            className="w-full bg-cinema-500 text-black font-bold hover:bg-cinema-400"
+            variant="cinema"
+            className="w-full font-bold shadow-glow-green-sm"
             size="lg"
             onClick={handleStart}
           >
@@ -410,11 +411,12 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
           )}
 
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={handleChangeMood}>
+            <Button variant="glass" className="flex-1" onClick={handleChangeMood}>
               Change mood
             </Button>
             <Button
-              className="flex-1 bg-cinema-500 text-black font-bold hover:bg-cinema-400"
+              variant="cinema"
+              className="flex-1 font-bold shadow-glow-green-sm"
               onClick={handleStart}
             >
               Start over
@@ -487,7 +489,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
         <button
           onClick={() => handleSwipe('left')}
           disabled={loading || visibleCards.length === 0}
-          className="h-14 w-14 rounded-full border-2 border-destructive text-destructive flex items-center justify-center text-2xl hover:bg-destructive/10 transition-colors disabled:opacity-40"
+          className="h-14 w-14 rounded-full border-2 border-destructive/60 text-destructive flex items-center justify-center text-2xl hover:bg-destructive/10 hover:border-destructive transition-colors disabled:opacity-40"
           aria-label="Skip"
         >
           ✕
@@ -501,7 +503,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               onClick={handleUndo}
-              className="h-10 w-10 rounded-full border border-border text-muted-foreground flex items-center justify-center text-base hover:bg-accent transition-colors"
+              className="h-10 w-10 rounded-full border border-white/[0.06] text-muted-foreground flex items-center justify-center text-base hover:bg-white/[0.05] transition-colors"
               aria-label="Undo"
             >
               ↩
@@ -513,7 +515,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
         <button
           onClick={() => handleSwipe('right')}
           disabled={loading || visibleCards.length === 0}
-          className="h-14 w-14 rounded-full border-2 border-cinema-400 text-cinema-400 flex items-center justify-center text-2xl hover:bg-cinema-400/10 transition-colors disabled:opacity-40"
+          className="h-14 w-14 rounded-full border-2 border-cinema-400/60 text-cinema-400 flex items-center justify-center text-2xl hover:bg-cinema-400/10 hover:border-cinema-400 hover:shadow-glow-green-xs transition-all disabled:opacity-40"
           aria-label="Add to watchlist"
         >
           ♥
