@@ -8,8 +8,9 @@ import {
   getNowPlayingMovies,
   getTopRatedMovies,
   discoverMovies,
+  TMDBSearchResult,
 } from '@/lib/tmdb'
-import { getUserTopGenres } from '@/lib/user-genres'
+import { getUserTopGenres, getUserWatchedTmdbIds } from '@/lib/user-genres'
 import { MovieScrollRow } from '@/components/movies/MovieScrollRow'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import {
@@ -20,10 +21,22 @@ import {
   Sparkles,
   Heart,
   Skull,
-  Brain,
-  Compass,
   BookOpen,
   Search,
+  Clock,
+  Globe,
+  Flame,
+  Moon,
+  Calendar,
+  CalendarDays,
+  Film,
+  Palette,
+  Trophy,
+  Diamond,
+  Eye,
+  Swords,
+  Zap,
+  Crown,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -31,6 +44,32 @@ import { cn } from '@/lib/utils'
 export const metadata: Metadata = { title: 'Films' }
 
 type Tab = 'popular' | 'new' | 'top-rated' | 'for-you'
+
+function excludeWatched(movies: TMDBSearchResult[], watchedIds: Set<number>): TMDBSearchResult[] {
+  return movies.filter((m) => !watchedIds.has(m.id))
+}
+
+function dedupeMovies(movies: TMDBSearchResult[]): TMDBSearchResult[] {
+  const seen = new Set<number>()
+  return movies.filter((m) => {
+    if (seen.has(m.id)) return false
+    seen.add(m.id)
+    return true
+  })
+}
+
+async function fetchRecentReviews(userId?: string) {
+  return prisma.review.findMany({
+    where: { text: { not: null }, rating: { gte: 7 } },
+    orderBy: { createdAt: 'desc' },
+    take: 4,
+    include: {
+      user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      movie: { select: { id: true, tmdbId: true, title: true, poster: true, releaseDate: true } },
+      _count: { select: { likes: true, comments: true } },
+    },
+  })
+}
 
 export default async function FilmsPage({
   searchParams,
@@ -57,27 +96,33 @@ export default async function FilmsPage({
   let content: React.ReactNode
 
   if (tab === 'popular') {
-    const [trending, popular, feelGood, crimeMystery, mindBending, epicAdventures, trueStories] =
-      await Promise.all([
-        getTrendingMovies('week'),
-        getPopularMovies(),
-        discoverMovies({ withGenres: '35,10749', sortBy: 'vote_average.desc', minVotes: 500 }),
-        discoverMovies({ withGenres: '80,9648', sortBy: 'popularity.desc' }),
-        discoverMovies({ withGenres: '878,53', sortBy: 'popularity.desc' }),
-        discoverMovies({ withGenres: '12,14', sortBy: 'popularity.desc' }),
-        discoverMovies({ withGenres: '36,99', sortBy: 'popularity.desc', minVotes: 100 }),
-      ])
+    const [
+      trending, popular, shortSweet,
+      koreanGems, japaneseGems, frenchGems,
+      slowBurn, animatedAdults, thisYear,
+      nineties, warConflict, midnightMovies,
+      recentReviews,
+    ] = await Promise.all([
+      getTrendingMovies('week'),
+      getPopularMovies(),
+      discoverMovies({ runtimeLte: 100, voteAverageGte: 7.0, minVotes: 300, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withOriginalLanguage: 'ko', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withOriginalLanguage: 'ja', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withOriginalLanguage: 'fr', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withGenres: 53, runtimeGte: 120, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withGenres: 16, withoutGenres: 10751, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+      discoverMovies({ primaryReleaseYear: 2026, sortBy: 'popularity.desc', minVotes: 50 }),
+      discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withGenres: '10752,18', minVotes: 300, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withGenres: '27,53', voteAverageGte: 6.5, sortBy: 'popularity.desc' }),
+      fetchRecentReviews(userId),
+    ])
 
-    const recentReviews = await prisma.review.findMany({
-      where: { text: { not: null }, rating: { gte: 7 } },
-      orderBy: { createdAt: 'desc' },
-      take: 4,
-      include: {
-        user: { select: { id: true, username: true, displayName: true, avatar: true } },
-        movie: { select: { id: true, tmdbId: true, title: true, poster: true, releaseDate: true } },
-        _count: { select: { likes: true, comments: true } },
-      },
-    })
+    const foreignGems = dedupeMovies([
+      ...(koreanGems.results ?? []),
+      ...(japaneseGems.results ?? []),
+      ...(frenchGems.results ?? []),
+    ]).slice(0, 20)
 
     content = (
       <div className="space-y-8">
@@ -93,34 +138,48 @@ export default async function FilmsPage({
           movies={popular.results?.slice(0, 20) ?? []}
         />
         <MovieScrollRow
-          title="Feel Good Movies"
-          icon={Heart}
-          movies={feelGood.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/35,10749?title=Feel+Good+Movies"
+          title="Short & Sweet"
+          icon={Clock}
+          movies={shortSweet.results?.slice(0, 20) ?? []}
         />
         <MovieScrollRow
-          title="Crime & Mystery"
-          icon={Skull}
-          movies={crimeMystery.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/80,9648?title=Crime+%26+Mystery"
+          title="Foreign Language Gems"
+          icon={Globe}
+          movies={foreignGems}
         />
         <MovieScrollRow
-          title="Mind-Bending"
-          icon={Brain}
-          movies={mindBending.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/878,53?title=Mind-Bending"
+          title="Slow Burn Thrillers"
+          icon={Flame}
+          movies={slowBurn.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/53?title=Slow+Burn+Thrillers"
         />
         <MovieScrollRow
-          title="Epic Adventures"
-          icon={Compass}
-          movies={epicAdventures.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/12,14?title=Epic+Adventures"
+          title="Animated for Adults"
+          icon={Palette}
+          movies={animatedAdults.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/16?title=Animated+for+Adults"
         />
         <MovieScrollRow
-          title="True Stories"
-          icon={BookOpen}
-          movies={trueStories.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/36,99?title=True+Stories"
+          title="This Year's Hits"
+          icon={Calendar}
+          movies={thisYear.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="90s Nostalgia"
+          icon={Film}
+          movies={nineties.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="War & Conflict"
+          icon={Swords}
+          movies={warConflict.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/10752,18?title=War+%26+Conflict"
+        />
+        <MovieScrollRow
+          title="Midnight Movies"
+          icon={Moon}
+          movies={midnightMovies.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/27,53?title=Midnight+Movies"
         />
 
         {recentReviews.length > 0 && (
@@ -144,36 +203,115 @@ export default async function FilmsPage({
       </div>
     )
   } else if (tab === 'new') {
-    const nowPlaying = await getNowPlayingMovies()
+    const [
+      nowPlaying, openingThisMonth, comingSoon,
+      freshAction, newHorror, newDramas,
+    ] = await Promise.all([
+      getNowPlayingMovies(),
+      discoverMovies({ releaseDateGte: '2026-03-01', releaseDateLte: '2026-03-31', minVotes: 10 }),
+      discoverMovies({ releaseDateGte: '2026-03-16', releaseDateLte: '2026-06-15', minVotes: 0 }),
+      discoverMovies({ withGenres: '28,53', releaseDateGte: '2025-09-01', minVotes: 50 }),
+      discoverMovies({ withGenres: 27, releaseDateGte: '2025-09-01', minVotes: 50 }),
+      discoverMovies({ withGenres: 18, releaseDateGte: '2025-09-01', voteAverageGte: 7.0, minVotes: 100 }),
+    ])
+
     content = (
-      <MovieScrollRow
-        title="Now Playing"
-        icon={Clapperboard}
-        movies={nowPlaying.results?.slice(0, 20) ?? []}
-      />
+      <div className="space-y-8">
+        <MovieScrollRow
+          title="Now Playing"
+          icon={Clapperboard}
+          movies={nowPlaying.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Opening This Month"
+          icon={CalendarDays}
+          movies={openingThisMonth.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Coming Soon"
+          icon={Clock}
+          movies={comingSoon.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Fresh Action & Thriller"
+          icon={Flame}
+          movies={freshAction.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/28,53?title=Fresh+Action+%26+Thriller"
+        />
+        <MovieScrollRow
+          title="New Horror"
+          icon={Skull}
+          movies={newHorror.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/27?title=New+Horror"
+        />
+        <MovieScrollRow
+          title="New Dramas Worth Watching"
+          icon={Heart}
+          movies={newDramas.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/18?title=New+Dramas+Worth+Watching"
+        />
+      </div>
     )
   } else if (tab === 'top-rated') {
-    const [topRated, criticallyAcclaimed] = await Promise.all([
+    const [
+      topRated, modernClassics, lastDecade,
+      goldenAge, hiddenGems, bestShort, topDocs,
+    ] = await Promise.all([
       getTopRatedMovies(),
-      discoverMovies({ sortBy: 'vote_average.desc', minVotes: 1000 }),
+      discoverMovies({ releaseDateGte: '2000-01-01', releaseDateLte: '2015-12-31', voteAverageGte: 7.5, minVotes: 2000, sortBy: 'vote_average.desc' }),
+      discoverMovies({ releaseDateGte: '2016-01-01', releaseDateLte: '2025-12-31', voteAverageGte: 7.5, minVotes: 1000, sortBy: 'vote_average.desc' }),
+      discoverMovies({ releaseDateLte: '1979-12-31', voteAverageGte: 7.5, minVotes: 500, sortBy: 'vote_average.desc' }),
+      discoverMovies({ voteAverageGte: 7.5, minVotes: 200, sortBy: 'vote_average.desc', page: 3 }),
+      discoverMovies({ runtimeLte: 90, voteAverageGte: 7.5, minVotes: 300, sortBy: 'vote_average.desc' }),
+      discoverMovies({ withGenres: 99, voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
     ])
+
     content = (
       <div className="space-y-8">
         <MovieScrollRow
           title="All-Time Greats"
-          icon={Star}
+          icon={Trophy}
           movies={topRated.results?.slice(0, 20) ?? []}
         />
         <MovieScrollRow
-          title="Critically Acclaimed"
+          title="Modern Classics (2000–2015)"
+          icon={Film}
+          movies={modernClassics.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Best of the Last Decade"
           icon={Star}
-          movies={criticallyAcclaimed.results?.slice(0, 20) ?? []}
+          movies={lastDecade.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Golden Age (Pre-1980)"
+          icon={Crown}
+          movies={goldenAge.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Hidden Gems"
+          icon={Diamond}
+          movies={hiddenGems.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Best Under 90 Minutes"
+          icon={Zap}
+          movies={bestShort.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="Highest Rated Documentaries"
+          icon={BookOpen}
+          movies={topDocs.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/99?title=Highest+Rated+Documentaries"
         />
       </div>
     )
   } else {
     // For You tab (authenticated)
-    const topGenres = await getUserTopGenres(userId!, 5)
+    const [topGenres, watchedIds] = await Promise.all([
+      getUserTopGenres(userId!, 5),
+      getUserWatchedTmdbIds(userId!),
+    ])
 
     if (topGenres.length === 0) {
       content = (
@@ -192,23 +330,25 @@ export default async function FilmsPage({
         </div>
       )
     } else {
-      const genreResults = await Promise.all(
-        topGenres.map((g) => discoverMovies({ withGenres: g.id }))
-      )
+      const randomPage = Math.floor(Math.random() * 5) + 1
+      const top2Genres = topGenres.slice(0, 2).map((g) => g.id).join(',')
 
-      const [feelGood, mindBending, recentReviews] = await Promise.all([
-        discoverMovies({ withGenres: '35,10749', sortBy: 'vote_average.desc', minVotes: 500 }),
-        discoverMovies({ withGenres: '878,53', sortBy: 'popularity.desc' }),
-        prisma.review.findMany({
-          where: { text: { not: null }, rating: { gte: 7 } },
-          orderBy: { createdAt: 'desc' },
-          take: 4,
-          include: {
-            user: { select: { id: true, username: true, displayName: true, avatar: true } },
-            movie: { select: { id: true, tmdbId: true, title: true, poster: true, releaseDate: true } },
-            _count: { select: { likes: true, comments: true } },
-          },
-        }),
+      const [
+        ...genreResults
+      ] = await Promise.all([
+        ...topGenres.map((g) => discoverMovies({ withGenres: g.id, sortBy: 'vote_average.desc' })),
+      ])
+
+      const [
+        deepCuts, quickWatches, newInGenres,
+        criticsPicks, surpriseMe, recentReviews,
+      ] = await Promise.all([
+        discoverMovies({ withGenres: topGenres[0].id, sortBy: 'vote_average.desc', page: 2 }),
+        discoverMovies({ withGenres: topGenres[0].id, runtimeLte: 100, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withGenres: top2Genres, releaseDateGte: '2025-01-01' }),
+        discoverMovies({ voteAverageGte: 8.0, minVotes: 1000, sortBy: 'vote_average.desc' }),
+        discoverMovies({ voteAverageGte: 7.0, minVotes: 300, page: randomPage }),
+        fetchRecentReviews(userId),
       ])
 
       content = (
@@ -218,21 +358,34 @@ export default async function FilmsPage({
               key={genre.id}
               title={`Because you love ${genre.name}`}
               icon={Sparkles}
-              movies={genreResults[i].results?.slice(0, 20) ?? []}
+              movies={excludeWatched(genreResults[i].results?.slice(0, 20) ?? [], watchedIds)}
               seeMoreHref={`/films/genre/${genre.id}?title=Because+you+love+${encodeURIComponent(genre.name)}`}
             />
           ))}
           <MovieScrollRow
-            title="Feel Good Movies"
-            icon={Heart}
-            movies={feelGood.results?.slice(0, 20) ?? []}
-            seeMoreHref="/films/genre/35,10749?title=Feel+Good+Movies"
+            title="Deep Cuts in Your Taste"
+            icon={Eye}
+            movies={excludeWatched(deepCuts.results?.slice(0, 20) ?? [], watchedIds)}
           />
           <MovieScrollRow
-            title="Mind-Bending"
-            icon={Brain}
-            movies={mindBending.results?.slice(0, 20) ?? []}
-            seeMoreHref="/films/genre/878,53?title=Mind-Bending"
+            title="Quick Watches For You"
+            icon={Clock}
+            movies={excludeWatched(quickWatches.results?.slice(0, 20) ?? [], watchedIds)}
+          />
+          <MovieScrollRow
+            title="New in Your Genres"
+            icon={CalendarDays}
+            movies={excludeWatched(newInGenres.results?.slice(0, 20) ?? [], watchedIds)}
+          />
+          <MovieScrollRow
+            title="Critics' Picks You Haven't Seen"
+            icon={Trophy}
+            movies={excludeWatched(criticsPicks.results?.slice(0, 20) ?? [], watchedIds)}
+          />
+          <MovieScrollRow
+            title="Surprise Me"
+            icon={Shuffle}
+            movies={excludeWatched(surpriseMe.results?.slice(0, 20) ?? [], watchedIds)}
           />
 
           {recentReviews.length > 0 && (

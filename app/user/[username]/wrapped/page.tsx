@@ -1,3 +1,4 @@
+import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { notFound, redirect } from 'next/navigation'
 import { Metadata } from 'next'
@@ -17,6 +18,7 @@ export default async function WrappedPage({
   params: Promise<{ username: string }>
 }) {
   const { username } = await params
+  const session = await auth()
 
   const user = await prisma.user.findUnique({
     where: { username: username.toLowerCase() },
@@ -24,6 +26,10 @@ export default async function WrappedPage({
   })
 
   if (!user) notFound()
+
+  if (session?.user?.id !== user.id) {
+    redirect(`/user/${user.username}`)
+  }
 
   if (user._count.diaryEntries < MIN_FILMS) {
     redirect(`/user/${user.username}`)

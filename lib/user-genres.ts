@@ -5,6 +5,14 @@ const REVERSE_GENRE_MAP: Record<string, number> = Object.fromEntries(
   Object.entries(GENRE_MAP).map(([id, name]) => [name, Number(id)])
 )
 
+export async function getUserWatchedTmdbIds(userId: string): Promise<Set<number>> {
+  const entries = await prisma.diaryEntry.findMany({
+    where: { userId },
+    select: { movie: { select: { tmdbId: true } } },
+  })
+  return new Set(entries.map((e) => e.movie.tmdbId))
+}
+
 export async function getUserTopGenres(userId: string, limit = 5) {
   const entries = await prisma.diaryEntry.findMany({
     where: { userId },

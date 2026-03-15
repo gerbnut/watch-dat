@@ -241,7 +241,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       </div>
 
       {/* ── Wrapped CTA ── */}
-      {user._count.diaryEntries >= 10 && (
+      {isOwnProfile && user._count.diaryEntries >= 10 && (
         <Link
           href={`/user/${user.username}/wrapped`}
           className="block mt-2 mb-4"

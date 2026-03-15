@@ -80,19 +80,43 @@ export const GENRE_MAP: Record<number, string> = {
 
 export interface DiscoverMoviesOptions {
   withGenres?: number | string
+  withoutGenres?: number | string
   sortBy?: string
   page?: number
   minVotes?: number
+  primaryReleaseYear?: number
+  releaseDateGte?: string
+  releaseDateLte?: string
+  runtimeGte?: number
+  runtimeLte?: number
+  withOriginalLanguage?: string
+  voteAverageGte?: number
+  voteAverageLte?: number
 }
 
 export async function discoverMovies(options: DiscoverMoviesOptions = {})
   : Promise<{ results: TMDBSearchResult[]; total_pages: number }> {
-  const { withGenres, sortBy = 'popularity.desc', page = 1, minVotes = 200 } = options
+  const {
+    withGenres, withoutGenres, sortBy = 'popularity.desc', page = 1,
+    primaryReleaseYear, releaseDateGte, releaseDateLte,
+    runtimeGte, runtimeLte, withOriginalLanguage,
+    voteAverageGte, voteAverageLte,
+  } = options
+  const minVotes = options.minVotes !== undefined ? options.minVotes : 200
   const params: Record<string, string> = {
     sort_by: sortBy, page: String(page),
     include_adult: 'false', 'vote_count.gte': String(minVotes),
   }
   if (withGenres) params.with_genres = String(withGenres)
+  if (withoutGenres) params.without_genres = String(withoutGenres)
+  if (primaryReleaseYear) params.primary_release_year = String(primaryReleaseYear)
+  if (releaseDateGte) params['primary_release_date.gte'] = releaseDateGte
+  if (releaseDateLte) params['primary_release_date.lte'] = releaseDateLte
+  if (runtimeGte) params['with_runtime.gte'] = String(runtimeGte)
+  if (runtimeLte) params['with_runtime.lte'] = String(runtimeLte)
+  if (withOriginalLanguage) params.with_original_language = withOriginalLanguage
+  if (voteAverageGte) params['vote_average.gte'] = String(voteAverageGte)
+  if (voteAverageLte) params['vote_average.lte'] = String(voteAverageLte)
   return tmdbFetch('/discover/movie', params)
 }
 
