@@ -1,14 +1,12 @@
 import { auth } from '@/auth'
-import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { FeedTabs } from '@/components/feed/FeedTabs'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { MoviePoster } from '@/components/movies/MoviePoster'
-import { Button } from '@/components/ui/button'
-import { getSimilarMovies, TMDB_IMAGE } from '@/lib/tmdb'
+import { getSimilarMovies } from '@/lib/tmdb'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Film, TrendingUp, Star, Users, Sparkles } from 'lucide-react'
+import { TrendingUp, Sparkles } from 'lucide-react'
+import { LandingHero } from '@/components/landing/LandingHero'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 async function getTrendingFromTMDB() {
@@ -30,72 +28,9 @@ export default async function HomePage() {
   const trending = await getTrendingFromTMDB()
 
   if (!session?.user) {
-    // Landing page for logged-out users
     return (
       <div className="space-y-16">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cinema-950 via-cinema-900/40 to-film-950 py-16 sm:py-24 px-5 sm:px-8 text-center">
-          {/* Dimmed backdrop mosaic */}
-          <div className="absolute inset-0 opacity-10 blur-[2px]">
-            <div className="flex gap-1 h-full">
-              {trending.slice(0, 8).map((m: any) => (
-                m.backdrop_path && (
-                  <div key={m.id} className="relative flex-1">
-                    <Image
-                      src={TMDB_IMAGE.backdrop(m.backdrop_path, 'w780')!}
-                      alt={m.title}
-                      fill
-                      className="object-cover"
-                      sizes="200px"
-                    />
-                  </div>
-                )
-              ))}
-            </div>
-          </div>
-          {/* Radial glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(34,197,94,0.08)_0%,_transparent_70%)]" />
-          <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-cinema-500/15 border border-cinema-500/20 px-4 py-1.5 text-sm text-cinema-300 animate-float">
-              <Film className="h-4 w-4" /> Your digital film diary
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
-              Track every film<br />
-              <span className="text-cinema-400">you&apos;ve ever watched.</span>
-            </h1>
-            <p className="text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto">
-              Rate, review, and discover films with a community of cinephiles.
-              Build your diary, curate lists, and see what your friends are watching.
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <Link href="/register">
-                <Button variant="cinema" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base shadow-glow-green-sm">
-                  Start your diary
-                </Button>
-              </Link>
-              <Link href="/films">
-                <Button variant="glass" size="lg" className="sm:!h-12 sm:!px-8 sm:!text-base">
-                  Explore films
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats */}
-        <section className="grid grid-cols-3 gap-4 text-center">
-          {[
-            { icon: Film, label: 'Films logged', value: '10k+' },
-            { icon: Star, label: 'Reviews written', value: '2.5k+' },
-            { icon: Users, label: 'Cinephiles', value: '500+' },
-          ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="rounded-2xl border border-white/[0.04] bg-card/50 p-6">
-              <Icon className="h-6 w-6 mx-auto mb-2 text-cinema-400" />
-              <p className="text-2xl font-bold">{value}</p>
-              <p className="text-sm text-muted-foreground">{label}</p>
-            </div>
-          ))}
-        </section>
+        <LandingHero />
 
         {/* Trending */}
         <section>
@@ -119,7 +54,6 @@ export default async function HomePage() {
                 />
               ))}
             </div>
-            {/* Right fade gradient */}
             <div className="absolute top-0 right-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           </div>
         </section>

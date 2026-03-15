@@ -78,5 +78,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       },
     }),
+    Credentials({
+      id: 'otp',
+      credentials: {
+        identifier: {},
+      },
+      async authorize(credentials) {
+        const email = credentials?.identifier as string
+        if (!email) return null
+        const user = await prisma.user.findUnique({
+          where: { email: email.toLowerCase() },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            displayName: true,
+            avatar: true,
+          },
+        })
+        if (!user) return null
+        return {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          displayName: user.displayName,
+          avatar: user.avatar,
+        }
+      },
+    }),
   ],
 })

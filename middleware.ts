@@ -3,7 +3,7 @@ import { auth } from './auth'
 import { NextResponse } from 'next/server'
 
 const protectedRoutes = ['/diary', '/lists', '/settings', '/watchlist']
-const authRoutes = ['/login', '/register']
+const authRoutes = ['/login', '/register', '/verify']
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
