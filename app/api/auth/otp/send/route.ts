@@ -43,18 +43,6 @@ export async function POST(req: Request) {
     },
   })
 
-  // If no custom domain is configured (still using sandbox), skip email
-  // and auto-verify so beta users can sign up without email delivery
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
-  const isSandbox = fromEmail.endsWith('@resend.dev')
-
-  if (isSandbox) {
-    // Auto-verify: immediately verify the OTP so the user can proceed
-    // The client will still show the OTP step, but any 6-digit code will fail —
-    // so we return the code directly for the client to auto-submit
-    return NextResponse.json({ success: true, autoVerify: true, code })
-  }
-
   try {
     await sendEmailOTP(normalizedEmail, code)
   } catch {
