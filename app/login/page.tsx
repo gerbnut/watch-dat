@@ -48,10 +48,15 @@ function LoginContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.toLowerCase().trim() }),
       })
+      const data = await res.json()
       if (!res.ok) {
-        const data = await res.json()
         setError(data.error || 'Failed to send code')
         setLoading(false)
+        return
+      }
+      if (data.autoVerify && data.code) {
+        // Sandbox mode: skip OTP input, auto-verify immediately
+        await handleOtpComplete(data.code)
         return
       }
       setStep('otp')
