@@ -79,7 +79,7 @@ export const GENRE_MAP: Record<number, string> = {
 }
 
 export interface DiscoverMoviesOptions {
-  withGenres?: number
+  withGenres?: number | string
   sortBy?: string
   page?: number
   minVotes?: number
