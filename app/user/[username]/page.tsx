@@ -265,8 +265,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       )}
 
       {/* ── Tab Navigation ── */}
-      <Tabs defaultValue="activity">
+      <Tabs defaultValue="ranked">
         <TabsList className="w-full justify-start gap-1 overflow-x-auto scrollbar-hide bg-transparent rounded-none border-b border-white/[0.04] p-0 pb-px h-auto">
+          <TabsTrigger value="ranked" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Ranked
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Stats
+          </TabsTrigger>
           <TabsTrigger value="activity" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Activity
           </TabsTrigger>
@@ -279,13 +285,23 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           <TabsTrigger value="lists" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Lists
           </TabsTrigger>
-          <TabsTrigger value="ranked" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Ranked
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Stats
-          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ranked" className="mt-4">
+          <RankedFilmsTab username={user.username} />
+        </TabsContent>
+
+        <TabsContent value="stats" className="mt-4">
+          <StatsTab
+            username={user.username}
+            wrappedEligible={user._count.diaryEntries >= 10}
+            favoritePosterUrls={user.favoriteMovies
+              .map(fm => fm.movie.poster)
+              .filter((p): p is string => !!p)
+              .map(p => TMDB_IMAGE.poster(p, 'w154'))
+              .filter((url): url is string => !!url)}
+          />
+        </TabsContent>
 
         <TabsContent value="activity" className="mt-4">
           {recentActivities.length > 0 ? (
@@ -354,22 +370,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           ) : (
             <p className="text-center text-muted-foreground py-8 text-sm">No lists yet.</p>
           )}
-        </TabsContent>
-
-        <TabsContent value="ranked" className="mt-4">
-          <RankedFilmsTab username={user.username} />
-        </TabsContent>
-
-        <TabsContent value="stats" className="mt-4">
-          <StatsTab
-            username={user.username}
-            wrappedEligible={user._count.diaryEntries >= 10}
-            favoritePosterUrls={user.favoriteMovies
-              .map(fm => fm.movie.poster)
-              .filter((p): p is string => !!p)
-              .map(p => TMDB_IMAGE.poster(p, 'w154'))
-              .filter((url): url is string => !!url)}
-          />
         </TabsContent>
       </Tabs>
     </div>
