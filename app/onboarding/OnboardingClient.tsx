@@ -277,7 +277,10 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
       </AnimatePresence>
 
       {/* Actions — z-[60] so it sits above the BottomTabBar (z-50) */}
-      <div className="fixed bottom-0 inset-x-0 z-[60] border-t border-border/60 bg-background/95 backdrop-blur-sm p-4 flex items-center gap-3">
+      <div
+        className="fixed bottom-0 inset-x-0 z-[60] border-t border-border/60 bg-background/95 backdrop-blur-sm p-4 flex items-center gap-3"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+      >
         {step === 1 ? (
           <>
             <Button

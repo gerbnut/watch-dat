@@ -102,11 +102,11 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       <div
         className="relative w-full max-w-md backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] rounded-t-2xl sm:rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
-        style={{ maxHeight: 'min(calc(100svh - 4rem), 600px)' }}
+        style={{ maxHeight: 'min(calc(100svh - 4rem), 600px)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4">
           {/* Header */}

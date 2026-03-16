@@ -72,7 +72,7 @@ export function Navbar() {
         </Link>
 
         {/* Search — fills available space, max 400px on desktop */}
-        <div className="flex-1 min-w-0 max-w-[400px]">
+        <div className={cn("flex-1 min-w-0 max-w-[400px]", !session?.user && "hidden md:block")}>
           <MovieSearch className="w-full" placeholder="Search films, people..." showPeople />
         </div>
 
