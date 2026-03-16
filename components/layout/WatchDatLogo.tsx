@@ -20,14 +20,14 @@ export function WatchDatLogoMark({ className, size = 32 }: LogoMarkProps) {
       aria-hidden="true"
     >
       {/* Left film-reel wing */}
-      <circle cx="10" cy="26" r="10" fill="#22c55e" />
+      <circle cx="10" cy="26" r="10" fill="#10b981" />
       <circle cx="10" cy="26" r="3.5" fill="#0d1117" />
       <circle cx="10" cy="19.5" r="1.8" fill="#0d1117" />
       <circle cx="15.6" cy="29.3" r="1.8" fill="#0d1117" />
       <circle cx="4.4" cy="29.3" r="1.8" fill="#0d1117" />
 
       {/* Right film-reel wing */}
-      <circle cx="46" cy="26" r="10" fill="#22c55e" />
+      <circle cx="46" cy="26" r="10" fill="#10b981" />
       <circle cx="46" cy="26" r="3.5" fill="#0d1117" />
       <circle cx="46" cy="19.5" r="1.8" fill="#0d1117" />
       <circle cx="51.6" cy="29.3" r="1.8" fill="#0d1117" />
@@ -44,21 +44,21 @@ export function WatchDatLogoMark({ className, size = 32 }: LogoMarkProps) {
       <polygon points="36,10 32,12 39,3" fill="#1a1a1a" />
 
       {/* Left eye (green) */}
-      <circle cx="22.5" cy="21" r="5.5" fill="#22c55e" />
+      <circle cx="22.5" cy="21" r="5.5" fill="#10b981" />
       <circle cx="23" cy="21.5" r="3.2" fill="#0d1117" />
       <circle cx="21.5" cy="19.8" r="1" fill="white" opacity="0.7" />
 
       {/* Right eye (green) */}
-      <circle cx="33.5" cy="21" r="5.5" fill="#22c55e" />
+      <circle cx="33.5" cy="21" r="5.5" fill="#10b981" />
       <circle cx="33" cy="21.5" r="3.2" fill="#0d1117" />
       <circle cx="32" cy="19.8" r="1" fill="white" opacity="0.7" />
 
       {/* Beak */}
-      <polygon points="28,25 26,28.5 30,28.5" fill="#22c55e" />
+      <polygon points="28,25 26,28.5 30,28.5" fill="#10b981" />
 
       {/* Feet */}
-      <path d="M23 46.5 L21 48 M23 46.5 L23 48 M23 46.5 L25 48" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M33 46.5 L31 48 M33 46.5 L33 48 M33 46.5 L35 48" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M23 46.5 L21 48 M23 46.5 L23 48 M23 46.5 L25 48" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M33 46.5 L31 48 M33 46.5 L33 48 M33 46.5 L35 48" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

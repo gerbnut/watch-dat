@@ -24,7 +24,7 @@ export function GenreChart({ data, limit = 10 }: GenreChartProps) {
                 className="h-full rounded transition-all duration-700"
                 style={{
                   width: `${pct}%`,
-                  backgroundColor: `rgba(34, 197, 94, ${opacity * 0.65})`,
+                  backgroundColor: `rgba(16, 185, 129, ${opacity * 0.65})`,
                   transitionDelay: `${i * 40}ms`,
                 }}
               />

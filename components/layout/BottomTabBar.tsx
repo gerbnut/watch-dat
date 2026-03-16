@@ -43,7 +43,7 @@ export function BottomTabBar() {
                 active ? 'text-cinema-400' : 'text-muted-foreground/60'
               )}
             >
-              <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]')} />
+              <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]')} />
               {label}
               {active && <span className="h-1 w-1 rounded-full bg-cinema-400 mt-0.5" />}
             </Link>
@@ -59,7 +59,7 @@ export function BottomTabBar() {
                   window.location.href = '/login'
                 }
               }}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-cinema-500 text-black -mt-5 ring-4 ring-[hsl(225_15%_4%)] shadow-[0_0_20px_-3px_rgba(34,197,94,0.4)] hover:bg-cinema-400 hover:shadow-[0_0_30px_-3px_rgba(34,197,94,0.5)] active:scale-90 active:bg-cinema-600 transition-all duration-200"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-cinema-500 text-black -mt-5 ring-4 ring-[hsl(225_15%_4%)] shadow-[0_0_20px_-3px_rgba(16,185,129,0.4)] hover:bg-cinema-400 hover:shadow-[0_0_30px_-3px_rgba(16,185,129,0.5)] active:scale-90 active:bg-cinema-600 transition-all duration-200"
               aria-label="Log film"
             >
               <Plus className="h-6 w-6" />
@@ -76,7 +76,7 @@ export function BottomTabBar() {
                 active ? 'text-cinema-400' : 'text-muted-foreground/60'
               )}
             >
-              <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]')} />
+              <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]')} />
               {label}
               {active && <span className="h-1 w-1 rounded-full bg-cinema-400 mt-0.5" />}
             </Link>

@@ -12,14 +12,14 @@
     --popover: 225 14% 6%;
     --popover-foreground: 210 18% 92%;
     /* Cinema green primary */
-    --primary: 140 65% 45%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 140 65% 45%;
+    --primary-glow: 160 84% 39%;
     --secondary: 225 12% 13%;
     --secondary-foreground: 210 18% 92%;
     --muted: 225 12% 11%;
     /* Slightly warmer gray for secondary text */
-    --muted-foreground: 220 15% 50%;
+    --muted-foreground: 220 15% 55%;
     --accent: 225 12% 13%;
     --accent-foreground: 210 18% 92%;
     --destructive: 0 84.2% 60.2%;
@@ -27,7 +27,7 @@
     --border: 225 12% 12%;
     --border-subtle: 225 12% 9%;
     --input: 225 12% 12%;
-    --ring: 140 65% 45%;
+    --ring: 160 84% 39%;
     --glass: 225 14% 8%;
     --radius: 0.5rem;
   }
@@ -39,7 +39,7 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 140 65% 38%;
+    --primary: 160 84% 35%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
@@ -51,7 +51,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 140 65% 38%;
+    --ring: 160 84% 35%;
   }
 }
 
@@ -64,7 +64,7 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     -webkit-tap-highlight-color: transparent;
-    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 197, 94, 0.03), transparent);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.03), transparent);
   }
 
   /* Remove tap highlight and default appearance on all interactive elements */
@@ -87,11 +87,11 @@
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(34, 197, 94, 0.2);
+    background: rgba(16, 185, 129, 0.2);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(34, 197, 94, 0.35);
+    background: rgba(16, 185, 129, 0.35);
   }
 }
 
@@ -129,7 +129,7 @@
 
 /* Hero section gradient */
 .hero-gradient {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
 }
 
 /* Page transition wrapper */
@@ -149,10 +149,10 @@
   left: 0;
   height: 2px;
   width: 0%;
-  background: hsl(140 65% 45%);
+  background: hsl(160 84% 39%);
   z-index: 9999;
   pointer-events: none;
-  box-shadow: 0 0 8px hsl(140 65% 45% / 0.6);
+  box-shadow: 0 0 8px hsl(160 84% 39% / 0.6);
   opacity: 0;
 }
 
