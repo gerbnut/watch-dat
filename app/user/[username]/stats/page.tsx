@@ -22,6 +22,9 @@ export default async function StatsPage({ params }: { params: Promise<{ username
   })
   if (!user) notFound()
 
+  const session = await auth()
+  const isOwnProfile = session?.user?.id === user.id
+
   const currentYear = new Date().getFullYear()
 
   const [
@@ -115,7 +118,7 @@ export default async function StatsPage({ params }: { params: Promise<{ username
       </div>
 
       {/* Wrapped CTA */}
-      {watchCount >= 10 && (
+      {isOwnProfile && watchCount >= 10 && (
         <Link
           href={`/user/${user.username}/wrapped`}
           className="block"

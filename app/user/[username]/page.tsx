@@ -295,6 +295,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           <StatsTab
             username={user.username}
             wrappedEligible={user._count.diaryEntries >= 10}
+            isOwnProfile={isOwnProfile}
             favoritePosterUrls={user.favoriteMovies
               .map(fm => fm.movie.poster)
               .filter((p): p is string => !!p)

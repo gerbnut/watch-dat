@@ -25,10 +25,12 @@ const PERIODS = [
 export function StatsTab({
   username,
   wrappedEligible,
+  isOwnProfile,
   favoritePosterUrls,
 }: {
   username: string
   wrappedEligible: boolean
+  isOwnProfile: boolean
   favoritePosterUrls: string[]
 }) {
   const [period, setPeriod] = useState<string>('all')
@@ -56,7 +58,7 @@ export function StatsTab({
   return (
     <div className="space-y-5">
       {/* Wrapped CTA */}
-      {wrappedEligible && (
+      {isOwnProfile && wrappedEligible && (
         <Link href={`/user/${username}/wrapped`} className="block">
           <div className="rounded-xl bg-gradient-to-r from-cinema-950 via-cinema-900/50 to-cinema-950 border border-cinema-500/20 p-4 flex items-center justify-between hover:border-cinema-500/40 hover:shadow-glow-green-xs transition-all">
             <div className="flex items-center gap-3">

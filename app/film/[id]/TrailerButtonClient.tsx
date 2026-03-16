@@ -18,7 +18,7 @@ export function TrailerButtonClient({ trailerKey }: Props) {
     <>
       <Button variant="ghost" size="sm" onClick={() => setOpen(true)} className="gap-1.5">
         <Play className="h-4 w-4" />
-        <span className="hidden sm:inline">Trailer</span>
+        Trailer
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black border-white/[0.06]">
