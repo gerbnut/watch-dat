@@ -4,9 +4,10 @@ import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { StarRating } from '@/components/movies/StarRating'
+import { RulerRating } from '@/components/movies/RulerRating'
+import { CompareMovies } from '@/components/reviews/CompareMovies'
 import { MovieSearch } from '@/components/movies/MovieSearch'
-import { Heart, Flag, RefreshCw, Loader2, X } from 'lucide-react'
+import { Heart, Flag, RefreshCw, Loader2, X, Scale } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import { FieldError } from '@/components/ui/FieldError'
 import { toast } from '@/hooks/use-toast'
@@ -51,6 +52,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
   const [watchedDate, setWatchedDate] = useState(formatDate(new Date(), 'yyyy-MM-dd'))
   const [submitting, setSubmitting] = useState(false)
   const [dateError, setDateError] = useState('')
+  const [showCompare, setShowCompare] = useState(false)
 
   // Pre-populate fields when opening in edit mode
   React.useEffect(() => {
@@ -141,6 +143,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
     setRewatch(false)
     setWatchedDate(formatDate(new Date(), 'yyyy-MM-dd'))
     setDateError('')
+    setShowCompare(false)
     onClose()
   }
 
@@ -187,20 +190,44 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Rating</label>
-            <div className="flex items-center gap-3">
-              <StarRating value={rating} onChange={setRating} size="lg" showValue />
-              {rating && (
+          {showCompare && movie ? (
+            <CompareMovies
+              currentMovieTitle={movie.title}
+              onSelectRating={(v) => setRating(v)}
+              onClose={() => setShowCompare(false)}
+            />
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Rating</label>
+                {rating && (
+                  <button
+                    onClick={() => setRating(null)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    clear
+                  </button>
+                )}
+              </div>
+              <RulerRating value={rating} onChange={setRating} />
+              {movie && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 border-t border-white/[0.06]" />
+                  <span className="text-xs text-muted-foreground/40">or</span>
+                  <div className="flex-1 border-t border-white/[0.06]" />
+                </div>
+              )}
+              {movie && (
                 <button
-                  onClick={() => setRating(null)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowCompare(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/[0.06] px-3 py-2.5 text-sm text-foreground hover:bg-white/[0.03] transition-colors"
                 >
-                  clear
+                  <Scale className="h-4 w-4 text-muted-foreground" />
+                  Compare to Movies I've Seen
                 </button>
               )}
             </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Date watched</label>

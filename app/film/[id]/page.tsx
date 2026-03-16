@@ -1,5 +1,5 @@
 import { auth } from '@/auth'
-import { getOrCacheMovie, getWatchProviders, TMDB_IMAGE } from '@/lib/tmdb'
+import { getOrCacheMovie, getWatchProviders, getMovieVideos, pickBestTrailer, TMDB_IMAGE } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogFilmButtonClient } from './LogFilmButtonClient'
 import { WatchlistButtonClient } from './WatchlistButtonClient'
 import { RecommendButtonClient } from './RecommendButtonClient'
+import { TrailerButtonClient } from './TrailerButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { MoviePoster } from '@/components/movies/MoviePoster'
@@ -98,7 +99,7 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
       : [],
   ])
 
-  const [watchCount, watchProvidersData, watchlistItem] = await Promise.all([
+  const [watchCount, watchProvidersData, watchlistItem, videosData] = await Promise.all([
     prisma.diaryEntry.count({ where: { movieId: movie.id } }),
     getWatchProviders(tmdbId).catch(() => null),
     session?.user?.id
@@ -106,7 +107,9 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
           where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
         })
       : null,
+    getMovieVideos(tmdbId).catch(() => null),
   ])
+  const trailer = videosData ? pickBestTrailer(videosData.results) : null
   const streamingProviders = watchProvidersData?.results?.['US'] ?? null
   const isOnWatchlist = !!watchlistItem
 
@@ -229,6 +232,7 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
         />
         <WatchlistButtonClient tmdbId={tmdbId} isOnWatchlist={isOnWatchlist} />
         <RecommendButtonClient tmdbId={tmdbId} title={movie.title} />
+        <TrailerButtonClient trailerKey={trailer?.key ?? null} />
         <div className="ml-auto">
           <ShareButton
             url={`/film/${tmdbId}`}

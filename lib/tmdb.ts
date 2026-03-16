@@ -205,6 +205,28 @@ export async function getPersonDetails(tmdbId: number): Promise<TMDBPerson> {
   return tmdbFetch(`/person/${tmdbId}`, { append_to_response: 'movie_credits' })
 }
 
+export interface TMDBVideo {
+  id: string
+  key: string
+  name: string
+  site: string
+  type: string
+  official: boolean
+  published_at: string
+}
+
+export async function getMovieVideos(tmdbId: number): Promise<{ results: TMDBVideo[] }> {
+  return tmdbFetch(`/movie/${tmdbId}/videos`)
+}
+
+export function pickBestTrailer(videos: TMDBVideo[]): TMDBVideo | null {
+  const yt = videos.filter(v => v.site === 'YouTube')
+  return yt.find(v => v.type === 'Trailer' && v.official)
+    ?? yt.find(v => v.type === 'Trailer')
+    ?? yt.find(v => v.type === 'Teaser')
+    ?? null
+}
+
 // Cache movie in DB to avoid redundant API calls
 export async function getOrCacheMovie(tmdbId: number) {
   const existing = await prisma.movie.findUnique({

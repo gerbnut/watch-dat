@@ -6,7 +6,7 @@ import { auth } from '@/auth'
 import { z } from 'zod'
 
 const updateSchema = z.object({
-  rating: z.number().min(1).max(10).multipleOf(0.5).optional().nullable(),
+  rating: z.number().min(1).max(10).optional().nullable().transform(v => v != null ? Math.round(v * 10) / 10 : v),
   text: z.string().max(10000).optional().nullable(),
   liked: z.boolean().optional(),
   hasSpoiler: z.boolean().optional(),
