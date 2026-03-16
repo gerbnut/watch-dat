@@ -22,6 +22,16 @@ function fisherYates<T>(arr: T[]): T[] {
   return a
 }
 
+function weightedShuffle(arr: TMDBSearchResult[]): TMDBSearchResult[] {
+  return arr
+    .map(m => ({
+      m,
+      score: m.vote_average * Math.log10(Math.max(m.vote_count, 1)) + (Math.random() * 2),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.m)
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
 
@@ -106,15 +116,27 @@ export async function GET(req: NextRequest) {
   const promises: Promise<{ results: TMDBSearchResult[] }>[] = []
   if (genreId !== undefined) {
     // Genre selected — discover only within that genre
-    promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 200 }))
-    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 100 }))
+    promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 300, voteAverageGte: 5.5 }))
+    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 150, voteAverageGte: 5.0 }))
   } else {
     // Any — use trending + popular
     promises.push(getTrendingMovies('week'))
     promises.push(getPopularMovies(safePage))
   }
-  if (fav1) promises.push(getSimilarMovies(fav1))
-  if (fav2) promises.push(getSimilarMovies(fav2))
+  if (fav1) promises.push(
+    getSimilarMovies(fav1).then(res => ({
+      results: genreId !== undefined
+        ? res.results.filter(m => m.genre_ids?.includes(genreId))
+        : res.results
+    }))
+  )
+  if (fav2) promises.push(
+    getSimilarMovies(fav2).then(res => ({
+      results: genreId !== undefined
+        ? res.results.filter(m => m.genre_ids?.includes(genreId))
+        : res.results
+    }))
+  )
 
   const settled = await Promise.allSettled(promises)
 
@@ -135,11 +157,11 @@ export async function GET(req: NextRequest) {
 
   // Boost movies matching user's preferred genres (from high-rated reviews)
   const preferred = preferredGenreIds.size > 0
-    ? fisherYates(filtered.filter((m) => m.genre_ids?.some((id) => preferredGenreIds.has(id))))
+    ? weightedShuffle(filtered.filter((m) => m.genre_ids?.some((id) => preferredGenreIds.has(id))))
     : []
   const rest = preferredGenreIds.size > 0
-    ? fisherYates(filtered.filter((m) => !m.genre_ids?.some((id) => preferredGenreIds.has(id))))
-    : fisherYates(filtered)
+    ? weightedShuffle(filtered.filter((m) => !m.genre_ids?.some((id) => preferredGenreIds.has(id))))
+    : weightedShuffle(filtered)
   const shuffled = preferred.length > 0 ? [...preferred, ...rest] : rest
   const page20 = shuffled.slice(0, 20)
   const nextPage = shuffled.length > 20 ? safePage + 1 : null

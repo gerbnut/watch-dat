@@ -49,11 +49,12 @@ interface SwipeCardProps {
   movie: PickMovie
   isTop: boolean
   stackOffset: number
+  selectedGenreId: number | null
   onSwipe: (dir: 'left' | 'right') => void
   onTap: (tmdbId: number) => void
 }
 
-function SwipeCard({ movie, isTop, stackOffset, onSwipe, onTap }: SwipeCardProps) {
+function SwipeCard({ movie, isTop, stackOffset, selectedGenreId, onSwipe, onTap }: SwipeCardProps) {
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-200, 0, 200], [-15, 0, 15])
   const watchBadge = useTransform(x, [0, 40, 120], [0, 0, 1])
@@ -150,13 +151,25 @@ function SwipeCard({ movie, isTop, stackOffset, onSwipe, onTap }: SwipeCardProps
         {/* Title */}
         <h3 className="text-white font-bold text-xl leading-tight line-clamp-2">{movie.title}</h3>
 
-        {/* Genre chips (max 3) */}
+        {/* Genre chips (max 3) — selected genre first + highlighted */}
         {movie.genres.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {movie.genres.slice(0, 3).map((g) => (
+            {[...movie.genres]
+              .sort((a, b) => {
+                if (a.id === selectedGenreId) return -1
+                if (b.id === selectedGenreId) return 1
+                return 0
+              })
+              .slice(0, 3)
+              .map((g) => (
               <span
                 key={g.id}
-                className="text-white/80 text-[10px] px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm"
+                className={cn(
+                  "text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm",
+                  g.id === selectedGenreId
+                    ? "bg-cinema-500/30 text-cinema-300"
+                    : "bg-white/20 text-white/80"
+                )}
               >
                 {g.name}
               </span>
@@ -474,6 +487,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
                   movie={movie}
                   isTop={isTop}
                   stackOffset={stackOffset}
+                  selectedGenreId={currentMoodRef.current.genreId}
                   onSwipe={handleSwipe}
                   onTap={handleTap}
                 />
