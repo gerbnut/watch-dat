@@ -13,7 +13,7 @@ const MIN = 1.0
 const MAX = 10.0
 const STEP = 0.1
 const TICK_COUNT = Math.round((MAX - MIN) / STEP) + 1 // 91
-const TICK_WIDTH = 12 // px per 0.1 step
+const TICK_WIDTH = 10 // px per 0.1 step
 
 export function RulerRating({ value, onChange, className }: RulerRatingProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -56,6 +56,13 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
     clearTimeout(scrollTimeout.current)
     scrollTimeout.current = setTimeout(() => {
       isUserScrolling.current = false
+      // JS-controlled snap: scroll to nearest value after user stops scrolling
+      const halfWidth = container.clientWidth / 2
+      const scrollCenter = container.scrollLeft + halfWidth - TICK_WIDTH / 2
+      const tickIndex = Math.round(scrollCenter / TICK_WIDTH)
+      const clampedIndex = Math.max(0, Math.min(TICK_COUNT - 1, tickIndex))
+      const snapValue = Math.round((MIN + clampedIndex * STEP) * 10) / 10
+      scrollToValue(snapValue, true)
     }, 150)
 
     const halfWidth = container.clientWidth / 2
@@ -67,7 +74,7 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
     if (newValue !== value) {
       onChange(newValue)
     }
-  }, [value, onChange])
+  }, [value, onChange, scrollToValue])
 
   const displayValue = value ?? 5.0
 
@@ -75,7 +82,7 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
     <div className={cn('space-y-2', className)}>
       {/* Value display */}
       <div className="text-center">
-        <span className="text-5xl font-black text-cinema-400 tabular-nums">
+        <span className="text-3xl font-black text-cinema-400 tabular-nums">
           {displayValue.toFixed(1)}
         </span>
       </div>
@@ -89,9 +96,10 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
         <div
           ref={containerRef}
           onScroll={handleScroll}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
           className="overflow-x-auto scrollbar-hide"
           style={{
-            scrollSnapType: 'x mandatory',
             touchAction: 'pan-x',
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch',
@@ -101,8 +109,8 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
             className="flex items-end"
             style={{
               // Pad left and right by half the container width so endpoints can center
-              paddingLeft: 'calc(50% - 6px)',
-              paddingRight: 'calc(50% - 6px)',
+              paddingLeft: 'calc(50% - 5px)',
+              paddingRight: 'calc(50% - 5px)',
             }}
           >
             {Array.from({ length: TICK_COUNT }, (_, i) => {
@@ -116,7 +124,6 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
                   className="flex flex-col items-center shrink-0"
                   style={{
                     width: TICK_WIDTH,
-                    scrollSnapAlign: 'center',
                   }}
                 >
                   {isWhole && (

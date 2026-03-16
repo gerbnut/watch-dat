@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MoviePoster } from '@/components/movies/MoviePoster'
-import { Eye, Star, Heart, BookOpen, List, UserPlus, Bookmark, MessageSquare, Share2 } from 'lucide-react'
+import { Eye, Heart, BookOpen, List, UserPlus, Bookmark, MessageSquare, Share2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CommentsSection } from '@/components/reviews/CommentsSection'
 import { AnimatedLikeButton } from '@/components/ui/AnimatedLikeButton'
@@ -176,9 +176,8 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
                   {activity.user.displayName}
                 </Link>
                 {activity.review.rating && (
-                  <span className="flex items-center gap-0.5 font-bold text-cinema-400">
+                  <span className="font-bold text-cinema-400">
                     {activity.review.rating.toFixed(1)}
-                    <Star className="h-3.5 w-3.5 fill-cinema-400 stroke-none" />
                   </span>
                 )}
                 <span className="text-muted-foreground">
