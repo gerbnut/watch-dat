@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 
 interface RulerRatingProps {
@@ -13,70 +13,50 @@ const MIN = 1.0
 const MAX = 10.0
 const STEP = 0.1
 const TICK_COUNT = Math.round((MAX - MIN) / STEP) + 1 // 91
-const TICK_WIDTH = 10 // px per 0.1 step
+
+function clamp(v: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, v))
+}
+
+function pointerToValue(clientX: number, rect: DOMRect): number {
+  const ratio = clamp((clientX - rect.left) / rect.width, 0, 1)
+  const raw = MIN + ratio * (MAX - MIN)
+  return Math.round(raw * 10) / 10
+}
 
 export function RulerRating({ value, onChange, className }: RulerRatingProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const isUserScrolling = useRef(false)
-  const scrollTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const dragging = useRef(false)
 
-  const valueToScroll = useCallback((v: number) => {
-    const container = containerRef.current
-    if (!container) return 0
-    const halfWidth = container.clientWidth / 2
-    const tickIndex = Math.round((v - MIN) / STEP)
-    return tickIndex * TICK_WIDTH - halfWidth + TICK_WIDTH / 2
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      const container = containerRef.current
+      if (!container) return
+      dragging.current = true
+      container.setPointerCapture(e.pointerId)
+      const rect = container.getBoundingClientRect()
+      onChange(pointerToValue(e.clientX, rect))
+    },
+    [onChange],
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragging.current) return
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      onChange(pointerToValue(e.clientX, rect))
+    },
+    [onChange],
+  )
+
+  const handlePointerUp = useCallback(() => {
+    dragging.current = false
   }, [])
 
-  const scrollToValue = useCallback((v: number, smooth = false) => {
-    const container = containerRef.current
-    if (!container) return
-    container.scrollTo({ left: valueToScroll(v), behavior: smooth ? 'smooth' : 'auto' })
-  }, [valueToScroll])
-
-  // On mount or when value changes externally, scroll to position
-  useEffect(() => {
-    if (!isUserScrolling.current && value !== null) {
-      scrollToValue(value)
-    }
-  }, [value, scrollToValue])
-
-  // Also set initial position after first render
-  useEffect(() => {
-    const v = value ?? 5.0
-    // Small delay to ensure container is measured
-    requestAnimationFrame(() => scrollToValue(v))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleScroll = useCallback(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    isUserScrolling.current = true
-    clearTimeout(scrollTimeout.current)
-    scrollTimeout.current = setTimeout(() => {
-      isUserScrolling.current = false
-      // JS-controlled snap: scroll to nearest value after user stops scrolling
-      const halfWidth = container.clientWidth / 2
-      const scrollCenter = container.scrollLeft + halfWidth - TICK_WIDTH / 2
-      const tickIndex = Math.round(scrollCenter / TICK_WIDTH)
-      const clampedIndex = Math.max(0, Math.min(TICK_COUNT - 1, tickIndex))
-      const snapValue = Math.round((MIN + clampedIndex * STEP) * 10) / 10
-      scrollToValue(snapValue, true)
-    }, 150)
-
-    const halfWidth = container.clientWidth / 2
-    const scrollCenter = container.scrollLeft + halfWidth - TICK_WIDTH / 2
-    const tickIndex = Math.round(scrollCenter / TICK_WIDTH)
-    const clampedIndex = Math.max(0, Math.min(TICK_COUNT - 1, tickIndex))
-    const newValue = Math.round((MIN + clampedIndex * STEP) * 10) / 10
-
-    if (newValue !== value) {
-      onChange(newValue)
-    }
-  }, [value, onChange, scrollToValue])
-
   const displayValue = value ?? 5.0
+  const fillPercent = ((displayValue - MIN) / (MAX - MIN)) * 100
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -88,63 +68,63 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
       </div>
 
       {/* Ruler container */}
-      <div className="relative">
-        {/* Center indicator */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-cinema-400 z-10 -translate-x-1/2 pointer-events-none" />
-
-        {/* Scrollable ruler */}
+      <div
+        ref={containerRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className="relative cursor-pointer select-none py-2"
+        style={{ touchAction: 'none' }}
+      >
+        {/* Filled track */}
+        <div className="absolute left-0 top-1/2 h-1 rounded-full bg-muted-foreground/10 w-full -translate-y-1/2" />
         <div
-          ref={containerRef}
-          onScroll={handleScroll}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          className="overflow-x-auto scrollbar-hide"
-          style={{
-            touchAction: 'pan-x',
-            overscrollBehaviorX: 'contain',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <div
-            className="flex items-end"
-            style={{
-              // Pad left and right by half the container width so endpoints can center
-              paddingLeft: 'calc(50% - 5px)',
-              paddingRight: 'calc(50% - 5px)',
-            }}
-          >
-            {Array.from({ length: TICK_COUNT }, (_, i) => {
-              const tickValue = Math.round((MIN + i * STEP) * 10) / 10
-              const isWhole = Math.abs(tickValue - Math.round(tickValue)) < 0.01
-              const isHalf = !isWhole && Math.abs((tickValue * 10) % 5) < 0.1
+          className="absolute left-0 top-1/2 h-1 rounded-full bg-cinema-400/40 -translate-y-1/2"
+          style={{ width: `${fillPercent}%` }}
+        />
 
-              return (
+        {/* Ticks */}
+        <div className="relative h-10">
+          {Array.from({ length: TICK_COUNT }, (_, i) => {
+            const tickValue = Math.round((MIN + i * STEP) * 10) / 10
+            const isWhole = Math.abs(tickValue - Math.round(tickValue)) < 0.01
+            const isHalf = !isWhole && Math.abs((tickValue * 10) % 5) < 0.1
+            const left = ((tickValue - MIN) / (MAX - MIN)) * 100
+
+            return (
+              <div
+                key={i}
+                className="absolute bottom-0 -translate-x-1/2"
+                style={{ left: `${left}%` }}
+              >
                 <div
-                  key={i}
-                  className="flex flex-col items-center shrink-0"
-                  style={{
-                    width: TICK_WIDTH,
-                  }}
-                >
-                  {isWhole && (
-                    <span className="text-[10px] text-muted-foreground/70 mb-1 font-medium">
-                      {Math.round(tickValue)}
-                    </span>
+                  className={cn(
+                    'w-px rounded-full mx-auto',
+                    isWhole
+                      ? 'h-6 bg-muted-foreground/50'
+                      : isHalf
+                        ? 'h-4 bg-muted-foreground/30'
+                        : 'h-2.5 bg-muted-foreground/15',
                   )}
-                  <div
-                    className={cn(
-                      'w-px rounded-full',
-                      isWhole
-                        ? 'h-6 bg-muted-foreground/50'
-                        : isHalf
-                          ? 'h-4 bg-muted-foreground/30'
-                          : 'h-2.5 bg-muted-foreground/15'
-                    )}
-                  />
-                </div>
-              )
-            })}
-          </div>
+                />
+                {isWhole && (
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground/70 mt-0.5 font-medium">
+                    {Math.round(tickValue)}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Active indicator */}
+        <div
+          className="absolute bottom-0 -translate-x-1/2 pointer-events-none"
+          style={{ left: `${fillPercent}%` }}
+        >
+          <div className="w-0.5 h-8 bg-cinema-400 rounded-full mx-auto" />
+          <div className="w-3 h-3 rounded-full bg-cinema-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] -mt-1 mx-auto -translate-x-[0.5px]" />
         </div>
       </div>
     </div>
