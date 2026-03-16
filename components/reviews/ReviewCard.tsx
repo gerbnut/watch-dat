@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Flag, MoreHorizontal, Trash2, Pencil, Heart, MessageSquare } from 'lucide-react'
+import { Flag, MoreHorizontal, Trash2, Pencil, Heart, MessageSquare, Star } from 'lucide-react'
 import { CommentsSection } from './CommentsSection'
 import { LogFilmModal } from './LogFilmModal'
 import { ReportModal } from '@/components/ui/ReportModal'
@@ -146,7 +146,12 @@ export function ReviewCard({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {review.rating && <StarRating value={review.rating} readOnly size="sm" />}
+            {review.rating && (
+              <span className="flex items-center gap-1 text-sm font-bold text-cinema-400">
+                {review.rating.toFixed(1)}
+                <Star className="h-3.5 w-3.5 fill-cinema-400 stroke-none" />
+              </span>
+            )}
             <div className="relative">
               <Button
                 ref={menuBtnRef}

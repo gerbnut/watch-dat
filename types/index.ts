@@ -44,7 +44,7 @@ export type ListWithItems = List & {
 
 export type ActivityWithRelations = Activity & {
   user: Pick<User, 'id' | 'username' | 'displayName' | 'avatar'>
-  movie?: Pick<Movie, 'id' | 'tmdbId' | 'title' | 'poster'> | null
+  movie?: Pick<Movie, 'id' | 'tmdbId' | 'title' | 'poster' | 'backdrop' | 'releaseDate'> | null
   review?: ReviewWithRelations | null
   list?: Pick<List, 'id' | 'name'> | null
 }

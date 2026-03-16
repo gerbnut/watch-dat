@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     },
     include: {
       user: { select: { id: true, username: true, displayName: true, avatar: true } },
-      movie: { select: { id: true, tmdbId: true, title: true, poster: true } },
+      movie: { select: { id: true, tmdbId: true, title: true, poster: true, backdrop: true, releaseDate: true } },
       _count: { select: { likes: true, comments: true } },
     },
     orderBy: { likes: { _count: 'desc' } },
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
-        movie: { select: { id: true, tmdbId: true, title: true, poster: true } },
+        movie: { select: { id: true, tmdbId: true, title: true, poster: true, backdrop: true, releaseDate: true } },
         _count: { select: { likes: true, comments: true } },
       },
       orderBy: { likes: { _count: 'desc' } },

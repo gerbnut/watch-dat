@@ -180,3 +180,12 @@
 .glow-ring {
   box-shadow: 0 0 0 1px hsl(var(--primary-glow) / 0.15), 0 0 15px -3px hsl(var(--primary-glow) / 0.1);
 }
+
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
