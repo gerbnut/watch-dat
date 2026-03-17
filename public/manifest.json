@@ -24,6 +24,28 @@
       "type": "image/png"
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home feed with trending films and friend activity"
+    },
+    {
+      "src": "/screenshots/film-detail.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Film detail page with ratings and reviews"
+    },
+    {
+      "src": "/screenshots/diary.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Your personal film diary"
+    }
+  ],
   "categories": ["entertainment", "lifestyle"]
 }

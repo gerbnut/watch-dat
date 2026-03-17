@@ -1,12 +1,22 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getIp } from '@/lib/rateLimit'
 
 const GIPHY_BASE = 'https://api.giphy.com/v1/gifs'
 const LIMIT = 20
 const RATING = 'g'
 
 export async function GET(req: NextRequest) {
+  const { allowed, headers } = rateLimit({
+    key: `ip:${getIp(req)}:giphy`,
+    limit: 30,
+    windowSec: 60,
+  })
+  if (!allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers })
+  }
+
   const apiKey = process.env.GIPHY_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'Giphy not configured' }, { status: 503 })

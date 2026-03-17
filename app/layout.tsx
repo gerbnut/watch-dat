@@ -9,6 +9,8 @@ import { BottomTabBar } from '@/components/layout/BottomTabBar'
 import { LayoutTransition } from '@/components/layout/LayoutTransition'
 import { PullToRefresh } from '@/components/layout/PullToRefresh'
 import { ServiceWorkerRegistration } from '@/components/layout/ServiceWorkerRegistration'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' })
 
@@ -24,6 +26,13 @@ export const metadata: Metadata = {
     title: 'Watch Dat',
     description: 'Your digital film diary',
     type: 'website',
+    images: [{ url: '/icon-512.png', width: 512, height: 512, alt: 'Watch Dat' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Watch Dat',
+    description: 'Track films you\'ve watched, rate and review them, build curated lists, and discover movies through friends.',
+    images: ['/icon-512.png'],
   },
   appleWebApp: {
     capable: true,
@@ -58,6 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BottomTabBar />
             <Toaster />
             <ServiceWorkerRegistration />
+            <Analytics />
+            <SpeedInsights />
           </QueryProvider>
         </SessionProvider>
       </body>
