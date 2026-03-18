@@ -11,27 +11,7 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 })
 
-console.log('[auth] env check:', {
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING',
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING',
-  AUTH_URL: process.env.AUTH_URL ?? 'NOT SET (auto-detect)',
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? 'NOT SET',
-  VERCEL_URL: process.env.VERCEL_URL ?? 'NOT SET',
-})
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  debug: true,
-  logger: {
-    error: (code, ...message) => {
-      console.error('NEXTAUTH ERROR:', code, JSON.stringify(message))
-    },
-    warn: (code) => {
-      console.warn('NEXTAUTH WARN:', code)
-    },
-    debug: (code, metadata) => {
-      console.log('NEXTAUTH DEBUG:', code, JSON.stringify(metadata))
-    },
-  },
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
   pages: {
@@ -40,46 +20,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account }) {
-      try {
-        if (account?.provider === 'google' && user.email) {
-          console.log('[auth] Google sign-in attempt', { email: user.email, provider: account.provider })
-          return true
-        }
+      if (account?.provider === 'google' && user.email) {
         return true
-      } catch (err) {
-        console.error('[auth] signIn callback error', err)
-        return false
       }
+      return true
     },
     async jwt({ token, user }) {
-      try {
-        if (user) {
-          token.id = user.id
-          console.log('[auth] jwt callback: initial sign-in', { userId: user.id, email: user.email })
-          // Look up username from DB since Google users won't have it on the user object
-          const dbUser = await prisma.user.findUnique({
-            where: { id: user.id as string },
-            select: { username: true, displayName: true, avatar: true },
-          })
-          token.username = dbUser?.username
-          token.displayName = dbUser?.displayName
-          token.needsUsername = !dbUser?.username
-          const av = dbUser?.avatar as string | null
-          token.avatar = av?.startsWith('data:') ? null : av
+      if (user) {
+        token.id = user.id
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id as string },
+          select: { username: true, displayName: true, avatar: true },
+        })
+        token.username = dbUser?.username
+        token.displayName = dbUser?.displayName
+        token.needsUsername = !dbUser?.username
+        const av = dbUser?.avatar as string | null
+        token.avatar = av?.startsWith('data:') ? null : av
+      }
+      if (token.needsUsername) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { username: true },
+        })
+        if (dbUser?.username) {
+          token.needsUsername = false
+          token.username = dbUser.username
         }
-        // Re-check on subsequent calls — once username is set, clear the flag
-        if (token.needsUsername) {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { username: true },
-          })
-          if (dbUser?.username) {
-            token.needsUsername = false
-            token.username = dbUser.username
-          }
-        }
-      } catch (err) {
-        console.error('[auth] jwt callback error', err)
       }
       return token
     },
@@ -100,7 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         })]
-      : (console.warn('[auth] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set — Google provider disabled'), [])),
+      : []),
     Credentials({
       credentials: {
         email: { label: 'Email', type: 'email' },
