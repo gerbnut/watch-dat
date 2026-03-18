@@ -20,37 +20,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'google' && user.email) {
-        // Allow Google sign-in — PrismaAdapter handles account linking
-        // If user exists with password (credentials), the adapter links the Google account
+      try {
+        if (account?.provider === 'google' && user.email) {
+          console.log('[auth] Google sign-in attempt', { email: user.email, provider: account.provider })
+          return true
+        }
         return true
+      } catch (err) {
+        console.error('[auth] signIn callback error', err)
+        return false
       }
-      return true
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        // Look up username from DB since Google users won't have it on the user object
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id as string },
-          select: { username: true, displayName: true, avatar: true },
-        })
-        token.username = dbUser?.username
-        token.displayName = dbUser?.displayName
-        token.needsUsername = !dbUser?.username
-        const av = dbUser?.avatar as string | null
-        token.avatar = av?.startsWith('data:') ? null : av
-      }
-      // Re-check on subsequent calls — once username is set, clear the flag
-      if (token.needsUsername) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { username: true },
-        })
-        if (dbUser?.username) {
-          token.needsUsername = false
-          token.username = dbUser.username
+      try {
+        if (user) {
+          token.id = user.id
+          console.log('[auth] jwt callback: initial sign-in', { userId: user.id, email: user.email })
+          // Look up username from DB since Google users won't have it on the user object
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id as string },
+            select: { username: true, displayName: true, avatar: true },
+          })
+          token.username = dbUser?.username
+          token.displayName = dbUser?.displayName
+          token.needsUsername = !dbUser?.username
+          const av = dbUser?.avatar as string | null
+          token.avatar = av?.startsWith('data:') ? null : av
         }
+        // Re-check on subsequent calls — once username is set, clear the flag
+        if (token.needsUsername) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { username: true },
+          })
+          if (dbUser?.username) {
+            token.needsUsername = false
+            token.username = dbUser.username
+          }
+        }
+      } catch (err) {
+        console.error('[auth] jwt callback error', err)
       }
       return token
     },
