@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 import { rateLimit } from '@/lib/rateLimit'
 import { sendPasswordResetEmail } from '@/lib/email'
 
