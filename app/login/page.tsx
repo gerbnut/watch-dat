@@ -83,6 +83,11 @@ function LoginContent() {
               </button>
             </div>
           </div>
+          <div className="flex justify-end">
+            <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-cinema-400">
+              Forgot your password?
+            </Link>
+          </div>
           <FieldError msg={error} />
           <Button type="submit" variant="cinema" size="lg" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
