@@ -1,8 +1,9 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { handlers } from '@/auth'
+import { NextRequest } from 'next/server'
 
-export const GET = async (req: Request) => {
+export const GET = async (req: NextRequest) => {
   try {
     console.log('[auth route] GET', req.url)
     const res = await handlers.GET(req)
@@ -14,7 +15,7 @@ export const GET = async (req: Request) => {
   }
 }
 
-export const POST = async (req: Request) => {
+export const POST = async (req: NextRequest) => {
   try {
     console.log('[auth route] POST', req.url)
     const res = await handlers.POST(req)
