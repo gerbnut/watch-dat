@@ -13,6 +13,17 @@ const credentialsSchema = z.object({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   debug: true,
+  logger: {
+    error: (code, ...message) => {
+      console.error('NEXTAUTH ERROR:', code, JSON.stringify(message))
+    },
+    warn: (code) => {
+      console.warn('NEXTAUTH WARN:', code)
+    },
+    debug: (code, metadata) => {
+      console.log('NEXTAUTH DEBUG:', code, JSON.stringify(metadata))
+    },
+  },
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
   pages: {
