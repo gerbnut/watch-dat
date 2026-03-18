@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 import { auth } from './auth'
 import { NextResponse } from 'next/server'
 
-const protectedRoutes = ['/diary', '/lists', '/settings', '/watchlist']
+const protectedRoutes = ['/diary', '/lists', '/settings', '/watchlist', '/pick-username']
 const authRoutes = ['/login', '/register', '/verify']
 
 const securityHeaders = {
@@ -34,6 +34,16 @@ export default auth((req) => {
     const loginUrl = new URL('/login', req.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return applySecurityHeaders(NextResponse.redirect(loginUrl))
+  }
+
+  // Force Google users without a username to /pick-username
+  if (
+    isLoggedIn &&
+    req.auth?.user?.needsUsername === true &&
+    pathname !== '/pick-username' &&
+    !pathname.startsWith('/api')
+  ) {
+    return applySecurityHeaders(NextResponse.redirect(new URL('/pick-username', req.url)))
   }
 
   return applySecurityHeaders(NextResponse.next())

@@ -103,6 +103,13 @@ declare module 'next-auth' {
       username: string
       displayName: string
       image?: string | null
+      needsUsername?: boolean
     }
+  }
+}
+
+declare module '@auth/core/jwt' {
+  interface JWT {
+    needsUsername?: boolean
   }
 }
