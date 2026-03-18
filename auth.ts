@@ -11,6 +11,14 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 })
 
+console.log('[auth] env check:', {
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING',
+  AUTH_URL: process.env.AUTH_URL ?? 'NOT SET (auto-detect)',
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? 'NOT SET',
+  VERCEL_URL: process.env.VERCEL_URL ?? 'NOT SET',
+})
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   debug: true,
   logger: {
@@ -87,10 +95,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [Google({
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        })]
+      : (console.warn('[auth] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set — Google provider disabled'), [])),
     Credentials({
       credentials: {
         email: { label: 'Email', type: 'email' },
