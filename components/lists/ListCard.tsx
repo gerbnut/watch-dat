@@ -14,8 +14,8 @@ interface ListCardProps {
   isPublic: boolean
   updatedAt: Date | string
   user: {
-    username: string
-    displayName: string
+    username: string | null
+    displayName: string | null
     avatar?: string | null
   }
   items: Array<{
@@ -71,7 +71,7 @@ export function ListCard({ id, name, description, isPublic, updatedAt, user, ite
             <div className="flex items-center gap-1.5">
               <Avatar className="h-5 w-5">
                 <AvatarImage src={user.avatar ?? undefined} />
-                <AvatarFallback className="text-[9px]">{getInitials(user.displayName)}</AvatarFallback>
+                <AvatarFallback className="text-[9px]">{getInitials(user.displayName ?? '')}</AvatarFallback>
               </Avatar>
               <span className="text-xs text-muted-foreground">{user.displayName}</span>
             </div>

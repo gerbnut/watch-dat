@@ -147,7 +147,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
         <BannerSection
           bannerUrl={(user as any).bannerUrl ?? null}
           isOwnProfile={isOwnProfile}
-          username={user.username}
+          username={user.username ?? ''}
         />
       </div>
 
@@ -158,7 +158,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           <Avatar className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-background shadow-[0_8px_25px_-8px_rgba(0,0,0,0.4)] ml-4 sm:ml-6 shrink-0">
             <AvatarImage src={user.avatar ?? undefined} />
             <AvatarFallback className="text-2xl sm:text-3xl bg-cinema-900 text-cinema-300 ring-1 ring-white/[0.06]">
-              {getInitials(user.displayName)}
+              {getInitials(user.displayName ?? '')}
             </AvatarFallback>
           </Avatar>
 
@@ -180,7 +180,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
             ) : session?.user ? (
               <>
                 <FollowButtonClient
-                  username={user.username}
+                  username={user.username ?? ''}
                   isFollowing={!!resolvedFollowing}
                 />
                 <div className="flex items-center gap-1">
@@ -189,8 +189,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                     title={`${user.displayName} on Watch Dat`}
                     text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
                   />
-                  <BlockButtonClient username={user.username} isBlocked={!!resolvedBlocked} />
-                  <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName} />
+                  <BlockButtonClient username={user.username ?? ''} isBlocked={!!resolvedBlocked} />
+                  <ReportButton targetType="USER" targetId={user.id} targetLabel={user.displayName ?? ''} />
                 </div>
               </>
             ) : (
@@ -288,12 +288,12 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
         </TabsList>
 
         <TabsContent value="ranked" className="mt-4">
-          <RankedFilmsTab username={user.username} />
+          <RankedFilmsTab username={user.username ?? ''} />
         </TabsContent>
 
         <TabsContent value="stats" className="mt-4">
           <StatsTab
-            username={user.username}
+            username={user.username ?? ''}
             wrappedEligible={user._count.diaryEntries >= 10}
             isOwnProfile={isOwnProfile}
             favoritePosterUrls={user.favoriteMovies

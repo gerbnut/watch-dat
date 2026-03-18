@@ -61,7 +61,7 @@ export function WrappedClient({ data }: WrappedClientProps) {
       key: 'intro',
       render: () => (
         <IntroSlide
-          displayName={data.user.displayName}
+          displayName={data.user.displayName ?? ''}
           backdrop={data.moodboard[0]?.backdrop ?? null}
         />
       ),
@@ -189,7 +189,7 @@ export function WrappedClient({ data }: WrappedClientProps) {
         key: 'friend-compatibility',
         render: () => (
           <FriendCompatibilitySlide
-            friend={data.friendCompatibility!.user}
+            friend={{ ...data.friendCompatibility!.user, username: data.friendCompatibility!.user.username ?? '', displayName: data.friendCompatibility!.user.displayName ?? '' }}
             overlapPercent={data.friendCompatibility!.overlapPercent}
             sharedCount={data.friendCompatibility!.sharedCount}
             sharedPosters={data.friendCompatibility!.sharedPosters}
@@ -209,8 +209,8 @@ export function WrappedClient({ data }: WrappedClientProps) {
       key: 'share-card',
       render: () => (
         <ShareCardSlide
-          username={data.user.username}
-          displayName={data.user.displayName}
+          username={data.user.username ?? ''}
+          displayName={data.user.displayName ?? ''}
           totalFilms={data.totalFilms}
           totalHours={Math.floor(data.totalMinutes / 60)}
           topGenre={data.topGenre?.name ?? null}

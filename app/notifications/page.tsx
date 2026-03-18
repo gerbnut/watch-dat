@@ -86,7 +86,7 @@ export default async function NotificationsPage() {
               >
                 <Avatar className="h-9 w-9 shrink-0">
                   <AvatarImage src={n.actor.avatar ?? undefined} />
-                  <AvatarFallback className="text-xs">{getInitials(n.actor.displayName)}</AvatarFallback>
+                  <AvatarFallback className="text-xs">{getInitials(n.actor.displayName ?? '')}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">

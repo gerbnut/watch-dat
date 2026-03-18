@@ -164,7 +164,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
                 <Avatar className="h-8 w-8 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
                   <AvatarImage src={activity.user.avatar ?? undefined} />
                   <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
-                    {getInitials(activity.user.displayName)}
+                    {getInitials(activity.user.displayName ?? '')}
                   </AvatarFallback>
                 </Avatar>
               </Link>
@@ -257,7 +257,7 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
                 <Avatar className="h-9 w-9 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
                   <AvatarImage src={activity.user.avatar ?? undefined} />
                   <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
-                    {getInitials(activity.user.displayName)}
+                    {getInitials(activity.user.displayName ?? '')}
                   </AvatarFallback>
                 </Avatar>
               </Link>

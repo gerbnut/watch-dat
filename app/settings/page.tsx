@@ -48,9 +48,9 @@ export default async function SettingsPage() {
         <p className="text-sm text-muted-foreground/70 mt-1">Manage your profile and preferences</p>
       </div>
       <SettingsFormClient
-        user={{ id: user.id, username: user.username, displayName: user.displayName, bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
+        user={{ id: user.id, username: user.username ?? '', displayName: user.displayName ?? '', bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
       />
-      <FavoritesEditorClient username={user.username} initialFavorites={favorites} />
+      <FavoritesEditorClient username={user.username ?? ''} initialFavorites={favorites} />
 
       <LetterboxdSettingsClient
         importedAt={user.letterboxdImportedAt?.toISOString() ?? null}

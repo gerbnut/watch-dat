@@ -67,7 +67,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
           <Link href={`/user/${list.user.username}`} className="flex items-center gap-2 hover:opacity-80">
             <Avatar className="h-7 w-7">
               <AvatarImage src={list.user.avatar ?? undefined} />
-              <AvatarFallback className="text-xs">{getInitials(list.user.displayName)}</AvatarFallback>
+              <AvatarFallback className="text-xs">{getInitials(list.user.displayName ?? '')}</AvatarFallback>
             </Avatar>
             <span className="text-sm font-medium">{list.user.displayName}</span>
           </Link>

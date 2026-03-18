@@ -15,8 +15,8 @@ import TextareaAutosize from 'react-textarea-autosize'
 
 interface User {
   id: string
-  username: string
-  displayName: string
+  username: string | null
+  displayName: string | null
   bio: string | null
   avatar: string | null
   bannerUrl: string | null
@@ -42,7 +42,7 @@ async function uploadCroppedBlob(blob: Blob, field: 'avatar' | 'bannerUrl'): Pro
 
 export function SettingsFormClient({ user }: { user: User }) {
   const router = useRouter()
-  const [displayName, setDisplayName] = useState(user.displayName)
+  const [displayName, setDisplayName] = useState(user.displayName ?? '')
   const [bio, setBio] = useState(user.bio ?? '')
   const [avatar, setAvatar] = useState(user.avatar ?? '')
   const [bannerUrl, setBannerUrl] = useState(user.bannerUrl ?? '')
@@ -255,7 +255,7 @@ export function SettingsFormClient({ user }: { user: User }) {
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Username</label>
-            <Input value={user.username} disabled className="opacity-60" />
+            <Input value={user.username ?? ''} disabled className="opacity-60" />
             <p className="text-xs text-muted-foreground">Username cannot be changed</p>
           </div>
 

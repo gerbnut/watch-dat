@@ -25,5 +25,5 @@ export default async function OnboardingPage() {
     }
   }
 
-  return <OnboardingClient suggestions={suggestions} username={session.user.username!} displayName={session.user.displayName ?? ''} />
+  return <OnboardingClient suggestions={suggestions} username={session.user.username ?? ''} displayName={session.user.displayName ?? ''} />
 }

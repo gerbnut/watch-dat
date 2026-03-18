@@ -125,9 +125,9 @@ export function ReviewCard({
           <div className="flex items-center gap-2.5 min-w-0">
             <Link href={`/user/${review.user.username}`} className="shrink-0">
               <Avatar className="h-8 w-8 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
-                <AvatarImage src={review.user.avatar ?? undefined} alt={review.user.displayName} />
+                <AvatarImage src={review.user.avatar ?? undefined} alt={review.user.displayName ?? ''} />
                 <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
-                  {getInitials(review.user.displayName)}
+                  {getInitials(review.user.displayName ?? '')}
                 </AvatarFallback>
               </Avatar>
             </Link>

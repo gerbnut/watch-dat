@@ -132,11 +132,11 @@ export function Navbar() {
                     className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] py-1 overflow-hidden"
                   >
                     <div className="px-3 py-2.5 border-b border-white/[0.06]">
-                      <p className="text-sm font-semibold leading-tight">{session.user.displayName}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">@{session.user.username}</p>
+                      <p className="text-sm font-semibold leading-tight">{session.user.displayName ?? 'New User'}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">@{session.user.username ?? '...'}</p>
                     </div>
                     <Link
-                      href={`/user/${session.user.username}`}
+                      href={`/user/${session.user.username ?? ''}`}
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
                     >

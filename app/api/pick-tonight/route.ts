@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
       for (const r of friendReviews) {
         const id = r.movie.tmdbId
         const existing = friendRecMap.get(id) ?? []
-        existing.push({ username: r.user.username, avatar: r.user.avatar ?? null, rating: r.rating! })
+        existing.push({ username: r.user.username ?? '', avatar: r.user.avatar ?? null, rating: r.rating! })
         friendRecMap.set(id, existing)
       }
     }

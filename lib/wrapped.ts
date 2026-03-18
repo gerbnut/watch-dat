@@ -12,8 +12,8 @@ export interface MovieSlim {
 }
 
 interface UserSlim {
-  username: string
-  displayName: string
+  username: string | null
+  displayName: string | null
   avatar: string | null
 }
 

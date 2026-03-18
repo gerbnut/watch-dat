@@ -77,7 +77,7 @@ export default async function FollowingPage({ params }: { params: Promise<{ user
                 <Avatar className="h-10 w-10 shrink-0">
                   <AvatarImage src={following.avatar ?? undefined} />
                   <AvatarFallback className="text-sm bg-cinema-900 text-cinema-300">
-                    {getInitials(following.displayName)}
+                    {getInitials(following.displayName ?? '')}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
@@ -90,7 +90,7 @@ export default async function FollowingPage({ params }: { params: Promise<{ user
               </Link>
               {session?.user && session.user.id !== following.id && (
                 <FollowButtonClient
-                  username={following.username}
+                  username={following.username ?? ''}
                   isFollowing={myFollowingIds.includes(following.id)}
                 />
               )}
