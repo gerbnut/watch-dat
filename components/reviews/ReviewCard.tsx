@@ -102,7 +102,7 @@ export function ReviewCard({
       if (onDelete) {
         onDelete(review.id)
       } else {
-        router.refresh()
+        router.back()
       }
     } catch {
       const { toast } = await import('@/hooks/use-toast')
