@@ -48,6 +48,7 @@ export function MovieCard({
   const year = getYearFromDate(releaseDate ?? null)
   const { card, img, title: titleSize } = SIZES[size]
   const [imgLoaded, setImgLoaded] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   const content = (
     <div className={cn('group flex flex-col gap-1.5', card, className)}>
@@ -57,7 +58,7 @@ export function MovieCard({
           img
         )}
       >
-        {posterUrl ? (
+        {posterUrl && !imgError ? (
           <>
             <Image
               src={posterUrl}
@@ -69,6 +70,7 @@ export function MovieCard({
               )}
               sizes="(max-width: 768px) 30vw, 200px"
               onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
               priority={priority}
             />
             {!imgLoaded && <div className="absolute inset-0 skeleton" />}

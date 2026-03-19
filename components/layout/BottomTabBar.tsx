@@ -13,7 +13,7 @@ export function BottomTabBar() {
   const { data: session } = useSession()
   const [logOpen, setLogOpen] = useState(false)
 
-  if (pathname.startsWith('/onboarding')) return null
+  if (pathname.startsWith('/onboarding') || pathname.startsWith('/settings')) return null
 
   const username = session?.user?.username
   const meHref = username ? `/user/${username}` : '/login'

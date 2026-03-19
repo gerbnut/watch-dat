@@ -15,7 +15,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+    <div className="relative z-50 flex min-h-[100dvh] items-center justify-center overflow-y-auto">
       {/* Background */}
       <div className="absolute inset-0">
         <Image

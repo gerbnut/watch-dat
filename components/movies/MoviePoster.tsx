@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Image from 'next/image'
 import { Film } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,8 +38,9 @@ export function MoviePoster({
   className,
 }: MoviePosterProps) {
   const src = poster ? `${TMDB_IMAGE_BASE}/${tmdbSize}${poster}` : null
+  const [imgError, setImgError] = useState(false)
 
-  if (!src) {
+  if (!src || imgError) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-muted">
         <Film className="h-1/3 w-1/3 text-muted-foreground opacity-40" />
@@ -52,6 +56,7 @@ export function MoviePoster({
       sizes={sizes}
       priority={priority}
       className={cn('object-cover', className)}
+      onError={() => setImgError(true)}
     />
   )
 }
