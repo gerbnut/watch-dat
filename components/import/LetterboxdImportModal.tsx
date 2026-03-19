@@ -12,7 +12,7 @@ interface Props {
   onSuccess?: () => void
 }
 
-type ImportState = 'idle' | 'uploading' | 'success' | 'error'
+type ImportState = 'idle' | 'uploading' | 'progress' | 'success' | 'error'
 
 interface ImportResult {
   totalItems: number
@@ -21,21 +21,30 @@ interface ImportResult {
   failed: number
 }
 
+interface ProgressData {
+  matched: number
+  failed: number
+  skipped: number
+  total: number
+}
+
 export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   const [diaryFile, setDiaryFile] = useState<File | null>(null)
   const [watchlistFile, setWatchlistFile] = useState<File | null>(null)
   const [state, setState] = useState<ImportState>('idle')
   const [result, setResult] = useState<ImportResult | null>(null)
+  const [progress, setProgress] = useState<ProgressData | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const diaryRef = useRef<HTMLInputElement>(null)
   const watchlistRef = useRef<HTMLInputElement>(null)
 
   const handleClose = useCallback(() => {
-    if (state === 'uploading') return
+    if (state === 'uploading' || state === 'progress') return
     setDiaryFile(null)
     setWatchlistFile(null)
     setState('idle')
     setResult(null)
+    setProgress(null)
     setErrorMsg('')
     onClose()
   }, [state, onClose])
@@ -70,6 +79,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
 
     setState('uploading')
     setErrorMsg('')
+    setProgress(null)
 
     try {
       const formData = new FormData()
@@ -81,16 +91,59 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
         body: formData,
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
+        const data = await res.json()
         throw new Error(data.error || 'Import failed')
       }
 
-      setResult(data)
-      setState('success')
-      toast({ title: 'Import complete!', variant: 'success' })
-      onSuccess?.()
+      setState('progress')
+
+      const reader = res.body?.getReader()
+      if (!reader) throw new Error('No response stream')
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const event = JSON.parse(line)
+            if (event.type === 'progress') {
+              setProgress({ matched: event.matched, failed: event.failed, skipped: event.skipped, total: event.total })
+            } else if (event.type === 'complete') {
+              setResult({ totalItems: event.total, matched: event.matched, skipped: event.skipped, failed: event.failed })
+              setState('success')
+              toast({ title: 'Import complete!', variant: 'success' })
+              onSuccess?.()
+            }
+          } catch {
+            // skip malformed lines
+          }
+        }
+      }
+
+      // Process any remaining buffer
+      if (buffer.trim()) {
+        try {
+          const event = JSON.parse(buffer)
+          if (event.type === 'complete') {
+            setResult({ totalItems: event.total, matched: event.matched, skipped: event.skipped, failed: event.failed })
+            setState('success')
+            toast({ title: 'Import complete!', variant: 'success' })
+            onSuccess?.()
+          }
+        } catch {
+          // skip
+        }
+      }
     } catch (err) {
       setState('error')
       const msg = (err as Error).message || 'Something went wrong'
@@ -100,6 +153,10 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   }
 
   if (!open) return null
+
+  const processed = progress ? progress.matched + progress.skipped + progress.failed : 0
+  const total = progress?.total || 0
+  const progressPercent = total > 0 ? Math.round((processed / total) * 100) : 0
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
@@ -179,14 +236,35 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                 </Button>
               </div>
             </div>
-          ) : state === 'uploading' ? (
+          ) : state === 'uploading' || state === 'progress' ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-cinema-400" />
-              <div className="text-center">
+              <div className="text-center w-full space-y-3">
                 <p className="font-medium">Importing your data...</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  This may take a while for large libraries
-                </p>
+                {state === 'progress' && progress ? (
+                  <>
+                    <p className="text-sm text-muted-foreground tabular-nums">
+                      {processed} / {total} entries processed
+                    </p>
+                    <div className="w-full max-w-xs mx-auto">
+                      <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-cinema-400 transition-all duration-300 ease-out"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-center gap-4 text-xs text-muted-foreground tabular-nums">
+                      <span>{progress.matched} matched</span>
+                      <span>{progress.skipped} skipped</span>
+                      <span>{progress.failed} failed</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Starting import...
+                  </p>
+                )}
               </div>
             </div>
           ) : (

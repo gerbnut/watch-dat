@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
@@ -9,6 +10,7 @@ import { searchMovies, getOrCacheMovie } from '@/lib/tmdb'
 import Papa from 'papaparse'
 
 const IMPORT_SOURCE = 'letterboxd'
+const BATCH_SIZE = 5
 
 interface DiaryRow {
   Date: string
@@ -43,8 +45,12 @@ function letterboxdToAppRating(lbRating: string): number | null {
   return Math.round(val * 2 * 2) / 2 // convert 0.5-5 to 1-10, snap to 0.5 increments
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+function chunk<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size))
+  }
+  return chunks
 }
 
 export async function POST(req: NextRequest) {
@@ -84,163 +90,192 @@ export async function POST(req: NextRequest) {
     }
 
     const totalItems = diaryRows.length + watchlistRows.length
-    let matched = 0
-    let skipped = 0
-    let failed = 0
+    const userId = session.user.id
 
-    // Process diary entries
-    for (const row of diaryRows) {
-      const name = row.Name?.trim()
-      const year = row.Year?.trim()
-      if (!name) {
-        skipped++
-        continue
-      }
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        let matched = 0
+        let skipped = 0
+        let failed = 0
 
-      try {
-        const query = year ? `${name} ${year}` : name
-        const searchResult = await searchMovies(query)
-        const match = searchResult.results?.[0]
-
-        if (!match) {
-          failed++
-          await sleep(50)
-          continue
+        function sendProgress() {
+          const event = JSON.stringify({ type: 'progress', matched, failed, skipped, total: totalItems })
+          controller.enqueue(encoder.encode(event + '\n'))
         }
 
-        const movie = await getOrCacheMovie(match.id)
-        const rating = letterboxdToAppRating(row.Rating || '')
-        const watchedDateStr = row['Watched Date']?.trim() || row.Date?.trim()
-        const watchedDate = watchedDateStr ? new Date(watchedDateStr) : new Date()
-        const isRewatch = row.Rewatch?.trim().toLowerCase() === 'yes'
+        // Process diary entries in batches
+        const diaryBatches = chunk(diaryRows, BATCH_SIZE)
+        for (const batch of diaryBatches) {
+          const results = await Promise.allSettled(
+            batch.map(async (row) => {
+              const name = row.Name?.trim()
+              const year = row.Year?.trim()
+              if (!name) {
+                return 'skipped' as const
+              }
 
-        // Skip if diary entry already exists for this user+movie+date
-        const existingDiary = await prisma.diaryEntry.findFirst({
-          where: {
-            userId: session.user.id,
-            movieId: movie.id,
-            watchedDate,
-          },
-        })
-        if (existingDiary) {
-          skipped++
-          await sleep(50)
-          continue
+              try {
+                const query = year ? `${name} ${year}` : name
+                const searchResult = await searchMovies(query)
+                const match = searchResult.results?.[0]
+
+                if (!match) {
+                  return 'failed' as const
+                }
+
+                const movie = await getOrCacheMovie(match.id)
+                const rating = letterboxdToAppRating(row.Rating || '')
+                const watchedDateStr = row['Watched Date']?.trim() || row.Date?.trim()
+                const watchedDate = watchedDateStr ? new Date(watchedDateStr) : new Date()
+                const isRewatch = row.Rewatch?.trim().toLowerCase() === 'yes'
+
+                // Skip if diary entry already exists for this user+movie+date
+                const existingDiary = await prisma.diaryEntry.findFirst({
+                  where: {
+                    userId,
+                    movieId: movie.id,
+                    watchedDate,
+                  },
+                })
+                if (existingDiary) {
+                  return 'skipped' as const
+                }
+
+                // Create diary entry
+                await prisma.diaryEntry.create({
+                  data: {
+                    userId,
+                    movieId: movie.id,
+                    watchedDate,
+                    rating,
+                    rewatch: isRewatch,
+                    importSource: IMPORT_SOURCE,
+                  },
+                })
+
+                // Upsert review (one per user+movie)
+                const existingReview = await prisma.review.findUnique({
+                  where: { userId_movieId: { userId, movieId: movie.id } },
+                })
+                if (!existingReview && rating !== null) {
+                  await prisma.review.create({
+                    data: {
+                      userId,
+                      movieId: movie.id,
+                      rating,
+                      watchedDate,
+                      rewatch: isRewatch,
+                      importSource: IMPORT_SOURCE,
+                    },
+                  })
+                }
+
+                return 'matched' as const
+              } catch (err) {
+                console.error(`Failed to import diary entry "${name}":`, err)
+                return 'failed' as const
+              }
+            })
+          )
+
+          for (const r of results) {
+            const outcome = r.status === 'fulfilled' ? r.value : 'failed'
+            if (outcome === 'matched') matched++
+            else if (outcome === 'skipped') skipped++
+            else failed++
+          }
+
+          sendProgress()
         }
 
-        // Create diary entry
-        await prisma.diaryEntry.create({
+        // Process watchlist entries in batches
+        const watchlistBatches = chunk(watchlistRows, BATCH_SIZE)
+        for (const batch of watchlistBatches) {
+          const results = await Promise.allSettled(
+            batch.map(async (row) => {
+              const name = row.Name?.trim()
+              const year = row.Year?.trim()
+              if (!name) {
+                return 'skipped' as const
+              }
+
+              try {
+                const query = year ? `${name} ${year}` : name
+                const searchResult = await searchMovies(query)
+                const match = searchResult.results?.[0]
+
+                if (!match) {
+                  return 'failed' as const
+                }
+
+                const movie = await getOrCacheMovie(match.id)
+
+                // Skip if already on watchlist
+                const existingWatchlist = await prisma.watchlistItem.findUnique({
+                  where: { userId_movieId: { userId, movieId: movie.id } },
+                })
+                if (existingWatchlist) {
+                  return 'skipped' as const
+                }
+
+                await prisma.watchlistItem.create({
+                  data: {
+                    userId,
+                    movieId: movie.id,
+                    importSource: IMPORT_SOURCE,
+                  },
+                })
+
+                return 'matched' as const
+              } catch (err) {
+                console.error(`Failed to import watchlist entry "${name}":`, err)
+                return 'failed' as const
+              }
+            })
+          )
+
+          for (const r of results) {
+            const outcome = r.status === 'fulfilled' ? r.value : 'failed'
+            if (outcome === 'matched') matched++
+            else if (outcome === 'skipped') skipped++
+            else failed++
+          }
+
+          sendProgress()
+        }
+
+        // Record the import
+        await prisma.letterboxdImport.create({
           data: {
-            userId: session.user.id,
-            movieId: movie.id,
-            watchedDate,
-            rating,
-            rewatch: isRewatch,
-            importSource: IMPORT_SOURCE,
+            userId,
+            totalItems,
+            matched,
+            skipped,
+            failed,
           },
         })
 
-        // Upsert review (one per user+movie)
-        const existingReview = await prisma.review.findUnique({
-          where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
-        })
-        if (!existingReview && rating !== null) {
-          await prisma.review.create({
-            data: {
-              userId: session.user.id,
-              movieId: movie.id,
-              rating,
-              watchedDate,
-              rewatch: isRewatch,
-              importSource: IMPORT_SOURCE,
-            },
-          })
-        }
-
-        matched++
-      } catch (err) {
-        console.error(`Failed to import diary entry "${name}":`, err)
-        failed++
-      }
-
-      await sleep(50)
-    }
-
-    // Process watchlist entries
-    for (const row of watchlistRows) {
-      const name = row.Name?.trim()
-      const year = row.Year?.trim()
-      if (!name) {
-        skipped++
-        continue
-      }
-
-      try {
-        const query = year ? `${name} ${year}` : name
-        const searchResult = await searchMovies(query)
-        const match = searchResult.results?.[0]
-
-        if (!match) {
-          failed++
-          await sleep(50)
-          continue
-        }
-
-        const movie = await getOrCacheMovie(match.id)
-
-        // Skip if already on watchlist
-        const existingWatchlist = await prisma.watchlistItem.findUnique({
-          where: { userId_movieId: { userId: session.user.id, movieId: movie.id } },
-        })
-        if (existingWatchlist) {
-          skipped++
-          await sleep(50)
-          continue
-        }
-
-        await prisma.watchlistItem.create({
+        // Update user import metadata
+        await prisma.user.update({
+          where: { id: userId },
           data: {
-            userId: session.user.id,
-            movieId: movie.id,
-            importSource: IMPORT_SOURCE,
+            letterboxdImportedAt: new Date(),
+            letterboxdEntryCount: totalItems,
           },
         })
 
-        matched++
-      } catch (err) {
-        console.error(`Failed to import watchlist entry "${name}":`, err)
-        failed++
-      }
-
-      await sleep(50)
-    }
-
-    // Record the import
-    await prisma.letterboxdImport.create({
-      data: {
-        userId: session.user.id,
-        totalItems,
-        matched,
-        skipped,
-        failed,
+        const complete = JSON.stringify({ type: 'complete', matched, failed, skipped, total: totalItems })
+        controller.enqueue(encoder.encode(complete + '\n'))
+        controller.close()
       },
     })
 
-    // Update user import metadata
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        letterboxdImportedAt: new Date(),
-        letterboxdEntryCount: totalItems,
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
       },
-    })
-
-    return NextResponse.json({
-      success: true,
-      totalItems,
-      matched,
-      skipped,
-      failed,
     })
   } catch (err) {
     console.error('Letterboxd import error:', err)
