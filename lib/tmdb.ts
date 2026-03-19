@@ -25,7 +25,7 @@ async function tmdbFetch(endpoint: string, params: Record<string, string> = {}) 
   const maxRetries = 3
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const res = await fetch(url.toString(), {
-      next: { revalidate: 3600 }, // ISR cache 1hr
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
