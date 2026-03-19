@@ -155,6 +155,12 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
     loadForYou,
   ])
 
+  const handleDelete = useCallback((activityId: string) => {
+    const remove = (s: TabState) => ({ ...s, items: s.items.filter((i) => i.id !== activityId) })
+    setFollowingState(remove)
+    setForYouState(remove)
+  }, [])
+
   const currentState = activeTab === 'following' ? followingState : forYouState
   const currentItems = currentState.items
 
@@ -236,6 +242,7 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
               <ActivityFeedItem
                 activity={activity as any}
                 currentUserId={currentUserId}
+                onDelete={handleDelete}
               />
             </motion.div>
           ))}

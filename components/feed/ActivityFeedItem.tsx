@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MoviePoster } from '@/components/movies/MoviePoster'
-import { Eye, Heart, BookOpen, List, UserPlus, Bookmark, MessageSquare, Share2 } from 'lucide-react'
+import { Eye, Heart, BookOpen, List, UserPlus, Bookmark, MessageSquare, Share2, MoreHorizontal, Trash2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CommentsSection } from '@/components/reviews/CommentsSection'
 import { AnimatedLikeButton } from '@/components/ui/AnimatedLikeButton'
@@ -37,15 +37,49 @@ const ACTIVITY_LABELS = {
 interface ActivityFeedItemProps {
   activity: ActivityWithRelations & { review?: any }
   currentUserId?: string
+  onDelete?: (activityId: string) => void
 }
 
-export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemProps) {
+export function ActivityFeedItem({ activity, currentUserId, onDelete }: ActivityFeedItemProps) {
   const label = ACTIVITY_LABELS[activity.type] ?? activity.type
 
   const [likeCount, setLikeCount] = useState<number>(activity.review?._count?.likes ?? 0)
   const [isLiked, setIsLiked] = useState<boolean>(activity.review?.isLiked ?? false)
   const [liking, setLiking] = useState(false)
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const menuRef = React.useRef<HTMLDivElement>(null)
+
+  const isOwner = currentUserId && activity.user.id === currentUserId
+
+  React.useEffect(() => {
+    if (!menuOpen) return
+    const close = (e: PointerEvent) => {
+      if (menuRef.current?.contains(e.target as Node)) return
+      setMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [menuOpen])
+
+  async function handleDelete() {
+    if (deleting || !activity.review?.id) return
+    setDeleting(true)
+    setMenuOpen(false)
+    try {
+      const res = await fetch(`/api/reviews/${activity.review.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      const { toast } = await import('@/hooks/use-toast')
+      toast({ title: 'Review deleted' })
+      onDelete?.(activity.id)
+    } catch {
+      const { toast } = await import('@/hooks/use-toast')
+      toast({ title: 'Could not delete review', variant: 'destructive' })
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   async function handleLike() {
     if (!currentUserId || !activity.review?.id) {
@@ -232,6 +266,29 @@ export function ActivityFeedItem({ activity, currentUserId }: ActivityFeedItemPr
             >
               <Share2 className="h-3.5 w-3.5" />
             </button>
+
+            {isOwner && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors ml-1 touch-manipulation"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 bottom-full mb-1 w-36 rounded-lg border border-white/[0.08] bg-card shadow-lg z-50 py-1">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-white/[0.04] transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {deleting ? 'Deleting…' : 'Delete review'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Comments */}
