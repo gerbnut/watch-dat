@@ -23,6 +23,13 @@ interface DiaryRow {
   'Watched Date': string
 }
 
+interface WatchedRow {
+  Date: string
+  Name: string
+  Year: string
+  'Letterboxd URI': string
+}
+
 interface WatchlistRow {
   Date: string
   Name: string
@@ -74,14 +81,24 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
     const diaryFile = formData.get('diary') as File | null
+    const watchedFile = formData.get('watched') as File | null
     const watchlistFile = formData.get('watchlist') as File | null
 
-    if (!diaryFile) {
-      return NextResponse.json({ error: 'diary.csv is required' }, { status: 400 })
+    if (!diaryFile && !watchedFile) {
+      return NextResponse.json({ error: 'diary.csv or watched.csv is required' }, { status: 400 })
     }
 
-    const diaryText = await diaryFile.text()
-    const diaryRows = parseCSV<DiaryRow>(diaryText)
+    let diaryRows: DiaryRow[] = []
+    if (diaryFile) {
+      const diaryText = await diaryFile.text()
+      diaryRows = parseCSV<DiaryRow>(diaryText)
+    }
+
+    let watchedRows: WatchedRow[] = []
+    if (watchedFile) {
+      const watchedText = await watchedFile.text()
+      watchedRows = parseCSV<WatchedRow>(watchedText)
+    }
 
     let watchlistRows: WatchlistRow[] = []
     if (watchlistFile) {
@@ -89,7 +106,7 @@ export async function POST(req: NextRequest) {
       watchlistRows = parseCSV<WatchlistRow>(watchlistText)
     }
 
-    const totalItems = diaryRows.length + watchlistRows.length
+    const totalItems = diaryRows.length + watchedRows.length + watchlistRows.length
     const userId = session.user.id
 
     const encoder = new TextEncoder()
@@ -174,6 +191,68 @@ export async function POST(req: NextRequest) {
                 return 'matched' as const
               } catch (err) {
                 console.error(`Failed to import diary entry "${name}":`, err)
+                return 'failed' as const
+              }
+            })
+          )
+
+          for (const r of results) {
+            const outcome = r.status === 'fulfilled' ? r.value : 'failed'
+            if (outcome === 'matched') matched++
+            else if (outcome === 'skipped') skipped++
+            else failed++
+          }
+
+          sendProgress()
+        }
+
+        // Process watched entries as diary entries (skips films already imported from diary.csv)
+        const watchedBatches = chunk(watchedRows, BATCH_SIZE)
+        for (const batch of watchedBatches) {
+          const results = await Promise.allSettled(
+            batch.map(async (row) => {
+              const name = row.Name?.trim()
+              const year = row.Year?.trim()
+              if (!name) {
+                return 'skipped' as const
+              }
+
+              try {
+                const query = year ? `${name} ${year}` : name
+                const searchResult = await searchMovies(query)
+                const match = searchResult.results?.[0]
+
+                if (!match) {
+                  return 'failed' as const
+                }
+
+                const movie = await getOrCacheMovie(match.id)
+                const watchedDate = row.Date?.trim() ? new Date(row.Date.trim()) : new Date()
+
+                // Skip if any diary entry already exists for this user+movie
+                const existingDiary = await prisma.diaryEntry.findFirst({
+                  where: {
+                    userId,
+                    movieId: movie.id,
+                  },
+                })
+                if (existingDiary) {
+                  return 'skipped' as const
+                }
+
+                // Create diary entry (no rating from watched.csv)
+                await prisma.diaryEntry.create({
+                  data: {
+                    userId,
+                    movieId: movie.id,
+                    watchedDate,
+                    importSource: IMPORT_SOURCE,
+                  },
+                })
+
+                return 'matched' as const
+              } catch (err) {
+                console.error(`Failed to import watched entry "${name}":`, err)
                 return 'failed' as const
               }
             })

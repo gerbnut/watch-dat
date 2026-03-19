@@ -30,17 +30,20 @@ interface ProgressData {
 
 export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   const [diaryFile, setDiaryFile] = useState<File | null>(null)
+  const [watchedFile, setWatchedFile] = useState<File | null>(null)
   const [watchlistFile, setWatchlistFile] = useState<File | null>(null)
   const [state, setState] = useState<ImportState>('idle')
   const [result, setResult] = useState<ImportResult | null>(null)
   const [progress, setProgress] = useState<ProgressData | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const diaryRef = useRef<HTMLInputElement>(null)
+  const watchedRef = useRef<HTMLInputElement>(null)
   const watchlistRef = useRef<HTMLInputElement>(null)
 
   const handleClose = useCallback(() => {
     if (state === 'uploading' || state === 'progress') return
     setDiaryFile(null)
+    setWatchedFile(null)
     setWatchlistFile(null)
     setState('idle')
     setResult(null)
@@ -50,7 +53,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   }, [state, onClose])
 
   const handleDrop = useCallback(
-    (e: React.DragEvent, type: 'diary' | 'watchlist') => {
+    (e: React.DragEvent, type: 'diary' | 'watched' | 'watchlist') => {
       e.preventDefault()
       const file = e.dataTransfer.files?.[0]
       if (!file) return
@@ -59,23 +62,25 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
         return
       }
       if (type === 'diary') setDiaryFile(file)
+      else if (type === 'watched') setWatchedFile(file)
       else setWatchlistFile(file)
     },
     []
   )
 
   const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, type: 'diary' | 'watchlist') => {
+    (e: React.ChangeEvent<HTMLInputElement>, type: 'diary' | 'watched' | 'watchlist') => {
       const file = e.target.files?.[0]
       if (!file) return
       if (type === 'diary') setDiaryFile(file)
+      else if (type === 'watched') setWatchedFile(file)
       else setWatchlistFile(file)
     },
     []
   )
 
   const handleImport = async () => {
-    if (!diaryFile) return
+    if (!diaryFile && !watchedFile) return
 
     setState('uploading')
     setErrorMsg('')
@@ -83,7 +88,8 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
 
     try {
       const formData = new FormData()
-      formData.append('diary', diaryFile)
+      if (diaryFile) formData.append('diary', diaryFile)
+      if (watchedFile) formData.append('watched', watchedFile)
       if (watchlistFile) formData.append('watchlist', watchlistFile)
 
       const res = await fetch('/api/import/letterboxd', {
@@ -269,10 +275,10 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
             </div>
           ) : (
             <>
-              {/* Diary CSV (required) */}
+              {/* Diary CSV */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Diary <span className="text-muted-foreground font-normal">(required)</span>
+                  Diary <span className="text-muted-foreground font-normal">(ratings &amp; dates)</span>
                 </label>
                 <input
                   ref={diaryRef}
@@ -286,7 +292,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => handleDrop(e, 'diary')}
                   className={cn(
-                    'cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors',
+                    'cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-colors',
                     diaryFile
                       ? 'border-cinema-500/30 bg-cinema-500/5'
                       : 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02]'
@@ -307,18 +313,65 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-1.5">
-                      <Upload className="h-5 w-5 mx-auto text-muted-foreground/40" />
+                    <div className="flex items-center justify-center gap-2">
+                      <Upload className="h-4 w-4 text-muted-foreground/40" />
                       <p className="text-sm text-muted-foreground">
-                        Drop <span className="font-medium text-foreground">diary.csv</span> here or
-                        click to browse
+                        <span className="font-medium text-foreground">diary.csv</span>
                       </p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Watchlist CSV (optional) */}
+              {/* Watched CSV */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Watched <span className="text-muted-foreground font-normal">(all films)</span>
+                </label>
+                <input
+                  ref={watchedRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, 'watched')}
+                />
+                <div
+                  onClick={() => watchedRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, 'watched')}
+                  className={cn(
+                    'cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-colors',
+                    watchedFile
+                      ? 'border-cinema-500/30 bg-cinema-500/5'
+                      : 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02]'
+                  )}
+                >
+                  {watchedFile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <FileText className="h-4 w-4 text-cinema-400" />
+                      <span className="text-sm font-medium">{watchedFile.name}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setWatchedFile(null)
+                        }}
+                        className="rounded-full p-0.5 hover:bg-white/10"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <Upload className="h-4 w-4 text-muted-foreground/40" />
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">watched.csv</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Watchlist CSV */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">
                   Watchlist <span className="text-muted-foreground font-normal">(optional)</span>
@@ -335,7 +388,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => handleDrop(e, 'watchlist')}
                   className={cn(
-                    'cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors',
+                    'cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-colors',
                     watchlistFile
                       ? 'border-cinema-500/30 bg-cinema-500/5'
                       : 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02]'
@@ -356,11 +409,10 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-1.5">
-                      <Upload className="h-5 w-5 mx-auto text-muted-foreground/40" />
+                    <div className="flex items-center justify-center gap-2">
+                      <Upload className="h-4 w-4 text-muted-foreground/40" />
                       <p className="text-sm text-muted-foreground">
-                        Drop <span className="font-medium text-foreground">watchlist.csv</span> here
-                        or click to browse
+                        <span className="font-medium text-foreground">watchlist.csv</span>
                       </p>
                     </div>
                   )}
@@ -372,7 +424,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   To export from Letterboxd: go to{' '}
                   <span className="font-medium text-foreground">Settings &rarr; Import &amp; Export &rarr; Export Your Data</span>.
-                  You'll get a ZIP containing diary.csv and watchlist.csv.
+                  You'll get a ZIP containing diary.csv, watched.csv, and watchlist.csv.
                 </p>
               </div>
             </>
@@ -386,7 +438,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
               variant="cinema"
               className="w-full gap-2"
               onClick={handleImport}
-              disabled={!diaryFile}
+              disabled={!diaryFile && !watchedFile}
             >
               <Upload className="h-4 w-4" />
               Import
