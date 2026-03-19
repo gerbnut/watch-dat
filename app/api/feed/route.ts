@@ -66,10 +66,12 @@ export async function GET(req: NextRequest) {
 
     const reviewMap = new Map(reviews.map((r) => [r.id, r]))
 
-    const enriched = data.map((a) => ({
-      ...a,
-      review: a.reviewId ? reviewMap.get(a.reviewId) ?? null : null,
-    }))
+    const enriched = data
+      .map((a) => ({
+        ...a,
+        review: a.reviewId ? reviewMap.get(a.reviewId) ?? null : null,
+      }))
+      .filter((a) => !a.reviewId || a.review !== null)
 
     return NextResponse.json({
       data: enriched,

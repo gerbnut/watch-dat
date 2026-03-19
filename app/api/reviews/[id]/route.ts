@@ -68,7 +68,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.review.delete({ where: { id } })
+    await prisma.$transaction([
+      prisma.activity.deleteMany({ where: { reviewId: id } }),
+      prisma.review.delete({ where: { id } }),
+    ])
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Delete review error:', err)

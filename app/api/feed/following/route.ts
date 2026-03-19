@@ -59,12 +59,14 @@ export async function GET(req: NextRequest) {
     const reviewMap = new Map(reviews.map((r) => [r.id, r]))
     const likedSet = new Set(likedReviewData.map((l) => l.reviewId))
 
-    const result = items.map((a) => ({
-      ...a,
-      review: a.reviewId
-        ? { ...(reviewMap.get(a.reviewId) ?? null), isLiked: likedSet.has(a.reviewId) }
-        : null,
-    }))
+    const result = items
+      .map((a) => ({
+        ...a,
+        review: a.reviewId
+          ? { ...(reviewMap.get(a.reviewId) ?? null), isLiked: likedSet.has(a.reviewId) }
+          : null,
+      }))
+      .filter((a) => !a.reviewId || a.review !== null)
 
     return NextResponse.json({
       activities: result,
