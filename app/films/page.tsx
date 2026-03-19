@@ -8,10 +8,14 @@ import {
   getNowPlayingMovies,
   getTopRatedMovies,
   discoverMovies,
+  getMovieVideos,
+  pickBestTrailer,
   TMDBSearchResult,
 } from '@/lib/tmdb'
 import { getUserTopGenres, getUserWatchedTmdbIds } from '@/lib/user-genres'
 import { MovieScrollRow } from '@/components/movies/MovieScrollRow'
+import { TrendingCarousel } from '@/components/movies/TrendingCarousel'
+import { MovieSearch } from '@/components/movies/MovieSearch'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import {
   TrendingUp,
@@ -41,7 +45,7 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
-export const metadata: Metadata = { title: 'Films' }
+export const metadata: Metadata = { title: 'Search' }
 
 type Tab = 'popular' | 'new' | 'top-rated' | 'for-you'
 
@@ -124,14 +128,20 @@ export default async function FilmsPage({
       ...(frenchGems.results ?? []),
     ]).slice(0, 20)
 
+    // Fetch trailers for top 10 trending movies
+    const trendingSlice: TMDBSearchResult[] = (trending.results ?? []).slice(0, 10)
+    const trailerResults = await Promise.allSettled(
+      trendingSlice.map((m: TMDBSearchResult) => getMovieVideos(m.id))
+    )
+    const trendingWithTrailers = trendingSlice.map((m: TMDBSearchResult, i: number) => {
+      const vResult = trailerResults[i]
+      const trailer = vResult.status === 'fulfilled' ? pickBestTrailer(vResult.value.results) : null
+      return { ...m, trailerKey: trailer?.key ?? null }
+    })
+
     content = (
       <div className="space-y-8">
-        <MovieScrollRow
-          title="Trending This Week"
-          icon={TrendingUp}
-          movies={trending.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/trending?title=Trending+This+Week"
-        />
+        <TrendingCarousel movies={trendingWithTrailers} />
         <MovieScrollRow
           title="Popular Right Now"
           icon={Star}
@@ -413,14 +423,20 @@ export default async function FilmsPage({
 
   return (
     <div className="space-y-6">
+      {/* Search bar */}
+      <MovieSearch
+        placeholder="Search films, cast & crew, people..."
+        showPeople
+      />
+
       {/* Tab bar */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
         {tabs.map(({ id, label, href }) => (
           <Link
             key={id}
             href={href}
             className={cn(
-              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors border',
+              'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors border',
               tab === id
                 ? 'bg-cinema-500/10 text-cinema-400 border-cinema-500/20'
                 : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border-transparent'
@@ -431,7 +447,7 @@ export default async function FilmsPage({
         ))}
         <Link
           href="/pick-tonight"
-          className="rounded-full px-4 py-1.5 text-sm font-medium border border-cinema-500/30 text-cinema-400 hover:bg-cinema-500/10 transition-colors flex items-center gap-1.5"
+          className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border border-cinema-500/30 text-cinema-400 hover:bg-cinema-500/10 transition-colors flex items-center gap-1.5"
         >
           <Shuffle className="h-3.5 w-3.5" />
           Tonight

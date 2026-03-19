@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Home, Film, Plus, Users, User } from 'lucide-react'
+import { Home, Search, Plus, Users, User } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { LogFilmModal } from '@/components/reviews/LogFilmModal'
@@ -24,7 +24,7 @@ export function BottomTabBar() {
 
   const tabs = [
     { href: '/', label: 'Home', icon: Home, active: pathname === '/' },
-    { href: '/films', label: 'Films', icon: Film, active: pathname.startsWith('/films') },
+    { href: '/films', label: 'Search', icon: Search, active: pathname.startsWith('/films') },
     { href: '/friends', label: 'Friends', icon: Users, active: pathname.startsWith('/friends') },
     { href: meHref, label: 'Me', icon: User, active: meActive },
   ]
