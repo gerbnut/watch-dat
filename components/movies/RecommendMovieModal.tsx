@@ -104,10 +104,10 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
       {/* max-h uses dvh so it respects the keyboard-reduced visual viewport on iOS */}
       <div
         className="relative w-full max-w-md backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] rounded-t-2xl sm:rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
-        style={{ maxHeight: 'min(calc(100svh - env(keyboard-inset-height, 0px) - 4rem), 600px)' }}
+        style={{ maxHeight: 'min(calc(100dvh - env(keyboard-inset-height, 0px) - 4rem), 600px)' }}
       >
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 pb-2 space-y-4 flex flex-col min-h-0">
           <div>
             <h2 className="font-semibold text-base">Recommend a film</h2>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">"{movieTitle}"</p>
@@ -196,12 +196,16 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
           )}
         </div>
 
-        {/* Sticky send button — only shown after selecting a friend */}
-        {selected && (
-          <div className="shrink-0 border-t border-white/[0.04] px-5 py-4">
+        {/* Sticky footer — cancel always visible, send shown after selecting */}
+        <div className="shrink-0 border-t border-white/[0.04] px-5 py-4 flex gap-2" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+          <Button variant="ghost" size="sm" onClick={handleClose} className={selected ? 'flex-1' : 'w-full'}>
+            Cancel
+          </Button>
+          {selected && (
             <Button
               variant="cinema"
-              className="w-full gap-2"
+              size="sm"
+              className="flex-1 gap-2"
               onClick={handleSend}
               disabled={sending || sent}
             >
@@ -210,11 +214,11 @@ export function RecommendMovieModal({ open, onClose, movieTitle, tmdbId }: Props
               ) : sending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <><Send className="h-4 w-4" /> Send recommendation</>
+                <><Send className="h-4 w-4" /> Send</>
               )}
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
