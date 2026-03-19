@@ -93,7 +93,7 @@ export function BannerSection({ bannerUrl: initialUrl, isOwnProfile, username }:
               className="object-cover"
               sizes="100vw"
               priority
-              unoptimized={bannerUrl.startsWith('blob:')}
+              unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
           </>

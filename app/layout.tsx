@@ -9,8 +9,6 @@ import { BottomTabBar } from '@/components/layout/BottomTabBar'
 import { LayoutTransition } from '@/components/layout/LayoutTransition'
 import { PullToRefresh } from '@/components/layout/PullToRefresh'
 import { ServiceWorkerRegistration } from '@/components/layout/ServiceWorkerRegistration'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' })
 
@@ -71,8 +69,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BottomTabBar />
             <Toaster />
             <ServiceWorkerRegistration />
-            <Analytics />
-            <SpeedInsights />
           </QueryProvider>
         </SessionProvider>
       </body>

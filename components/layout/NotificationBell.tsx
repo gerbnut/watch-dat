@@ -41,10 +41,12 @@ export function NotificationBell() {
   const bellRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Poll unread count (lightweight)
+  // Poll unread count (lightweight, only when tab visible)
   useEffect(() => {
     fetchUnread()
-    const interval = setInterval(fetchUnread, 60_000)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchUnread()
+    }, 300_000)
     return () => clearInterval(interval)
   }, [])
 
@@ -72,10 +74,10 @@ export function NotificationBell() {
 
   async function fetchUnread() {
     try {
-      const res = await fetch('/api/notifications')
+      const res = await fetch('/api/notifications/unread-count')
       if (res.ok) {
         const data = await res.json()
-        setUnreadCount(data.unreadCount ?? 0)
+        setUnreadCount(data.count ?? 0)
       }
     } catch {}
   }

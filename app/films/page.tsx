@@ -1,6 +1,5 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 import { Metadata } from 'next'
-import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import {
   getTrendingMovies,
@@ -63,7 +62,7 @@ function dedupeMovies(movies: TMDBSearchResult[]): TMDBSearchResult[] {
   })
 }
 
-async function fetchRecentReviews(userId?: string) {
+async function fetchRecentReviews() {
   return prisma.review.findMany({
     where: { text: { not: null }, rating: { gte: 7 } },
     orderBy: { createdAt: 'desc' },
@@ -82,8 +81,15 @@ export default async function FilmsPage({
   searchParams: Promise<{ tab?: string }>
 }) {
   const { tab: rawTab } = await searchParams
-  const session = await auth()
-  const userId = session?.user?.id
+
+  // Only import and call auth() for the for-you tab to keep other tabs ISR-cacheable
+  const needsAuth = rawTab === 'for-you'
+  let userId: string | undefined
+  if (needsAuth) {
+    const { auth } = await import('@/auth')
+    const session = await auth()
+    userId = session?.user?.id
+  }
 
   const tab: Tab =
     rawTab === 'new' ? 'new'
@@ -95,7 +101,7 @@ export default async function FilmsPage({
     { id: 'popular' as Tab, label: 'Popular', href: '/films' },
     { id: 'new' as Tab, label: 'New Releases', href: '/films?tab=new' },
     { id: 'top-rated' as Tab, label: 'Top Rated', href: '/films?tab=top-rated' },
-    ...(userId ? [{ id: 'for-you' as Tab, label: 'For You', href: '/films?tab=for-you' }] : []),
+    { id: 'for-you' as Tab, label: 'For You', href: '/films?tab=for-you' },
   ]
 
   let content: React.ReactNode
@@ -120,7 +126,7 @@ export default async function FilmsPage({
       discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'vote_average.desc' }),
       discoverMovies({ withGenres: '10752,18', minVotes: 300, sortBy: 'vote_average.desc' }),
       discoverMovies({ withGenres: '27,53', voteAverageGte: 6.5, sortBy: 'popularity.desc' }),
-      fetchRecentReviews(userId),
+      fetchRecentReviews(),
     ])
 
     const foreignGems = dedupeMovies([
@@ -205,7 +211,6 @@ export default async function FilmsPage({
                   key={review.id}
                   review={review as any}
                   showMovie
-                  currentUserId={userId}
                 />
               ))}
             </div>
@@ -373,7 +378,7 @@ export default async function FilmsPage({
         discoverMovies({ withGenres: top2Genres, releaseDateGte: '2025-01-01' }),
         discoverMovies({ voteAverageGte: 8.0, minVotes: 1000, sortBy: 'vote_average.desc' }),
         discoverMovies({ voteAverageGte: 7.0, minVotes: 300, page: randomPage }),
-        fetchRecentReviews(userId),
+        fetchRecentReviews(),
       ])
 
       content = (

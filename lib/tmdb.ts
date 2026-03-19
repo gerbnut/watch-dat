@@ -25,7 +25,7 @@ async function tmdbFetch(endpoint: string, params: Record<string, string> = {}) 
   const maxRetries = 3
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const res = await fetch(url.toString(), {
-      cache: 'no-store',
+      next: { revalidate: 3600 },
       headers: {
         Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
@@ -236,6 +236,13 @@ export function pickBestTrailer(videos: TMDBVideo[]): TMDBVideo | null {
     ?? yt.find(v => v.type === 'Trailer')
     ?? yt.find(v => v.type === 'Teaser')
     ?? null
+}
+
+// Lightweight cache check for imports — skips staleness refresh if movie exists in DB
+export async function getOrCacheMovieLight(tmdbId: number) {
+  const existing = await prisma.movie.findUnique({ where: { tmdbId } })
+  if (existing) return existing
+  return getOrCacheMovie(tmdbId)
 }
 
 // Cache movie in DB to avoid redundant API calls
