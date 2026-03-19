@@ -135,7 +135,6 @@ export function LetterboxdSettingsClient({ importedAt, entryCount }: Props) {
         open={showModal}
         onClose={() => setShowModal(false)}
         onSuccess={() => {
-          setShowModal(false)
           router.refresh()
         }}
       />
