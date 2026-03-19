@@ -33,6 +33,8 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   const [diaryFile, setDiaryFile] = useState<File | null>(null)
   const [watchedFile, setWatchedFile] = useState<File | null>(null)
   const [watchlistFile, setWatchlistFile] = useState<File | null>(null)
+  const [ratingsFile, setRatingsFile] = useState<File | null>(null)
+  const [reviewsTextFile, setReviewsTextFile] = useState<File | null>(null)
   const [state, setState] = useState<ImportState>('idle')
   const [result, setResult] = useState<ImportResult | null>(null)
   const [progress, setProgress] = useState<ProgressData | null>(null)
@@ -40,12 +42,16 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   const diaryRef = useRef<HTMLInputElement>(null)
   const watchedRef = useRef<HTMLInputElement>(null)
   const watchlistRef = useRef<HTMLInputElement>(null)
+  const ratingsRef = useRef<HTMLInputElement>(null)
+  const reviewsRef = useRef<HTMLInputElement>(null)
 
   const handleClose = useCallback(() => {
     if (state === 'uploading' || state === 'progress') return
     setDiaryFile(null)
     setWatchedFile(null)
     setWatchlistFile(null)
+    setRatingsFile(null)
+    setReviewsTextFile(null)
     setState('idle')
     setResult(null)
     setProgress(null)
@@ -54,7 +60,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
   }, [state, onClose])
 
   const handleDrop = useCallback(
-    (e: React.DragEvent, type: 'diary' | 'watched' | 'watchlist') => {
+    (e: React.DragEvent, type: 'diary' | 'watched' | 'watchlist' | 'ratings' | 'reviews') => {
       e.preventDefault()
       const file = e.dataTransfer.files?.[0]
       if (!file) return
@@ -64,18 +70,22 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
       }
       if (type === 'diary') setDiaryFile(file)
       else if (type === 'watched') setWatchedFile(file)
-      else setWatchlistFile(file)
+      else if (type === 'watchlist') setWatchlistFile(file)
+      else if (type === 'ratings') setRatingsFile(file)
+      else setReviewsTextFile(file)
     },
     []
   )
 
   const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, type: 'diary' | 'watched' | 'watchlist') => {
+    (e: React.ChangeEvent<HTMLInputElement>, type: 'diary' | 'watched' | 'watchlist' | 'ratings' | 'reviews') => {
       const file = e.target.files?.[0]
       if (!file) return
       if (type === 'diary') setDiaryFile(file)
       else if (type === 'watched') setWatchedFile(file)
-      else setWatchlistFile(file)
+      else if (type === 'watchlist') setWatchlistFile(file)
+      else if (type === 'ratings') setRatingsFile(file)
+      else setReviewsTextFile(file)
     },
     []
   )
@@ -92,6 +102,8 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
       if (diaryFile) formData.append('diary', diaryFile)
       if (watchedFile) formData.append('watched', watchedFile)
       if (watchlistFile) formData.append('watchlist', watchlistFile)
+      if (ratingsFile) formData.append('ratings', ratingsFile)
+      if (reviewsTextFile) formData.append('reviewText', reviewsTextFile)
 
       const res = await fetch('/api/import/letterboxd', {
         method: 'POST',
@@ -428,6 +440,102 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                       <Upload className="h-4 w-4 text-muted-foreground/40" />
                       <p className="text-sm text-muted-foreground">
                         <span className="font-medium text-foreground">watchlist.csv</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ratings CSV */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Ratings <span className="text-muted-foreground font-normal">(optional)</span>
+                </label>
+                <input
+                  ref={ratingsRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, 'ratings')}
+                />
+                <div
+                  onClick={() => ratingsRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, 'ratings')}
+                  className={cn(
+                    'cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-colors',
+                    ratingsFile
+                      ? 'border-cinema-500/30 bg-cinema-500/5'
+                      : 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02]'
+                  )}
+                >
+                  {ratingsFile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <FileText className="h-4 w-4 text-cinema-400" />
+                      <span className="text-sm font-medium">{ratingsFile.name}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setRatingsFile(null)
+                        }}
+                        className="rounded-full p-0.5 hover:bg-white/10"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <Upload className="h-4 w-4 text-muted-foreground/40" />
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">ratings.csv</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Reviews CSV */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Reviews <span className="text-muted-foreground font-normal">(optional)</span>
+                </label>
+                <input
+                  ref={reviewsRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, 'reviews')}
+                />
+                <div
+                  onClick={() => reviewsRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleDrop(e, 'reviews')}
+                  className={cn(
+                    'cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-colors',
+                    reviewsTextFile
+                      ? 'border-cinema-500/30 bg-cinema-500/5'
+                      : 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.02]'
+                  )}
+                >
+                  {reviewsTextFile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <FileText className="h-4 w-4 text-cinema-400" />
+                      <span className="text-sm font-medium">{reviewsTextFile.name}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setReviewsTextFile(null)
+                        }}
+                        className="rounded-full p-0.5 hover:bg-white/10"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <Upload className="h-4 w-4 text-muted-foreground/40" />
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">reviews.csv</span>
                       </p>
                     </div>
                   )}

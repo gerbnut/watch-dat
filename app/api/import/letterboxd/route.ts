@@ -42,6 +42,26 @@ interface WatchlistRow {
   'Letterboxd URI': string
 }
 
+interface RatingsRow {
+  Date: string
+  Name: string
+  Year: string
+  'Letterboxd URI': string
+  Rating: string
+}
+
+interface ReviewTextRow {
+  Date: string
+  Name: string
+  Year: string
+  'Letterboxd URI': string
+  Rating: string
+  Rewatch: string
+  Tags: string
+  'Watched Date': string
+  Review: string
+}
+
 function parseCSV<T>(text: string): T[] {
   const result = Papa.parse<T>(text, {
     header: true,
@@ -111,7 +131,21 @@ export async function POST(req: NextRequest) {
       watchlistRows = parseCSV<WatchlistRow>(watchlistText)
     }
 
-    const totalItems = diaryRows.length + watchedRows.length + watchlistRows.length
+    const ratingsFile = formData.get('ratings') as File | null
+    let ratingsRows: RatingsRow[] = []
+    if (ratingsFile) {
+      const ratingsText = await ratingsFile.text()
+      ratingsRows = parseCSV<RatingsRow>(ratingsText)
+    }
+
+    const reviewsTextFile = formData.get('reviewText') as File | null
+    let reviewTextRows: ReviewTextRow[] = []
+    if (reviewsTextFile) {
+      const reviewsText = await reviewsTextFile.text()
+      reviewTextRows = parseCSV<ReviewTextRow>(reviewsText)
+    }
+
+    const totalItems = diaryRows.length + watchedRows.length + watchlistRows.length + ratingsRows.length + reviewTextRows.length
     const userId = session.user.id
 
     const encoder = new TextEncoder()
@@ -201,6 +235,17 @@ export async function POST(req: NextRequest) {
                   reviewId = newReview.id
                 }
 
+                // Create activity with historical date so it doesn't flood the feed
+                await prisma.activity.create({
+                  data: {
+                    userId,
+                    type: reviewId ? 'REVIEWED' : 'WATCHED',
+                    movieId: movie.id,
+                    reviewId,
+                    createdAt: watchedDate,
+                  },
+                })
+
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import diary entry "${name}":`, err)
@@ -272,6 +317,16 @@ export async function POST(req: NextRequest) {
                   },
                 })
 
+                // Create activity with historical date
+                await prisma.activity.create({
+                  data: {
+                    userId,
+                    type: 'WATCHED',
+                    movieId: movie.id,
+                    createdAt: watchedDate,
+                  },
+                })
+
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import watched entry "${name}":`, err)
@@ -340,6 +395,170 @@ export async function POST(req: NextRequest) {
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import watchlist entry "${name}":`, err)
+                return { status: 'failed' as const, name, reason: (err as Error).message }
+              }
+            })
+          )
+
+          for (const r of results) {
+            const res = r.status === 'fulfilled' ? r.value : { status: 'failed' as const, name: 'unknown' }
+            if (res.status === 'matched') matched++
+            else if (res.status === 'skipped') skipped++
+            else {
+              failed++
+              if ('name' in res && res.name) failedEntries.push({ name: res.name, reason: ('reason' in res ? res.reason : '') || 'unknown' })
+            }
+          }
+
+          sendProgress()
+          await sleep(BATCH_DELAY_MS)
+        }
+
+        // Process ratings (update existing records that lack ratings)
+        const ratingsBatches = chunk(ratingsRows, BATCH_SIZE)
+        for (const batch of ratingsBatches) {
+          const results = await Promise.allSettled(
+            batch.map(async (row) => {
+              const name = row.Name?.trim()
+              const year = row.Year?.trim()
+              if (!name) return { status: 'skipped' as const }
+
+              try {
+                const searchResult = await searchMovies(name, 1, year || undefined)
+                let match = searchResult?.results?.[0]
+                if (!match && year) {
+                  const retryResult = await searchMovies(name)
+                  match = retryResult?.results?.[0]
+                }
+                if (!match) return { status: 'failed' as const, name, reason: 'not found on TMDB' }
+
+                const movie = await getOrCacheMovie(match.id)
+                const rating = letterboxdToAppRating(row.Rating || '')
+                if (rating === null) return { status: 'skipped' as const }
+
+                // Update existing review if it has no rating
+                const existingReview = await prisma.review.findUnique({
+                  where: { userId_movieId: { userId, movieId: movie.id } },
+                })
+                if (existingReview && existingReview.rating === null) {
+                  await prisma.review.update({
+                    where: { id: existingReview.id },
+                    data: { rating },
+                  })
+                } else if (!existingReview) {
+                  // Check for diary entry without a review
+                  const diaryEntry = await prisma.diaryEntry.findFirst({
+                    where: { userId, movieId: movie.id },
+                  })
+                  if (diaryEntry) {
+                    await prisma.review.create({
+                      data: {
+                        userId,
+                        movieId: movie.id,
+                        rating,
+                        watchedDate: diaryEntry.watchedDate,
+                        importSource: IMPORT_SOURCE,
+                      },
+                    })
+                  } else {
+                    return { status: 'skipped' as const }
+                  }
+                } else {
+                  // Review already has a rating, don't overwrite
+                  return { status: 'skipped' as const }
+                }
+
+                // Also update diary entry rating if missing
+                await prisma.diaryEntry.updateMany({
+                  where: { userId, movieId: movie.id, rating: null },
+                  data: { rating },
+                })
+
+                return { status: 'matched' as const }
+              } catch (err) {
+                console.error(`Failed to import rating for "${name}":`, err)
+                return { status: 'failed' as const, name, reason: (err as Error).message }
+              }
+            })
+          )
+
+          for (const r of results) {
+            const res = r.status === 'fulfilled' ? r.value : { status: 'failed' as const, name: 'unknown' }
+            if (res.status === 'matched') matched++
+            else if (res.status === 'skipped') skipped++
+            else {
+              failed++
+              if ('name' in res && res.name) failedEntries.push({ name: res.name, reason: ('reason' in res ? res.reason : '') || 'unknown' })
+            }
+          }
+
+          sendProgress()
+          await sleep(BATCH_DELAY_MS)
+        }
+
+        // Process review text (add text to existing reviews)
+        const reviewTextBatches = chunk(reviewTextRows, BATCH_SIZE)
+        for (const batch of reviewTextBatches) {
+          const results = await Promise.allSettled(
+            batch.map(async (row) => {
+              const name = row.Name?.trim()
+              const year = row.Year?.trim()
+              const reviewText = row.Review?.trim()
+              if (!name || !reviewText) return { status: 'skipped' as const }
+
+              try {
+                const searchResult = await searchMovies(name, 1, year || undefined)
+                let match = searchResult?.results?.[0]
+                if (!match && year) {
+                  const retryResult = await searchMovies(name)
+                  match = retryResult?.results?.[0]
+                }
+                if (!match) return { status: 'failed' as const, name, reason: 'not found on TMDB' }
+
+                const movie = await getOrCacheMovie(match.id)
+
+                const existingReview = await prisma.review.findUnique({
+                  where: { userId_movieId: { userId, movieId: movie.id } },
+                })
+
+                if (existingReview && !existingReview.text) {
+                  // Add text to existing review
+                  const rating = letterboxdToAppRating(row.Rating || '')
+                  await prisma.review.update({
+                    where: { id: existingReview.id },
+                    data: {
+                      text: reviewText,
+                      ...(existingReview.rating === null && rating !== null ? { rating } : {}),
+                    },
+                  })
+                } else if (!existingReview) {
+                  // Create review with text if diary entry exists
+                  const diaryEntry = await prisma.diaryEntry.findFirst({
+                    where: { userId, movieId: movie.id },
+                  })
+                  if (diaryEntry) {
+                    const rating = letterboxdToAppRating(row.Rating || '')
+                    await prisma.review.create({
+                      data: {
+                        userId,
+                        movieId: movie.id,
+                        text: reviewText,
+                        rating,
+                        watchedDate: diaryEntry.watchedDate,
+                        importSource: IMPORT_SOURCE,
+                      },
+                    })
+                  } else {
+                    return { status: 'skipped' as const }
+                  }
+                } else {
+                  // Review already has text, don't overwrite
+                  return { status: 'skipped' as const }
+                }
+
+                return { status: 'matched' as const }
+              } catch (err) {
+                console.error(`Failed to import review for "${name}":`, err)
                 return { status: 'failed' as const, name, reason: (err as Error).message }
               }
             })

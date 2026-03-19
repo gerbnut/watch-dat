@@ -68,8 +68,17 @@ export async function GET(req: NextRequest) {
       }))
       .filter((a) => !a.reviewId || a.review !== null)
 
+    // Deduplicate by reviewId (imports can create duplicate review activities)
+    const seenReviews = new Set<string>()
+    const deduped = result.filter((a) => {
+      if (!a.reviewId) return true
+      if (seenReviews.has(a.reviewId)) return false
+      seenReviews.add(a.reviewId)
+      return true
+    })
+
     return NextResponse.json({
-      activities: result,
+      activities: deduped,
       nextCursor: hasMore ? items[items.length - 1].createdAt.toISOString() : null,
     })
   } catch (err) {

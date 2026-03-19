@@ -73,8 +73,17 @@ export async function GET(req: NextRequest) {
       }))
       .filter((a) => !a.reviewId || a.review !== null)
 
+    // Deduplicate by reviewId (imports can create duplicate review activities)
+    const seen = new Set<string>()
+    const deduped = enriched.filter((a) => {
+      if (!a.reviewId) return true
+      if (seen.has(a.reviewId)) return false
+      seen.add(a.reviewId)
+      return true
+    })
+
     return NextResponse.json({
-      data: enriched,
+      data: deduped,
       nextCursor: hasMore ? data[data.length - 1].id : null,
       hasMore,
     })
