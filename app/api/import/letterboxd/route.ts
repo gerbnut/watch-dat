@@ -11,7 +11,7 @@ import Papa from 'papaparse'
 
 const IMPORT_SOURCE = 'letterboxd'
 const BATCH_SIZE = 5
-const BATCH_DELAY_MS = 250 // pause between batches to avoid TMDB rate limits (~40 req/10s)
+const BATCH_DELAY_MS = 250 // pause between batches to avoid TMDB rate limits
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -141,10 +141,11 @@ export async function POST(req: NextRequest) {
               try {
                 const query = year ? `${name} ${year}` : name
                 const searchResult = await searchMovies(query)
-                const match = searchResult.results?.[0]
+                const match = searchResult?.results?.[0]
 
                 if (!match) {
-                  return { status: 'failed' as const, name, reason: 'not found' }
+                  const total = searchResult?.total_results ?? 'no response'
+                  return { status: 'failed' as const, name, reason: `q="${query}" results=${total}` }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -242,10 +243,11 @@ export async function POST(req: NextRequest) {
               try {
                 const query = year ? `${name} ${year}` : name
                 const searchResult = await searchMovies(query)
-                const match = searchResult.results?.[0]
+                const match = searchResult?.results?.[0]
 
                 if (!match) {
-                  return { status: 'failed' as const, name, reason: 'not found' }
+                  const total = searchResult?.total_results ?? 'no response'
+                  return { status: 'failed' as const, name, reason: `q="${query}" results=${total}` }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -317,10 +319,11 @@ export async function POST(req: NextRequest) {
               try {
                 const query = year ? `${name} ${year}` : name
                 const searchResult = await searchMovies(query)
-                const match = searchResult.results?.[0]
+                const match = searchResult?.results?.[0]
 
                 if (!match) {
-                  return { status: 'failed' as const, name, reason: 'not found' }
+                  const total = searchResult?.total_results ?? 'no response'
+                  return { status: 'failed' as const, name, reason: `q="${query}" results=${total}` }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
