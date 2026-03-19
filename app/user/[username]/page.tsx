@@ -17,8 +17,6 @@ import { BannerSection } from './BannerSection'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { ReportButton } from '@/components/ui/ReportButton'
 import { RankedFilmsTab } from '@/components/profile/RankedFilmsTab'
-import { StatsTab } from '@/components/profile/StatsTab'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const { username } = await params
@@ -270,9 +268,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           <TabsTrigger value="ranked" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Ranked
           </TabsTrigger>
-          <TabsTrigger value="stats" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Stats
-          </TabsTrigger>
           <TabsTrigger value="activity" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Activity
           </TabsTrigger>
@@ -289,19 +284,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
 
         <TabsContent value="ranked" className="mt-4">
           <RankedFilmsTab username={user.username ?? ''} />
-        </TabsContent>
-
-        <TabsContent value="stats" className="mt-4">
-          <StatsTab
-            username={user.username ?? ''}
-            wrappedEligible={user._count.diaryEntries >= 10}
-            isOwnProfile={isOwnProfile}
-            favoritePosterUrls={user.favoriteMovies
-              .map(fm => fm.movie.poster)
-              .filter((p): p is string => !!p)
-              .map(p => TMDB_IMAGE.poster(p, 'w154'))
-              .filter((url): url is string => !!url)}
-          />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-4">

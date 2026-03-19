@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { TrendingUp, Sparkles } from 'lucide-react'
 import { LandingHero } from '@/components/landing/LandingHero'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { FriendSearch } from '@/components/feed/FriendSearch'
 
 async function getTrendingFromTMDB() {
   try {
@@ -94,6 +95,14 @@ export default async function HomePage() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Friend search — mobile only, above feed */}
+      <div className="lg:hidden lg:col-span-2">
+        <div className="rounded-2xl border border-white/[0.04] bg-card/50 p-4">
+          <h2 className="text-sm font-semibold mb-2">Find friends</h2>
+          <FriendSearch />
+        </div>
+      </div>
+
       {/* Main feed with tabs */}
       <div className="lg:col-span-2">
         <ErrorBoundary label="feed">
@@ -103,6 +112,12 @@ export default async function HomePage() {
 
       {/* Sidebar */}
       <aside className="space-y-6">
+        {/* Friend search — desktop sidebar */}
+        <div className="hidden lg:block rounded-2xl border border-white/[0.04] bg-card/50 p-4">
+          <h2 className="text-sm font-semibold mb-2">Find friends</h2>
+          <FriendSearch />
+        </div>
+
         {/* Because you watched X */}
         {recommendations.length > 0 && (
           <div className="rounded-2xl border border-white/[0.04] bg-card/50 p-4">
