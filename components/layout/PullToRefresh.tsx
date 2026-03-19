@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { hapticNotification } from '@/lib/native'
 
 const THRESHOLD = 72    // px of pull before triggering refresh
 const MAX_PULL = 100    // max visual pull cap
@@ -43,6 +44,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
     if (!pulling.current) return
     pulling.current = false
     if (pullDistance >= THRESHOLD) {
+      hapticNotification('success')
       setRefreshing(true)
       setPullDistance(THRESHOLD * 0.6)
       router.refresh()

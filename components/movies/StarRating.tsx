@@ -2,6 +2,7 @@
 
 import React, { useId, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { hapticImpact } from '@/lib/native'
 
 interface StarRatingProps {
   value: number | null
@@ -44,6 +45,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
     const half = x < rect.width / 2
     const rating = (half ? starIndex - 0.5 : starIndex) * 2 // Convert back to 1-10
     onChange(rating)
+    hapticImpact('light')
     setAnimStar(starIndex)
     setTimeout(() => setAnimStar(null), 220)
   }
@@ -57,6 +59,7 @@ export function StarRating({ value, onChange, readOnly = false, size = 'md', sho
     const half = x < rect.width / 2
     const rating = (half ? starIndex - 0.5 : starIndex) * 2
     onChange(rating)
+    hapticImpact('light')
     setAnimStar(starIndex)
     setTimeout(() => setAnimStar(null), 220)
   }

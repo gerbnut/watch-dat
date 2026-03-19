@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.watchdat.app",
+        "paths": ["/film/*", "/user/*", "/list/*", "/review/*", "/person/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.com.watchdat.app"]
+  }
+}

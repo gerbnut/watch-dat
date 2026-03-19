@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { initNativePlugins } from '@/lib/native'
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
@@ -18,6 +19,10 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export function ServiceWorkerRegistration() {
   const { data: session } = useSession()
+
+  useEffect(() => {
+    initNativePlugins()
+  }, [])
 
   useEffect(() => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return

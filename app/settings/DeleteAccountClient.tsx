@@ -5,6 +5,7 @@ import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
+import { hapticNotification } from '@/lib/native'
 
 export function DeleteAccountClient() {
   const [step, setStep] = useState<'idle' | 'confirm' | 'deleting'>('idle')
@@ -52,7 +53,7 @@ export function DeleteAccountClient() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleDelete}
+            onClick={() => { hapticNotification('warning'); handleDelete() }}
           >
             Yes, delete everything
           </Button>

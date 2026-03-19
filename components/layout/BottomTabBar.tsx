@@ -7,6 +7,7 @@ import { Home, Film, Plus, Users, User } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { LogFilmModal } from '@/components/reviews/LogFilmModal'
+import { hapticImpact } from '@/lib/native'
 
 export function BottomTabBar() {
   const pathname = usePathname()
@@ -55,6 +56,7 @@ export function BottomTabBar() {
           <div className="flex flex-1 flex-col items-center justify-center">
             <button
               onClick={() => {
+                hapticImpact('medium')
                 if (session?.user) {
                   setLogOpen(true)
                 } else {

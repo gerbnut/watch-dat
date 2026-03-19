@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   description: 'Track films you\'ve watched, rate and review them, build curated lists, and discover movies through friends.',
   keywords: ['movies', 'film diary', 'letterboxd', 'cinema', 'reviews', 'watchlist'],
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     title: 'Watch Dat',
     description: 'Your digital film diary',
