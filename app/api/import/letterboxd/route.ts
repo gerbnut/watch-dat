@@ -139,13 +139,17 @@ export async function POST(req: NextRequest) {
               }
 
               try {
-                const query = year ? `${name} ${year}` : name
-                const searchResult = await searchMovies(query)
-                const match = searchResult?.results?.[0]
+                const searchResult = await searchMovies(name, 1, year || undefined)
+                let match = searchResult?.results?.[0]
+
+                // Retry without year filter if no results
+                if (!match && year) {
+                  const retryResult = await searchMovies(name)
+                  match = retryResult?.results?.[0]
+                }
 
                 if (!match) {
-                  const total = searchResult?.total_results ?? 'no response'
-                  return { status: 'failed' as const, name, reason: `q="${query}" results=${total}` }
+                  return { status: 'failed' as const, name, reason: `not found on TMDB` }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -241,13 +245,17 @@ export async function POST(req: NextRequest) {
               }
 
               try {
-                const query = year ? `${name} ${year}` : name
-                const searchResult = await searchMovies(query)
-                const match = searchResult?.results?.[0]
+                const searchResult = await searchMovies(name, 1, year || undefined)
+                let match = searchResult?.results?.[0]
+
+                // Retry without year filter if no results
+                if (!match && year) {
+                  const retryResult = await searchMovies(name)
+                  match = retryResult?.results?.[0]
+                }
 
                 if (!match) {
-                  const total = searchResult?.total_results ?? 'no response'
-                  return { status: 'failed' as const, name, reason: `q="${query}" results=${total}` }
+                  return { status: 'failed' as const, name, reason: `not found on TMDB` }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -317,13 +325,17 @@ export async function POST(req: NextRequest) {
               }
 
               try {
-                const query = year ? `${name} ${year}` : name
-                const searchResult = await searchMovies(query)
-                const match = searchResult?.results?.[0]
+                const searchResult = await searchMovies(name, 1, year || undefined)
+                let match = searchResult?.results?.[0]
+
+                // Retry without year filter if no results
+                if (!match && year) {
+                  const retryResult = await searchMovies(name)
+                  match = retryResult?.results?.[0]
+                }
 
                 if (!match) {
-                  const total = searchResult?.total_results ?? 'no response'
-                  return { status: 'failed' as const, name, reason: `q="${query}" results=${total}` }
+                  return { status: 'failed' as const, name, reason: `not found on TMDB` }
                 }
 
                 const movie = await getOrCacheMovie(match.id)

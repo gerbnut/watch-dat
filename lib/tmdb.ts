@@ -129,12 +129,14 @@ export async function discoverMovies(options: DiscoverMoviesOptions = {})
   return tmdbFetch('/discover/movie', params)
 }
 
-export async function searchMovies(query: string, page = 1): Promise<{
+export async function searchMovies(query: string, page = 1, year?: string): Promise<{
   results: TMDBSearchResult[]
   total_pages: number
   total_results: number
 }> {
-  return tmdbFetch('/search/movie', { query, page: String(page), include_adult: 'false' })
+  const params: Record<string, string> = { query, page: String(page), include_adult: 'false' }
+  if (year) params.year = year
+  return tmdbFetch('/search/movie', params)
 }
 
 export interface TMDBPersonSearchResult {
