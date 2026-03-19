@@ -201,16 +201,6 @@ export async function POST(req: NextRequest) {
                   reviewId = newReview.id
                 }
 
-                // Create activity record
-                await prisma.activity.create({
-                  data: {
-                    userId,
-                    type: rating !== null ? 'REVIEWED' : 'WATCHED',
-                    movieId: movie.id,
-                    reviewId,
-                  },
-                })
-
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import diary entry "${name}":`, err)
@@ -279,15 +269,6 @@ export async function POST(req: NextRequest) {
                     movieId: movie.id,
                     watchedDate,
                     importSource: IMPORT_SOURCE,
-                  },
-                })
-
-                // Create activity record
-                await prisma.activity.create({
-                  data: {
-                    userId,
-                    type: 'WATCHED',
-                    movieId: movie.id,
                   },
                 })
 
@@ -423,34 +404,6 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    // Find imported review IDs to clean up associated activities
-    const importedReviews = await prisma.review.findMany({
-      where: { userId: session.user.id, importSource: IMPORT_SOURCE },
-      select: { id: true },
-    })
-    const importedReviewIds = importedReviews.map((r) => r.id)
-
-    // Find imported diary movie IDs to clean up WATCHED activities
-    const importedDiary = await prisma.diaryEntry.findMany({
-      where: { userId: session.user.id, importSource: IMPORT_SOURCE },
-      select: { movieId: true },
-    })
-    const importedMovieIds = [...new Set(importedDiary.map((d) => d.movieId))]
-
-    // Delete activities for imported reviews and watched entries
-    await Promise.all([
-      importedReviewIds.length > 0
-        ? prisma.activity.deleteMany({
-            where: { userId: session.user.id, reviewId: { in: importedReviewIds } },
-          })
-        : Promise.resolve(),
-      importedMovieIds.length > 0
-        ? prisma.activity.deleteMany({
-            where: { userId: session.user.id, type: 'WATCHED', movieId: { in: importedMovieIds } },
-          })
-        : Promise.resolve(),
-    ])
-
     // Delete all entries with letterboxd import source
     const [diaryDeleted, reviewsDeleted, watchlistDeleted] = await Promise.all([
       prisma.diaryEntry.deleteMany({
