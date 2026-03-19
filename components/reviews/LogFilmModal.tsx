@@ -149,7 +149,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-lg overflow-y-auto" style={{ maxHeight: 'min(90vh, 100dvh - env(keyboard-inset-height, 0px) - 2rem)' }}>
+      <DialogContent className="max-w-lg overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'min(90vh, 100dvh - env(keyboard-inset-height, 0px) - 2rem)', touchAction: 'pan-y' }}>
         <DialogHeader>
           <DialogTitle>{editMode ? 'Edit review' : 'Log a film'}</DialogTitle>
         </DialogHeader>

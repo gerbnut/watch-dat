@@ -74,7 +74,7 @@ export function RulerRating({ value, onChange, className }: RulerRatingProps) {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative cursor-pointer select-none py-2"
+        className="relative cursor-pointer select-none py-3 px-1"
         style={{ touchAction: 'none' }}
       >
         {/* Filled track */}
