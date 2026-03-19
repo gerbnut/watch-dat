@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
         let matched = 0
         let skipped = 0
         let failed = 0
+        const failedNames: string[] = []
 
         function sendProgress() {
           const event = JSON.stringify({ type: 'progress', matched, failed, skipped, total: totalItems })
@@ -134,7 +135,7 @@ export async function POST(req: NextRequest) {
               const name = row.Name?.trim()
               const year = row.Year?.trim()
               if (!name) {
-                return 'skipped' as const
+                return { status: 'skipped' as const }
               }
 
               try {
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
                 const match = searchResult.results?.[0]
 
                 if (!match) {
-                  return 'failed' as const
+                  return { status: 'failed' as const, name }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
                   },
                 })
                 if (existingDiary) {
-                  return 'skipped' as const
+                  return { status: 'skipped' as const }
                 }
 
                 // Create diary entry
@@ -205,19 +206,22 @@ export async function POST(req: NextRequest) {
                   },
                 })
 
-                return 'matched' as const
+                return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import diary entry "${name}":`, err)
-                return 'failed' as const
+                return { status: 'failed' as const, name }
               }
             })
           )
 
           for (const r of results) {
-            const outcome = r.status === 'fulfilled' ? r.value : 'failed'
-            if (outcome === 'matched') matched++
-            else if (outcome === 'skipped') skipped++
-            else failed++
+            const res = r.status === 'fulfilled' ? r.value : { status: 'failed' as const, name: 'unknown' }
+            if (res.status === 'matched') matched++
+            else if (res.status === 'skipped') skipped++
+            else {
+              failed++
+              if ('name' in res && res.name) failedNames.push(res.name)
+            }
           }
 
           sendProgress()
@@ -232,7 +236,7 @@ export async function POST(req: NextRequest) {
               const name = row.Name?.trim()
               const year = row.Year?.trim()
               if (!name) {
-                return 'skipped' as const
+                return { status: 'skipped' as const }
               }
 
               try {
@@ -241,7 +245,7 @@ export async function POST(req: NextRequest) {
                 const match = searchResult.results?.[0]
 
                 if (!match) {
-                  return 'failed' as const
+                  return { status: 'failed' as const, name }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -255,7 +259,7 @@ export async function POST(req: NextRequest) {
                   },
                 })
                 if (existingDiary) {
-                  return 'skipped' as const
+                  return { status: 'skipped' as const }
                 }
 
                 // Create diary entry (no rating from watched.csv)
@@ -277,19 +281,22 @@ export async function POST(req: NextRequest) {
                   },
                 })
 
-                return 'matched' as const
+                return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import watched entry "${name}":`, err)
-                return 'failed' as const
+                return { status: 'failed' as const, name }
               }
             })
           )
 
           for (const r of results) {
-            const outcome = r.status === 'fulfilled' ? r.value : 'failed'
-            if (outcome === 'matched') matched++
-            else if (outcome === 'skipped') skipped++
-            else failed++
+            const res = r.status === 'fulfilled' ? r.value : { status: 'failed' as const, name: 'unknown' }
+            if (res.status === 'matched') matched++
+            else if (res.status === 'skipped') skipped++
+            else {
+              failed++
+              if ('name' in res && res.name) failedNames.push(res.name)
+            }
           }
 
           sendProgress()
@@ -304,7 +311,7 @@ export async function POST(req: NextRequest) {
               const name = row.Name?.trim()
               const year = row.Year?.trim()
               if (!name) {
-                return 'skipped' as const
+                return { status: 'skipped' as const }
               }
 
               try {
@@ -313,7 +320,7 @@ export async function POST(req: NextRequest) {
                 const match = searchResult.results?.[0]
 
                 if (!match) {
-                  return 'failed' as const
+                  return { status: 'failed' as const, name }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -323,7 +330,7 @@ export async function POST(req: NextRequest) {
                   where: { userId_movieId: { userId, movieId: movie.id } },
                 })
                 if (existingWatchlist) {
-                  return 'skipped' as const
+                  return { status: 'skipped' as const }
                 }
 
                 await prisma.watchlistItem.create({
@@ -334,19 +341,22 @@ export async function POST(req: NextRequest) {
                   },
                 })
 
-                return 'matched' as const
+                return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import watchlist entry "${name}":`, err)
-                return 'failed' as const
+                return { status: 'failed' as const, name }
               }
             })
           )
 
           for (const r of results) {
-            const outcome = r.status === 'fulfilled' ? r.value : 'failed'
-            if (outcome === 'matched') matched++
-            else if (outcome === 'skipped') skipped++
-            else failed++
+            const res = r.status === 'fulfilled' ? r.value : { status: 'failed' as const, name: 'unknown' }
+            if (res.status === 'matched') matched++
+            else if (res.status === 'skipped') skipped++
+            else {
+              failed++
+              if ('name' in res && res.name) failedNames.push(res.name)
+            }
           }
 
           sendProgress()
@@ -373,7 +383,7 @@ export async function POST(req: NextRequest) {
           },
         })
 
-        const complete = JSON.stringify({ type: 'complete', matched, failed, skipped, total: totalItems })
+        const complete = JSON.stringify({ type: 'complete', matched, failed, skipped, total: totalItems, failedNames: failedNames.slice(0, 50) })
         controller.enqueue(encoder.encode(complete + '\n'))
         controller.close()
       },

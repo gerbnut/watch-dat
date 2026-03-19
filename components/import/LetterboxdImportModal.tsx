@@ -19,6 +19,7 @@ interface ImportResult {
   matched: number
   skipped: number
   failed: number
+  failedNames?: string[]
 }
 
 interface ProgressData {
@@ -125,7 +126,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
             if (event.type === 'progress') {
               setProgress({ matched: event.matched, failed: event.failed, skipped: event.skipped, total: event.total })
             } else if (event.type === 'complete') {
-              setResult({ totalItems: event.total, matched: event.matched, skipped: event.skipped, failed: event.failed })
+              setResult({ totalItems: event.total, matched: event.matched, skipped: event.skipped, failed: event.failed, failedNames: event.failedNames })
               setState('success')
               toast({ title: 'Import complete!', variant: 'success' })
               onSuccess?.()
@@ -141,7 +142,7 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
         try {
           const event = JSON.parse(buffer)
           if (event.type === 'complete') {
-            setResult({ totalItems: event.total, matched: event.matched, skipped: event.skipped, failed: event.failed })
+            setResult({ totalItems: event.total, matched: event.matched, skipped: event.skipped, failed: event.failed, failedNames: event.failedNames })
             setState('success')
             toast({ title: 'Import complete!', variant: 'success' })
             onSuccess?.()
@@ -213,6 +214,16 @@ export function LetterboxdImportModal({ open, onClose, onSuccess }: Props) {
                   <p className="text-xs text-muted-foreground">Not found</p>
                 </div>
               </div>
+              {result.failedNames && result.failedNames.length > 0 && (
+                <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3 max-h-32 overflow-y-auto">
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                    Could not find ({result.failedNames.length}):
+                  </p>
+                  <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                    {result.failedNames.join(', ')}
+                  </p>
+                </div>
+              )}
               <Button variant="cinema" className="w-full" onClick={handleClose}>
                 Done
               </Button>
