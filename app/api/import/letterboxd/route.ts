@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
         let matched = 0
         let skipped = 0
         let failed = 0
-        const failedNames: string[] = []
+        const failedEntries: { name: string; reason: string }[] = []
 
         function sendProgress() {
           const event = JSON.stringify({ type: 'progress', matched, failed, skipped, total: totalItems })
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
                 const match = searchResult.results?.[0]
 
                 if (!match) {
-                  return { status: 'failed' as const, name }
+                  return { status: 'failed' as const, name, reason: 'not found' }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import diary entry "${name}":`, err)
-                return { status: 'failed' as const, name }
+                return { status: 'failed' as const, name, reason: (err as Error).message }
               }
             })
           )
@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
             else if (res.status === 'skipped') skipped++
             else {
               failed++
-              if ('name' in res && res.name) failedNames.push(res.name)
+              if ('name' in res && res.name) failedEntries.push({ name: res.name, reason: ('reason' in res ? res.reason : '') || 'unknown' })
             }
           }
 
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
                 const match = searchResult.results?.[0]
 
                 if (!match) {
-                  return { status: 'failed' as const, name }
+                  return { status: 'failed' as const, name, reason: 'not found' }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -284,7 +284,7 @@ export async function POST(req: NextRequest) {
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import watched entry "${name}":`, err)
-                return { status: 'failed' as const, name }
+                return { status: 'failed' as const, name, reason: (err as Error).message }
               }
             })
           )
@@ -295,7 +295,7 @@ export async function POST(req: NextRequest) {
             else if (res.status === 'skipped') skipped++
             else {
               failed++
-              if ('name' in res && res.name) failedNames.push(res.name)
+              if ('name' in res && res.name) failedEntries.push({ name: res.name, reason: ('reason' in res ? res.reason : '') || 'unknown' })
             }
           }
 
@@ -320,7 +320,7 @@ export async function POST(req: NextRequest) {
                 const match = searchResult.results?.[0]
 
                 if (!match) {
-                  return { status: 'failed' as const, name }
+                  return { status: 'failed' as const, name, reason: 'not found' }
                 }
 
                 const movie = await getOrCacheMovie(match.id)
@@ -344,7 +344,7 @@ export async function POST(req: NextRequest) {
                 return { status: 'matched' as const }
               } catch (err) {
                 console.error(`Failed to import watchlist entry "${name}":`, err)
-                return { status: 'failed' as const, name }
+                return { status: 'failed' as const, name, reason: (err as Error).message }
               }
             })
           )
@@ -355,7 +355,7 @@ export async function POST(req: NextRequest) {
             else if (res.status === 'skipped') skipped++
             else {
               failed++
-              if ('name' in res && res.name) failedNames.push(res.name)
+              if ('name' in res && res.name) failedEntries.push({ name: res.name, reason: ('reason' in res ? res.reason : '') || 'unknown' })
             }
           }
 
@@ -383,7 +383,7 @@ export async function POST(req: NextRequest) {
           },
         })
 
-        const complete = JSON.stringify({ type: 'complete', matched, failed, skipped, total: totalItems, failedNames: failedNames.slice(0, 50) })
+        const complete = JSON.stringify({ type: 'complete', matched, failed, skipped, total: totalItems, failedEntries: failedEntries.slice(0, 50) })
         controller.enqueue(encoder.encode(complete + '\n'))
         controller.close()
       },
