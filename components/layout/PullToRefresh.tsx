@@ -15,19 +15,36 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const [pullDistance, setPullDistance] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const touchStartY = useRef(0)
+  const touchStartX = useRef(0)
   const pulling = useRef(false)
+  const lockedAxis = useRef<'vertical' | 'horizontal' | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     // Only activate when scrolled to top
     if (window.scrollY > 0) return
     touchStartY.current = e.touches[0].clientY
+    touchStartX.current = e.touches[0].clientX
     pulling.current = true
+    lockedAxis.current = null
   }, [])
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!pulling.current || refreshing) return
     const dy = e.touches[0].clientY - touchStartY.current
+    const dx = e.touches[0].clientX - touchStartX.current
+
+    // Lock axis once user moves past dead zone
+    if (lockedAxis.current === null && (Math.abs(dx) > DEAD_ZONE || Math.abs(dy) > DEAD_ZONE)) {
+      lockedAxis.current = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical'
+    }
+
+    // If swiping horizontally, bail out entirely so scroll containers work
+    if (lockedAxis.current === 'horizontal') {
+      setPullDistance(0)
+      return
+    }
+
     if (dy <= 0) {
       setPullDistance(0)
       return
