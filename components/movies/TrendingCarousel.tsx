@@ -54,7 +54,7 @@ export function TrendingCarousel({ movies }: TrendingCarouselProps) {
       </div>
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide"
+        className="flex gap-4 overflow-x-auto pb-3 snap-x scrollbar-hide"
       >
         {movies.map((movie, i) => {
           const backdrop = TMDB_IMAGE.backdrop(movie.backdrop_path, 'w780')

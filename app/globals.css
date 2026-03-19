@@ -70,13 +70,12 @@
   /* Remove tap highlight and default appearance on all interactive elements */
   button, a, [role="button"] {
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
   }
 
   /* Smooth scrolling + prevent horizontal overflow without breaking position:fixed */
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* Better scrollbar */

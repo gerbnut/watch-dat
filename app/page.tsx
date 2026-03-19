@@ -40,7 +40,7 @@ export default async function HomePage() {
             <h2 className="text-lg font-semibold">Trending this week</h2>
           </div>
           <div className="relative">
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+            <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
               {trending.map((movie: any, i: number) => (
                 <MovieCard
                   key={movie.id}
