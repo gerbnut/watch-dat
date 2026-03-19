@@ -98,8 +98,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         user: { select: { id: true, username: true, displayName: true, avatar: true } },
       },
     })
-  } catch (err: any) {
-    return NextResponse.json({ error: `DB error: ${err?.message}` }, { status: 500 })
+  } catch (err) {
+    console.error('Comment create error:', err)
+    return NextResponse.json({ error: 'Failed to save comment' }, { status: 500 })
   }
 
   // Notifications are best-effort — never fail the request if they error

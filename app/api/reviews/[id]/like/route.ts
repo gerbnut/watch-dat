@@ -13,6 +13,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   try {
+    const review = await prisma.review.findUnique({ where: { id }, select: { id: true } })
+    if (!review) {
+      return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+    }
+
     const existing = await prisma.like.findUnique({
       where: { userId_reviewId: { userId: session.user.id, reviewId: id } },
     })

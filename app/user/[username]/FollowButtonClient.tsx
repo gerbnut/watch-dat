@@ -23,6 +23,7 @@ export function FollowButtonClient({ username, isFollowing: initial }: FollowBut
       const res = await fetch(`/api/users/${username}/follow`, { method: 'POST' })
       const data = await res.json()
       setIsFollowing(data.following)
+      toast({ title: data.following ? 'Following' : 'Unfollowed' })
     } catch {
       setIsFollowing(prev)
       toast({ title: 'Error', description: 'Failed to update follow', variant: 'destructive' })

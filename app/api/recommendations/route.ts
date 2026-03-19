@@ -42,7 +42,12 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
   const parsed = sendSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
 
@@ -91,7 +96,7 @@ export async function POST(req: NextRequest) {
       type: 'RECOMMENDED_MOVIE',
       movieId: movie.id,
     },
-  }).catch(() => {}) // Ignore if it fails
+  }).catch((err) => console.error('Notification failed:', err))
 
   return NextResponse.json({ success: true })
 }

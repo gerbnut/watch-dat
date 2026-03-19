@@ -303,8 +303,15 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tmdbId: card.tmdbId }),
-        }).catch(() => {})
-        toast({ title: 'Added to watchlist!', variant: 'success' })
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error()
+            toast({ title: 'Added to watchlist!', variant: 'success' })
+          })
+          .catch(() => {
+            setLikedCards((prev) => prev.filter((c) => c.tmdbId !== card.tmdbId))
+            toast({ title: 'Failed to add to watchlist', variant: 'destructive' })
+          })
       }
     }
 

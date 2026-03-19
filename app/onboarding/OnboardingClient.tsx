@@ -81,14 +81,16 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
     setSaving(true)
     try {
       if (!skip && selected.length > 0) {
-        await fetch(`/api/users/${username}/favorites`, {
+        const res = await fetch(`/api/users/${username}/favorites`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tmdbIds: selected.map((m) => m.tmdbId) }),
         })
+        if (!res.ok) throw new Error('Failed to save')
       }
     } catch {
-      // Non-fatal — proceed anyway
+      const { toast } = await import('@/hooks/use-toast')
+      toast({ title: 'Could not save favorites', variant: 'destructive' })
     } finally {
       router.push('/')
       router.refresh()

@@ -23,11 +23,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many uploads. Please wait.' }, { status: 429, headers })
   }
 
-  // Determine which DB field to write — defaults to 'avatar' for backward compat
+  // Determine which DB field to write
   const rawField = new URL(req.url).searchParams.get('field') ?? 'avatar'
-  const field: AllowedField = (ALLOWED_FIELDS as readonly string[]).includes(rawField)
-    ? (rawField as AllowedField)
-    : 'avatar'
+  if (!(ALLOWED_FIELDS as readonly string[]).includes(rawField)) {
+    return NextResponse.json({ error: 'Invalid field' }, { status: 400 })
+  }
+  const field = rawField as AllowedField
 
   let formData: FormData
   try {

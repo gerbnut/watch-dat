@@ -61,13 +61,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await req.json()
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+
+    const patchSchema = z.object({
+      name: z.string().min(1).max(100).optional(),
+      description: z.string().max(500).optional(),
+      isPublic: z.boolean().optional(),
+    })
+    const parsed = patchSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
+    }
+
     const updated = await prisma.list.update({
       where: { id },
       data: {
-        name: body.name ?? undefined,
-        description: body.description ?? undefined,
-        isPublic: body.isPublic ?? undefined,
+        name: parsed.data.name ?? undefined,
+        description: parsed.data.description ?? undefined,
+        isPublic: parsed.data.isPublic ?? undefined,
       },
     })
 

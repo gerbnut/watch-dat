@@ -43,8 +43,11 @@ function SearchContent() {
       fetch(`/api/people/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
     ]).then(([movieResult, userResult, castResult]) => {
       if (movieResult.status === 'fulfilled') setFilms(movieResult.value.results ?? [])
+      else console.warn('Film search failed:', movieResult.reason)
       if (userResult.status === 'fulfilled') setMembers(Array.isArray(userResult.value) ? userResult.value : [])
+      else console.warn('User search failed:', userResult.reason)
       if (castResult.status === 'fulfilled') setCast(castResult.value.results ?? [])
+      else console.warn('Cast search failed:', castResult.reason)
       setLoading(false)
     })
   }, [debouncedQuery])

@@ -9,7 +9,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { username, displayName } = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
+  const { username, displayName } = body
 
   const usernameErr = validateUsernameFormat(username)
   if (usernameErr) {

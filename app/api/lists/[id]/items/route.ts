@@ -81,6 +81,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
+    // Verify all items belong to this list
+    const itemIds = parsed.data.items.map((i) => i.id)
+    const ownedItems = await prisma.listItem.findMany({
+      where: { id: { in: itemIds }, listId: id },
+      select: { id: true },
+    })
+    if (ownedItems.length !== itemIds.length) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     await prisma.$transaction(
       parsed.data.items.map(({ id: itemId, order }) =>
         prisma.listItem.update({ where: { id: itemId }, data: { order } })

@@ -60,20 +60,23 @@ export function MovieSearch({
       setPeople([])
       return
     }
+    const controller = new AbortController()
     setLoading(true)
     const fetches: Promise<any>[] = [
-      fetch(`/api/movies/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json()),
+      fetch(`/api/movies/search?q=${encodeURIComponent(debouncedQuery)}`, { signal: controller.signal }).then((r) => r.json()),
     ]
     if (showPeople) {
       fetches.push(
-        fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) => r.json())
+        fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`, { signal: controller.signal }).then((r) => r.json())
       )
     }
     Promise.allSettled(fetches).then(([movieRes, userRes]) => {
+      if (controller.signal.aborted) return
       if (movieRes.status === 'fulfilled') setResults(movieRes.value.results?.slice(0, 5) ?? [])
       if (userRes?.status === 'fulfilled') setPeople(Array.isArray(userRes.value) ? userRes.value.slice(0, 4) : [])
       setLoading(false)
     })
+    return () => controller.abort()
   }, [debouncedQuery, showPeople])
 
   // Auto-focus mobile input when overlay opens

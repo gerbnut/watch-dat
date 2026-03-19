@@ -6,7 +6,13 @@ import { generateOTP, hashOTP, sendEmailOTP } from '@/lib/otp'
 const rateLimits = new Map<string, { count: number; resetAt: number }>()
 
 export async function POST(req: Request) {
-  const { email } = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
+  const { email } = body
 
   if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Valid email required' }, { status: 400 })

@@ -50,7 +50,7 @@ export function CreateListButtonClient({ variant = 'default' }: CreateListButton
       router.refresh()
       router.push(`/list/${data.id}`)
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+      toast({ title: 'Could not create list', description: err.message, variant: 'destructive' })
     } finally {
       setLoading(false)
     }

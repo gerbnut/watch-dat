@@ -53,13 +53,18 @@ export async function PATCH(req: NextRequest) {
   if (action === 'remove') {
     const report = await prisma.report.findUnique({ where: { id: reportId } })
     if (report) {
-      if (report.targetType === 'REVIEW') {
-        await prisma.review.deleteMany({ where: { id: report.targetId } }).catch(() => {})
-      } else if (report.targetType === 'COMMENT') {
-        await prisma.comment.updateMany({
-          where: { id: report.targetId },
-          data: { deleted: true, text: null },
-        }).catch(() => {})
+      try {
+        if (report.targetType === 'REVIEW') {
+          await prisma.review.deleteMany({ where: { id: report.targetId } })
+        } else if (report.targetType === 'COMMENT') {
+          await prisma.comment.updateMany({
+            where: { id: report.targetId },
+            data: { deleted: true, text: null },
+          })
+        }
+      } catch (err) {
+        console.error('Failed to remove reported content:', err)
+        return NextResponse.json({ error: 'Failed to remove content' }, { status: 500 })
       }
     }
   }

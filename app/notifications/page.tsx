@@ -62,7 +62,7 @@ export default async function NotificationsPage() {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center space-y-3">
+        <div className="rounded-xl border bg-card p-6 sm:p-12 text-center space-y-3">
           <Bell className="h-10 w-10 mx-auto text-muted-foreground/40" />
           <div className="space-y-1.5">
             <p className="font-medium">No notifications yet</p>

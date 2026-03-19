@@ -26,7 +26,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ us
 
     if (existing) {
       await prisma.block.delete({ where: { id: existing.id } })
-      revalidatePath('/user/' + username)
+      revalidatePath(`/user/${encodeURIComponent(username)}`)
       return NextResponse.json({ blocked: false })
     }
 
@@ -43,7 +43,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ us
       }),
     ])
 
-    revalidatePath('/user/' + username)
+    revalidatePath(`/user/${encodeURIComponent(username)}`)
     return NextResponse.json({ blocked: true })
   } catch (err) {
     console.error('Block error:', err)

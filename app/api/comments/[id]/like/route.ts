@@ -13,6 +13,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   }
 
   try {
+    const comment = await prisma.comment.findUnique({ where: { id }, select: { id: true } })
+    if (!comment) {
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
+    }
+
     const existing = await prisma.commentLike.findUnique({
       where: { userId_commentId: { userId: session.user.id, commentId: id } },
     })

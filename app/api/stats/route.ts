@@ -50,7 +50,10 @@ export async function GET(req: NextRequest) {
         GROUP BY genre->>'name'
         ORDER BY count DESC
         LIMIT 10
-      `,
+      `.catch((err: unknown) => {
+        console.error('Genre stats query failed:', err)
+        return []
+      }),
     ])
 
     return NextResponse.json({

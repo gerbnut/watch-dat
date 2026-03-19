@@ -9,10 +9,20 @@ import { signIn } from '@/auth'
 const rateLimits = new Map<string, { count: number; resetAt: number }>()
 
 export async function POST(req: Request) {
-  const { email, code } = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
+  const { email, code } = body
 
   if (!email || !code || typeof code !== 'string') {
     return NextResponse.json({ error: 'Email and code required' }, { status: 400 })
+  }
+
+  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Valid email required' }, { status: 400 })
   }
 
   const normalizedEmail = email.toLowerCase().trim()

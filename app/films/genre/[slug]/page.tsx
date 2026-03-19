@@ -36,14 +36,20 @@ export default async function GenrePage({
 
   let movies: any[] = []
   let totalPages = 1
+  let fetchError = false
 
-  if (slug === 'trending') {
-    const data = await getTrendingMovies('week')
-    movies = data.results ?? []
-  } else {
-    const data = await discoverMovies({ withGenres: slug, page })
-    movies = data.results ?? []
-    totalPages = Math.min(data.total_pages, 20)
+  try {
+    if (slug === 'trending') {
+      const data = await getTrendingMovies('week')
+      movies = data.results ?? []
+    } else {
+      const data = await discoverMovies({ withGenres: slug, page })
+      movies = data.results ?? []
+      totalPages = Math.min(data.total_pages, 20)
+    }
+  } catch (err) {
+    console.error('Genre page TMDB fetch failed:', err)
+    fetchError = true
   }
 
   return (
@@ -59,7 +65,12 @@ export default async function GenrePage({
 
       <h1 className="text-2xl font-bold">{title}</h1>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+      {fetchError ? (
+        <div className="rounded-xl border bg-card p-12 text-center space-y-2">
+          <p className="font-medium">Films temporarily unavailable</p>
+          <p className="text-sm text-muted-foreground">Please try again later.</p>
+        </div>
+      ) : <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
         {movies.map((movie: any) => (
           <MovieCard
             key={movie.id}
@@ -71,9 +82,9 @@ export default async function GenrePage({
             size="sm"
           />
         ))}
-      </div>
+      </div>}
 
-      {slug !== 'trending' && totalPages > 1 && (
+      {!fetchError && slug !== 'trending' && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4">
           {page > 1 && (
             <Link
