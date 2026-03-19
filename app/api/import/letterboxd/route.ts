@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
@@ -10,8 +10,8 @@ import { searchMovies, getOrCacheMovie } from '@/lib/tmdb'
 import Papa from 'papaparse'
 
 const IMPORT_SOURCE = 'letterboxd'
-const BATCH_SIZE = 5
-const BATCH_DELAY_MS = 300 // pause between batches to avoid TMDB rate limits (~40 req/10s)
+const BATCH_SIZE = 3
+const BATCH_DELAY_MS = 500 // pause between batches to avoid TMDB rate limits (~40 req/10s)
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))

@@ -22,19 +22,28 @@ async function tmdbFetch(endpoint: string, params: Record<string, string> = {}) 
   url.searchParams.set('api_key', process.env.TMDB_API_KEY!)
   Object.entries(params).forEach(([key, val]) => url.searchParams.set(key, val))
 
-  const res = await fetch(url.toString(), {
-    next: { revalidate: 3600 }, // ISR cache 1hr
-    headers: {
-      Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-  })
+  const maxRetries = 3
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const res = await fetch(url.toString(), {
+      next: { revalidate: 3600 }, // ISR cache 1hr
+      headers: {
+        Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+    })
 
-  if (!res.ok) {
-    throw new Error(`TMDB API error: ${res.status} ${res.statusText}`)
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get('retry-after') || '1', 10)
+      await new Promise((r) => setTimeout(r, retryAfter * 1000))
+      continue
+    }
+
+    if (!res.ok) {
+      throw new Error(`TMDB API error: ${res.status} ${res.statusText}`)
+    }
+
+    return res.json()
   }
-
-  return res.json()
 }
 
 export interface TMDBMovie {
