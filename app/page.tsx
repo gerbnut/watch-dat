@@ -40,7 +40,7 @@ export default async function HomePage() {
             <h2 className="text-lg font-semibold">Trending this week</h2>
           </div>
           <div className="relative">
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+            <div className="flex gap-3 overflow-x-auto pb-2">
               {trending.map((movie: any, i: number) => (
                 <MovieCard
                   key={movie.id}
@@ -51,7 +51,7 @@ export default async function HomePage() {
                   rating={movie.vote_average}
                   size="md"
                   priority={i < 3}
-                  className="shrink-0 snap-start"
+                  className="shrink-0"
                 />
               ))}
             </div>

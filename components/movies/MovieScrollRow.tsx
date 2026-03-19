@@ -30,7 +30,7 @@ export function MovieScrollRow({ title, movies, seeMoreHref, icon: Icon }: Movie
         )}
       </div>
       <div className="relative">
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {movies.map((movie, i) => (
             <MovieCard
               key={movie.id}
@@ -42,7 +42,7 @@ export function MovieScrollRow({ title, movies, seeMoreHref, icon: Icon }: Movie
               showRating
               size="sm"
               priority={i < 3}
-              className="shrink-0 snap-start"
+              className="shrink-0"
             />
           ))}
         </div>

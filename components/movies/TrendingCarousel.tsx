@@ -54,7 +54,7 @@ export function TrendingCarousel({ movies }: TrendingCarouselProps) {
       </div>
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-3 snap-x scrollbar-hide"
+        className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide"
       >
         {movies.map((movie, i) => {
           const backdrop = TMDB_IMAGE.backdrop(movie.backdrop_path, 'w780')
@@ -65,7 +65,7 @@ export function TrendingCarousel({ movies }: TrendingCarouselProps) {
             <Link
               key={movie.id}
               href={`/film/${movie.id}`}
-              className="shrink-0 snap-start group w-[85vw] sm:w-[400px]"
+              className="shrink-0 group w-[85vw] sm:w-[400px]"
             >
               <div className="relative rounded-2xl overflow-hidden bg-muted aspect-video">
                 {backdrop ? (

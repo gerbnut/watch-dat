@@ -295,9 +295,9 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
           {cast.length > 0 && (
             <div className="space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cast</h2>
-              <div className="flex gap-3 overflow-x-auto pb-1 snap-x scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                 {cast.slice(0, 12).map((actor: any) => (
-                  <Link key={actor.id} href={`/person/${actor.id}`} className="shrink-0 w-20 space-y-1 text-center group snap-start">
+                  <Link key={actor.id} href={`/person/${actor.id}`} className="shrink-0 w-20 space-y-1 text-center group">
                     <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted mx-auto ring-1 ring-white/[0.06] transition-transform duration-200 group-hover:scale-105 group-hover:ring-2 group-hover:ring-cinema-400">
                       {actor.profile_path ? (
                         <Image

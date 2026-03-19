@@ -245,7 +245,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       {user.favoriteMovies.length > 0 && (
         <div className="mt-2 mb-6">
           <p className="text-xs uppercase tracking-wider text-muted-foreground/40 mb-2">Favorites</p>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {user.favoriteMovies.map(({ movie }) => (
               <MovieCard
                 key={movie.id}
@@ -255,7 +255,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                 releaseDate={movie.releaseDate}
                 size="xs"
                 showYear={false}
-                className="shrink-0 snap-start !w-16 sm:!w-20"
+                className="shrink-0 !w-16 sm:!w-20"
               />
             ))}
           </div>

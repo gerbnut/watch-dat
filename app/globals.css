@@ -72,9 +72,8 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Smooth scrolling + prevent horizontal overflow without breaking position:fixed */
+  /* Prevent horizontal overflow without breaking position:fixed */
   html {
-    scroll-behavior: smooth;
     overflow-x: clip;
   }
 
