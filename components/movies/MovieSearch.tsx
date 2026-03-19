@@ -288,9 +288,11 @@ export function MovieSearch({
         {/* Inline results — used on desktop always, and on mobile when inModal=true */}
         {open && query.trim().length > 0 && (
           <div className={cn(
-            'absolute top-full left-0 right-0 z-50 mt-1 rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden p-1',
-            'overflow-y-auto overscroll-contain max-h-[50vh]',
-            inModal ? 'block' : 'hidden sm:block',
+            'z-50 mt-1 rounded-xl backdrop-blur-xl bg-[hsl(225_14%_7%_/_0.95)] border border-white/[0.06] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5)] overflow-hidden p-1',
+            'overflow-y-auto overscroll-contain',
+            inModal
+              ? 'relative max-h-none'
+              : 'absolute top-full left-0 right-0 max-h-[50vh] hidden sm:block',
           )}>
             <ResultsList onFilmClick={handleSelectFilm} onUserClick={handleSelectUser} />
           </div>
