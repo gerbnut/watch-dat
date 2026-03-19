@@ -1,5 +1,6 @@
 export const revalidate = 3600
 import { Metadata } from 'next'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import {
   getTrendingMovies,
@@ -82,11 +83,9 @@ export default async function FilmsPage({
 }) {
   const { tab: rawTab } = await searchParams
 
-  // Only import and call auth() for the for-you tab to keep other tabs ISR-cacheable
-  const needsAuth = rawTab === 'for-you'
+  // Only call auth() for the for-you tab to avoid unnecessary auth overhead
   let userId: string | undefined
-  if (needsAuth) {
-    const { auth } = await import('@/auth')
+  if (rawTab === 'for-you') {
     const session = await auth()
     userId = session?.user?.id
   }
