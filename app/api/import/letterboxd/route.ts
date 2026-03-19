@@ -404,6 +404,31 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
+    // Clean up any activity records from previous imports
+    const importedReviews = await prisma.review.findMany({
+      where: { userId: session.user.id, importSource: IMPORT_SOURCE },
+      select: { id: true },
+    })
+    const importedDiary = await prisma.diaryEntry.findMany({
+      where: { userId: session.user.id, importSource: IMPORT_SOURCE },
+      select: { movieId: true },
+    })
+    const reviewIds = importedReviews.map((r) => r.id)
+    const movieIds = [...new Set(importedDiary.map((d) => d.movieId))]
+
+    await Promise.all([
+      reviewIds.length > 0
+        ? prisma.activity.deleteMany({
+            where: { userId: session.user.id, reviewId: { in: reviewIds } },
+          })
+        : Promise.resolve(),
+      movieIds.length > 0
+        ? prisma.activity.deleteMany({
+            where: { userId: session.user.id, type: 'WATCHED', movieId: { in: movieIds } },
+          })
+        : Promise.resolve(),
+    ])
+
     // Delete all entries with letterboxd import source
     const [diaryDeleted, reviewsDeleted, watchlistDeleted] = await Promise.all([
       prisma.diaryEntry.deleteMany({
