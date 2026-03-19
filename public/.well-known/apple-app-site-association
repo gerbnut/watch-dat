@@ -3,12 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.com.watchdat.app",
+        "appID": "A72SBFJ6RV.com.watchdat.app",
         "paths": ["/film/*", "/user/*", "/list/*", "/review/*", "/person/*"]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["TEAMID.com.watchdat.app"]
+    "apps": ["A72SBFJ6RV.com.watchdat.app"]
   }
 }
