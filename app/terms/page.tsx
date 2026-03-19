@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { ExternalLink } from '@/components/ui/ExternalLink'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -53,7 +54,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="5. Film Data">
-        <p>Film metadata, posters, and cast information are provided by <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer" className="text-cinema-400 hover:underline">The Movie Database (TMDB)</a> under their terms of use. Watch Dat is not endorsed or certified by TMDB. Streaming availability data is sourced from JustWatch via TMDB.</p>
+        <p>Film metadata, posters, and cast information are provided by <ExternalLink href="https://www.themoviedb.org" className="text-cinema-400 hover:underline">The Movie Database (TMDB)</ExternalLink> under their terms of use. Watch Dat is not endorsed or certified by TMDB. Streaming availability data is sourced from JustWatch via TMDB.</p>
       </Section>
 
       <Section title="6. Acceptable Use">

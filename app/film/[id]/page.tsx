@@ -17,6 +17,7 @@ import { TrailerButtonClient } from './TrailerButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { MoviePoster } from '@/components/movies/MoviePoster'
+import { ExternalLink } from '@/components/ui/ExternalLink'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
@@ -438,11 +439,9 @@ function StreamingSection({ streamingProviders }: { streamingProviders: any }) {
           <p className="text-xs text-muted-foreground/60">Stream</p>
           <div className="flex flex-wrap gap-2">
             {streamingProviders.flatrate.map((p: any) => (
-              <a
+              <ExternalLink
                 key={p.provider_id}
                 href={streamingProviders.link}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2 text-sm font-medium hover:bg-white/[0.05] transition-colors"
                 title={p.provider_name}
               >
@@ -454,7 +453,7 @@ function StreamingSection({ streamingProviders }: { streamingProviders: any }) {
                   className="rounded-md"
                 />
                 {p.provider_name}
-              </a>
+              </ExternalLink>
             ))}
           </div>
         </div>
@@ -465,11 +464,9 @@ function StreamingSection({ streamingProviders }: { streamingProviders: any }) {
           <p className="text-xs text-muted-foreground/60">Rent / Buy</p>
           <div className="flex flex-wrap gap-1.5">
             {rentBuy.map((p: any) => (
-              <a
+              <ExternalLink
                 key={p.provider_id}
                 href={streamingProviders.link}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center gap-1.5 rounded-md border border-white/[0.04] bg-white/[0.02] px-2.5 py-1.5 text-xs hover:bg-white/[0.05] transition-colors"
                 title={p.provider_name}
               >
@@ -481,7 +478,7 @@ function StreamingSection({ streamingProviders }: { streamingProviders: any }) {
                   className="rounded"
                 />
                 {p.provider_name}
-              </a>
+              </ExternalLink>
             ))}
           </div>
         </div>

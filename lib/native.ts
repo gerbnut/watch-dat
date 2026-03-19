@@ -18,10 +18,27 @@ export async function hapticNotification(type: 'success' | 'warning' | 'error' =
   await Haptics.notification({ type: map[type] })
 }
 
+export async function openExternal(url: string) {
+  if (!isNative()) {
+    window.open(url, '_blank', 'noopener')
+    return
+  }
+  const { Browser } = await import('@capacitor/browser')
+  await Browser.open({ url })
+}
+
 export async function initNativePlugins() {
   if (!isNative()) return
   const { StatusBar, Style } = await import('@capacitor/status-bar')
   await StatusBar.setStyle({ style: Style.Dark })
   const { SplashScreen } = await import('@capacitor/splash-screen')
   await SplashScreen.hide()
+
+  // Listen for app URL opens (OAuth redirects, deep links)
+  const { App } = await import('@capacitor/app')
+  App.addListener('appUrlOpen', ({ url }) => {
+    // OAuth callback or deep link — navigate the WebView
+    const path = new URL(url).pathname
+    if (path) window.location.pathname = path
+  })
 }

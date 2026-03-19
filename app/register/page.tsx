@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Loader2, Check, Eye, EyeOff } from 'lucide-react'
+import { isNative, openExternal } from '@/lib/native'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FieldError } from '@/components/ui/FieldError'
@@ -175,9 +176,14 @@ export default function RegisterPage() {
           size="lg"
           className="w-full"
           disabled={googleLoading}
-          onClick={() => {
+          onClick={async () => {
             setGoogleLoading(true)
-            signIn('google', { callbackUrl: '/onboarding' })
+            if (isNative()) {
+              await openExternal(`https://watch-dat-gold.vercel.app/api/auth/signin/google?callbackUrl=${encodeURIComponent('/onboarding')}`)
+              setGoogleLoading(false)
+            } else {
+              signIn('google', { callbackUrl: '/onboarding' })
+            }
           }}
         >
           {googleLoading ? (

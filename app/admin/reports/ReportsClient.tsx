@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from '@/hooks/use-toast'
-import { CheckCircle, Trash2, ExternalLink } from 'lucide-react'
+import { CheckCircle, Trash2, ExternalLink as ExternalLinkIcon } from 'lucide-react'
 import Link from 'next/link'
 
 interface Report {
@@ -93,10 +93,9 @@ export function ReportsClient({ initialReports }: { initialReports: Report[] }) 
                 {link && (
                   <Link
                     href={link}
-                    target="_blank"
                     className="inline-flex items-center gap-1 text-xs text-cinema-400 hover:underline"
                   >
-                    View content <ExternalLink className="h-3 w-3" />
+                    View content <ExternalLinkIcon className="h-3 w-3" />
                   </Link>
                 )}
               </div>

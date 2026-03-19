@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { ExternalLink } from '@/components/ui/ExternalLink'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -42,9 +43,9 @@ export default function PrivacyPage() {
       <Section title="3. Third-Party Services">
         <p>Watch Dat uses the following third-party services:</p>
         <ul>
-          <li><strong>TMDB (The Movie Database)</strong> — film metadata, posters, and cast information. <a href="https://www.themoviedb.org/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-cinema-400 hover:underline">TMDB Privacy Policy</a>.</li>
+          <li><strong>TMDB (The Movie Database)</strong> — film metadata, posters, and cast information. <ExternalLink href="https://www.themoviedb.org/privacy-policy" className="text-cinema-400 hover:underline">TMDB Privacy Policy</ExternalLink>.</li>
           <li><strong>JustWatch</strong> — streaming availability data (via TMDB).</li>
-          <li><strong>Vercel</strong> — hosting and serverless infrastructure. <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-cinema-400 hover:underline">Vercel Privacy Policy</a>.</li>
+          <li><strong>Vercel</strong> — hosting and serverless infrastructure. <ExternalLink href="https://vercel.com/legal/privacy-policy" className="text-cinema-400 hover:underline">Vercel Privacy Policy</ExternalLink>.</li>
         </ul>
       </Section>
 
