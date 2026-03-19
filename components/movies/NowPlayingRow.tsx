@@ -55,15 +55,15 @@ export function NowPlayingRow({ title, movies, seeMoreHref, icon: Icon }: NowPla
             const trailerKey = trailers[movie.id]
 
             return (
-              <div key={movie.id} className="shrink-0 w-24">
-                <Link href={`/film/${movie.id}`} className="group flex flex-col gap-1.5">
-                  <div className="relative overflow-hidden rounded-lg bg-muted transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-glow-green active:scale-[0.97] h-36">
+              <div key={movie.id} className="shrink-0 w-24 flex flex-col gap-1.5">
+                <div className="relative overflow-hidden rounded-lg bg-muted h-36 group">
+                  <Link href={`/film/${movie.id}`} className="absolute inset-0 z-0">
                     {posterUrl ? (
                       <Image
                         src={posterUrl}
                         alt={movie.title}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-all duration-300 group-hover:scale-[1.04]"
                         sizes="(max-width: 768px) 30vw, 200px"
                         priority={i < 3}
                       />
@@ -72,35 +72,31 @@ export function NowPlayingRow({ title, movies, seeMoreHref, icon: Icon }: NowPla
                         <Film className="h-8 w-8 text-muted-foreground/20" />
                       </div>
                     )}
-                    <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/[0.06] pointer-events-none" />
+                  </Link>
+                  <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/[0.06] pointer-events-none" />
 
-                    {/* Play button overlay */}
-                    {trailerKey && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setActiveTrailer(trailerKey)
-                        }}
-                        className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors"
-                      >
-                        <div className="rounded-full bg-black/60 backdrop-blur-sm p-2 opacity-80 hover:opacity-100 transition-opacity">
-                          <Play className="h-4 w-4 fill-white text-white" />
-                        </div>
-                      </button>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium leading-tight line-clamp-2">{movie.title}</p>
-                    {year && <p className="text-xs text-muted-foreground mt-0.5">{year}</p>}
-                    {movie.vote_average != null && movie.vote_average > 0 && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-xs text-cinema-400 font-semibold">
-                          <Star className="inline h-3 w-3 fill-cinema-400 stroke-none" /> {formatRating(movie.vote_average)}
-                        </span>
+                  {/* Play button overlay — outside Link so it doesn't trigger navigation */}
+                  {trailerKey && (
+                    <button
+                      onClick={() => setActiveTrailer(trailerKey)}
+                      className="absolute inset-0 z-10 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors"
+                    >
+                      <div className="rounded-full bg-black/60 backdrop-blur-sm p-2 opacity-80 hover:opacity-100 transition-opacity">
+                        <Play className="h-4 w-4 fill-white text-white" />
                       </div>
-                    )}
-                  </div>
+                    </button>
+                  )}
+                </div>
+                <Link href={`/film/${movie.id}`}>
+                  <p className="text-xs font-medium leading-tight line-clamp-2">{movie.title}</p>
+                  {year && <p className="text-xs text-muted-foreground mt-0.5">{year}</p>}
+                  {movie.vote_average != null && movie.vote_average > 0 && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-xs text-cinema-400 font-semibold">
+                        <Star className="inline h-3 w-3 fill-cinema-400 stroke-none" /> {formatRating(movie.vote_average)}
+                      </span>
+                    </div>
+                  )}
                 </Link>
               </div>
             )
