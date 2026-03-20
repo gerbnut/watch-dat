@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Watch Dat',
   webDir: 'out',
   server: {
-    url: 'https://watch-dat-gold.vercel.app',
+    url: 'https://www.watchdat.xyz',
     cleartext: false,
   },
 }
