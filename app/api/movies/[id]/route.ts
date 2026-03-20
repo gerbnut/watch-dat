@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
-import { getOrCacheMovie } from '@/lib/tmdb'
+import { getMovieForDisplay } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const session = await auth()
-    const movie = await getOrCacheMovie(tmdbId)
+    const movie = await getMovieForDisplay(tmdbId)
 
     // Aggregate stats
     const [reviewStats, diaryCount] = await Promise.all([

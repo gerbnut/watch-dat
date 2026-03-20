@@ -245,7 +245,52 @@ export async function getOrCacheMovieLight(tmdbId: number) {
   return getOrCacheMovie(tmdbId)
 }
 
-// Cache movie in DB to avoid redundant API calls
+// Return movie data for display without caching to DB.
+// If already cached (referenced by user data), returns + refreshes the cache.
+// If not cached, fetches from TMDB and returns without writing to DB.
+export async function getMovieForDisplay(tmdbId: number) {
+  const existing = await prisma.movie.findUnique({ where: { tmdbId } })
+
+  // If it's in the DB already, use the normal cache-and-refresh path
+  if (existing) {
+    const isStale = Date.now() - existing.cachedAt.getTime() > CACHE_DURATION_MS
+    if (!isStale) return existing
+    // Refresh stale cached movie (it's referenced, so worth keeping fresh)
+    return getOrCacheMovie(tmdbId)
+  }
+
+  // Not in DB — fetch from TMDB directly, don't persist
+  const data = await getMovieDetails(tmdbId)
+
+  const directors = data.credits?.crew
+    .filter((c) => c.job === 'Director')
+    .map((c) => ({ id: c.id, name: c.name })) ?? []
+
+  const cast = data.credits?.cast
+    .slice(0, 20)
+    .map((c) => ({ id: c.id, name: c.name, character: c.character, profile_path: c.profile_path })) ?? []
+
+  return {
+    id: String(tmdbId),
+    tmdbId,
+    title: data.title,
+    poster: data.poster_path,
+    backdrop: data.backdrop_path,
+    overview: data.overview,
+    releaseDate: data.release_date ? new Date(data.release_date) : null,
+    runtime: data.runtime ?? null,
+    genres: data.genres ?? [],
+    directors,
+    cast,
+    tagline: data.tagline ?? null,
+    language: data.original_language ?? null,
+    budget: data.budget ?? null,
+    productionCountries: data.production_countries ?? [],
+    cachedAt: new Date(),
+  }
+}
+
+// Cache movie in DB — use only when a user interacts (review, watchlist, etc.)
 export async function getOrCacheMovie(tmdbId: number) {
   const existing = await prisma.movie.findUnique({
     where: { tmdbId },

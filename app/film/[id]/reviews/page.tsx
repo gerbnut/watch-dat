@@ -1,5 +1,5 @@
 import { auth } from '@/auth'
-import { getOrCacheMovie } from '@/lib/tmdb'
+import { getMovieForDisplay } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const tmdbId = Number(id)
   if (isNaN(tmdbId)) return { title: 'Reviews' }
   try {
-    const movie = await getOrCacheMovie(tmdbId)
+    const movie = await getMovieForDisplay(tmdbId)
     return { title: `Reviews · ${movie.title}` }
   } catch {
     return { title: 'Reviews' }
@@ -28,7 +28,7 @@ export default async function FilmReviewsPage({ params }: { params: Promise<{ id
 
   let movie: any
   try {
-    movie = await getOrCacheMovie(tmdbId)
+    movie = await getMovieForDisplay(tmdbId)
   } catch {
     notFound()
   }

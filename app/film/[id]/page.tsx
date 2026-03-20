@@ -1,5 +1,5 @@
 import { auth } from '@/auth'
-import { getOrCacheMovie, getWatchProviders, getMovieVideos, pickBestTrailer, TMDB_IMAGE } from '@/lib/tmdb'
+import { getMovieForDisplay, getWatchProviders, getMovieVideos, pickBestTrailer, TMDB_IMAGE } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const tmdbId = Number(id)
   if (isNaN(tmdbId)) return { title: 'Film Not Found' }
   try {
-    const movie = await getOrCacheMovie(tmdbId)
+    const movie = await getMovieForDisplay(tmdbId)
     const year = getYearFromDate(movie.releaseDate)
     const pageTitle = year ? `${movie.title} (${year})` : movie.title
     const description = movie.overview ?? 'Track, rate, and review this film on Watch Dat.'
@@ -60,7 +60,7 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
 
   let movie: any
   try {
-    movie = await getOrCacheMovie(tmdbId)
+    movie = await getMovieForDisplay(tmdbId)
   } catch {
     notFound()
   }
