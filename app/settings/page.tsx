@@ -59,10 +59,22 @@ export default async function SettingsPage() {
 
       <DeleteAccountClient />
 
-      {/* Legal links */}
-      <div className="border-t border-white/[0.04] pt-4 flex gap-4 text-xs text-muted-foreground">
-        <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-        <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+      {/* TMDB attribution & legal links */}
+      <div className="border-t border-white/[0.04] pt-4 space-y-3">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <img
+            src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
+            alt="TMDB"
+            width={80}
+            height={10}
+            className="opacity-60"
+          />
+          <span>Film data provided by <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors underline">TMDB</a></span>
+        </div>
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+        </div>
       </div>
     </div>
   )

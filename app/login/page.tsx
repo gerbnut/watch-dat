@@ -32,6 +32,7 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [appleLoading, setAppleLoading] = useState(false)
   const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
@@ -85,6 +86,34 @@ function LoginContent() {
             <>
               <GoogleIcon />
               Continue with Google
+            </>
+          )}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full"
+          disabled={appleLoading}
+          onClick={async () => {
+            setAppleLoading(true)
+            if (isNative()) {
+              await openExternal(`https://watch-dat-gold.vercel.app/api/auth/signin/apple?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+              setAppleLoading(false)
+            } else {
+              signIn('apple', { callbackUrl })
+            }
+          }}
+        >
+          {appleLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.94 4.78c-.09.07-1.78 1.02-1.78 3.13 0 2.44 2.14 3.3 2.2 3.32-.01.05-.34 1.17-1.13 2.31-.69.99-1.41 1.99-2.51 1.99s-1.38-.64-2.65-.64c-1.24 0-1.67.66-2.69.66s-1.71-.92-2.51-2.04C2.72 11.88 2 9.67 2 7.58c0-3.37 2.19-5.16 4.35-5.16 1.15 0 2.1.75 2.82.75.69 0 1.77-.8 3.08-.8.5 0 2.28.04 3.45 1.73l-.76.68zM11.5.44c.52-.61.88-1.46.88-2.31 0-.12-.01-.24-.03-.33-.84.03-1.83.56-2.43 1.25-.48.53-.92 1.38-.92 2.24 0 .13.02.26.03.3.06.01.15.02.24.02.75 0 1.7-.5 2.23-1.17z" transform="translate(0, 2)"/>
+              </svg>
+              Continue with Apple
             </>
           )}
         </Button>

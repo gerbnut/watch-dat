@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
+import Apple from 'next-auth/providers/apple'
 import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
@@ -20,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'google' && user.email) {
+      if ((account?.provider === 'google' || account?.provider === 'apple') && user.email) {
         return true
       }
       return true
@@ -66,6 +67,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       ? [Google({
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        })]
+      : []),
+    ...(process.env.APPLE_ID && process.env.APPLE_SECRET
+      ? [Apple({
+          clientId: process.env.APPLE_ID,
+          clientSecret: process.env.APPLE_SECRET,
         })]
       : []),
     Credentials({
