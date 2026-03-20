@@ -21,41 +21,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account }) {
-      if ((account?.provider === 'google' || account?.provider === 'apple') && user.email) {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email.toLowerCase() },
-        })
-        if (existingUser && account) {
-          // Link the OAuth account to the existing user if not already linked
-          const existingAccount = await prisma.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-              },
-            },
-          })
-          if (!existingAccount) {
-            await prisma.account.create({
-              data: {
-                userId: existingUser.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token as string | undefined,
-                token_type: account.token_type as string | undefined,
-                id_token: account.id_token as string | undefined,
-                refresh_token: account.refresh_token as string | undefined,
-                scope: account.scope as string | undefined,
-                expires_at: account.expires_at as number | undefined,
-              },
-            })
-          }
-          // Override the user id so the JWT callback gets the right user
-          user.id = existingUser.id
-        }
-        return true
-      }
       return true
     },
     async jwt({ token, user }) {
@@ -99,12 +64,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       ? [Google({
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
     ...(process.env.APPLE_ID && process.env.APPLE_SECRET
       ? [Apple({
           clientId: process.env.APPLE_ID,
           clientSecret: process.env.APPLE_SECRET,
+          allowDangerousEmailAccountLinking: true,
         })]
       : []),
     Credentials({
