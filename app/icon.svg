@@ -2,44 +2,32 @@
   <!-- Dark background -->
   <rect width="32" height="32" rx="7" fill="#0d1117"/>
 
-  <!-- Left film-reel wing -->
-  <circle cx="5.5" cy="18" r="5.5" fill="#10b981"/>
-  <circle cx="5.5" cy="18" r="1.9" fill="#0d1117"/>
-  <circle cx="5.5" cy="13.8" r="0.9" fill="#0d1117"/>
-  <circle cx="8.5" cy="20.5" r="0.9" fill="#0d1117"/>
-  <circle cx="2.5" cy="20.5" r="0.9" fill="#0d1117"/>
+  <!-- Owl face scaled to fit -->
+  <g transform="translate(1, 4.5) scale(0.46875)">
+    <!-- Head -->
+    <ellipse cx="32" cy="28" rx="27" ry="19" fill="white"/>
 
-  <!-- Right film-reel wing -->
-  <circle cx="26.5" cy="18" r="5.5" fill="#10b981"/>
-  <circle cx="26.5" cy="18" r="1.9" fill="#0d1117"/>
-  <circle cx="26.5" cy="13.8" r="0.9" fill="#0d1117"/>
-  <circle cx="29.5" cy="20.5" r="0.9" fill="#0d1117"/>
-  <circle cx="23.5" cy="20.5" r="0.9" fill="#0d1117"/>
+    <!-- Ear tufts -->
+    <polygon points="11,17 7,3 21,15" fill="white"/>
+    <polygon points="53,17 57,3 43,15" fill="white"/>
 
-  <!-- Owl body -->
-  <ellipse cx="16" cy="27.5" rx="5.5" ry="4.5" fill="#1a1a1a"/>
+    <!-- Left eye — cinema reel -->
+    <circle cx="21" cy="26" r="9" fill="#10b981" stroke="#0d1117" stroke-width="1.5"/>
+    <circle cx="21" cy="21" r="2" fill="#0d1117"/>
+    <circle cx="21" cy="31" r="2" fill="#0d1117"/>
+    <circle cx="16" cy="26" r="2" fill="#0d1117"/>
+    <circle cx="26" cy="26" r="2" fill="#0d1117"/>
+    <circle cx="21" cy="26" r="1.8" fill="#0d1117"/>
 
-  <!-- Owl head -->
-  <circle cx="16" cy="14.5" r="8" fill="#1a1a1a"/>
+    <!-- Right eye — cinema reel -->
+    <circle cx="43" cy="26" r="9" fill="#10b981" stroke="#0d1117" stroke-width="1.5"/>
+    <circle cx="43" cy="21" r="2" fill="#0d1117"/>
+    <circle cx="43" cy="31" r="2" fill="#0d1117"/>
+    <circle cx="38" cy="26" r="2" fill="#0d1117"/>
+    <circle cx="48" cy="26" r="2" fill="#0d1117"/>
+    <circle cx="43" cy="26" r="1.8" fill="#0d1117"/>
 
-  <!-- Ear tufts -->
-  <polygon points="11.5,7.5 9.5,3 13.5,9" fill="#1a1a1a"/>
-  <polygon points="20.5,7.5 18.5,9 22.5,3" fill="#1a1a1a"/>
-
-  <!-- Left eye (green) -->
-  <circle cx="13" cy="13.5" r="3.2" fill="#10b981"/>
-  <circle cx="13.3" cy="13.8" r="1.9" fill="#0d1117"/>
-  <circle cx="12.3" cy="12.5" r="0.6" fill="white" opacity="0.7"/>
-
-  <!-- Right eye (green) -->
-  <circle cx="19" cy="13.5" r="3.2" fill="#10b981"/>
-  <circle cx="18.7" cy="13.8" r="1.9" fill="#0d1117"/>
-  <circle cx="18" cy="12.5" r="0.6" fill="white" opacity="0.7"/>
-
-  <!-- Beak -->
-  <polygon points="16,16.5 14.8,18.5 17.2,18.5" fill="#10b981"/>
-
-  <!-- Feet -->
-  <path d="M13.5 31 L12.5 32 M13.5 31 L13.5 32 M13.5 31 L14.5 32" stroke="#10b981" stroke-width="0.9" stroke-linecap="round"/>
-  <path d="M18.5 31 L17.5 32 M18.5 31 L18.5 32 M18.5 31 L19.5 32" stroke="#10b981" stroke-width="0.9" stroke-linecap="round"/>
+    <!-- Beak -->
+    <polygon points="32,37 29.5,42 34.5,42" fill="#10b981"/>
+  </g>
 </svg>
