@@ -9,6 +9,7 @@ import { BottomTabBar } from '@/components/layout/BottomTabBar'
 import { LayoutTransition } from '@/components/layout/LayoutTransition'
 import { PullToRefresh } from '@/components/layout/PullToRefresh'
 import { ServiceWorkerRegistration } from '@/components/layout/ServiceWorkerRegistration'
+import { OfflineBanner } from '@/components/layout/OfflineBanner'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display', weight: ['500', '600', '700'] })
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans min-h-screen antialiased`}>
         <SessionProvider>
           <QueryProvider>
+            <OfflineBanner />
             <Navbar />
             <main className="mx-auto max-w-6xl px-4 pt-6 pb-24 md:pb-8">
               <PullToRefresh>
