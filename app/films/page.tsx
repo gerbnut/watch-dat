@@ -39,7 +39,6 @@ import {
   Diamond,
   Eye,
   Swords,
-  Zap,
   Crown,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -110,21 +109,21 @@ export default async function FilmsPage({
       Promise.allSettled([
         getTrendingMovies('week'),
         getPopularMovies(),
-        discoverMovies({ runtimeLte: 100, voteAverageGte: 7.0, minVotes: 300, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withOriginalLanguage: 'ko', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withOriginalLanguage: 'ja', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withOriginalLanguage: 'fr', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withGenres: 53, runtimeGte: 120, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withGenres: 16, withoutGenres: 10751, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withGenres: 35, voteAverageGte: 6.5, minVotes: 300, sortBy: 'popularity.desc' }),
+        discoverMovies({ withOriginalLanguage: 'ko', voteAverageGte: 7.0, minVotes: 200, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
+        discoverMovies({ withOriginalLanguage: 'ja', voteAverageGte: 7.0, minVotes: 200, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
+        discoverMovies({ withOriginalLanguage: 'fr', voteAverageGte: 7.0, minVotes: 200, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
+        discoverMovies({ withGenres: 53, runtimeGte: 120, voteAverageGte: 7.0, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
+        discoverMovies({ withGenres: 16, withoutGenres: 10751, voteAverageGte: 7.0, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
         discoverMovies({ primaryReleaseYear: 2026, sortBy: 'popularity.desc', minVotes: 50 }),
-        discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withGenres: '10752,18', minVotes: 300, sortBy: 'vote_average.desc' }),
+        discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'popularity.desc' }),
+        discoverMovies({ withGenres: '10752,18', minVotes: 300, releaseDateGte: '1990-01-01', sortBy: 'popularity.desc' }),
         discoverMovies({ withGenres: '27,53', voteAverageGte: 6.5, sortBy: 'popularity.desc' }),
       ]),
       fetchRecentReviews().catch(() => [] as Awaited<ReturnType<typeof fetchRecentReviews>>),
     ])
     const [
-      trending, popular, shortSweet,
+      trending, popular, comedies,
       koreanGems, japaneseGems, frenchGems,
       slowBurn, animatedAdults, thisYear,
       nineties, warConflict, midnightMovies,
@@ -156,9 +155,10 @@ export default async function FilmsPage({
           movies={popular.results?.slice(0, 20) ?? []}
         />
         <MovieScrollRow
-          title="Short & Sweet"
-          icon={Clock}
-          movies={shortSweet.results?.slice(0, 20) ?? []}
+          title="Certified Funny"
+          icon={Sparkles}
+          movies={comedies.results?.slice(0, 20) ?? []}
+          seeMoreHref="/films/genre/35?title=Certified+Funny"
         />
         <MovieScrollRow
           title="Foreign Language Gems"
@@ -309,15 +309,14 @@ export default async function FilmsPage({
     const settled = await Promise.allSettled([
       getTopRatedMovies(),
       discoverMovies({ releaseDateGte: '2000-01-01', releaseDateLte: '2015-12-31', voteAverageGte: 7.5, minVotes: 2000, sortBy: 'vote_average.desc' }),
-      discoverMovies({ releaseDateGte: '2016-01-01', releaseDateLte: '2025-12-31', voteAverageGte: 7.5, minVotes: 1000, sortBy: 'vote_average.desc' }),
+      discoverMovies({ releaseDateGte: '2016-01-01', voteAverageGte: 7.5, minVotes: 1000, sortBy: 'vote_average.desc' }),
       discoverMovies({ releaseDateLte: '1979-12-31', voteAverageGte: 7.5, minVotes: 500, sortBy: 'vote_average.desc' }),
-      discoverMovies({ voteAverageGte: 7.5, minVotes: 200, sortBy: 'vote_average.desc', page: 3 }),
-      discoverMovies({ runtimeLte: 90, voteAverageGte: 7.5, minVotes: 300, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withGenres: 99, voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+      discoverMovies({ releaseDateGte: '2000-01-01', voteAverageGte: 7.5, minVotes: 200, sortBy: 'vote_average.desc', page: 3 }),
+      discoverMovies({ withGenres: 99, voteAverageGte: 7.0, minVotes: 200, releaseDateGte: '2000-01-01', sortBy: 'vote_average.desc' }),
     ])
     const [
       topRated, modernClassics, lastDecade,
-      goldenAge, hiddenGems, bestShort, topDocs,
+      goldenAge, hiddenGems, topDocs,
     ] = settled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
 
     content = (
@@ -346,11 +345,6 @@ export default async function FilmsPage({
           title="Hidden Gems"
           icon={Diamond}
           movies={hiddenGems.results?.slice(0, 20) ?? []}
-        />
-        <MovieScrollRow
-          title="Best Under 90 Minutes"
-          icon={Zap}
-          movies={bestShort.results?.slice(0, 20) ?? []}
         />
         <MovieScrollRow
           title="Highest Rated Documentaries"
