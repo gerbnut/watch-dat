@@ -33,6 +33,9 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
         },
         orderBy: { order: 'asc' },
       },
+      collaborators: {
+        include: { list: { select: { id: true, username: true, displayName: true, avatar: true } } },
+      },
       _count: { select: { items: true } },
     },
   })
@@ -40,7 +43,8 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
   if (!list) notFound()
 
   const isOwner = session?.user?.id === list.user.id
-  if (!list.isPublic && !isOwner) notFound()
+  const isCollaborator = list.collaborators.some((c) => c.list.id === session?.user?.id)
+  if (!list.isPublic && !isOwner && !isCollaborator) notFound()
 
   return (
     <div className="space-y-6">
@@ -62,7 +66,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
               <p className="text-muted-foreground leading-relaxed">{list.description}</p>
             )}
           </div>
-          {isOwner && <AddToListClient listId={list.id} />}
+          {(isOwner || isCollaborator) && <AddToListClient listId={list.id} />}
         </div>
 
         <div className="flex items-center gap-3">
@@ -73,6 +77,14 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
             </Avatar>
             <span className="text-sm font-medium">{list.user.displayName}</span>
           </Link>
+          {list.collaborators.length > 0 && list.collaborators.map((c) => (
+            <Link key={c.list.id} href={`/user/${c.list.username}`} className="flex items-center gap-1.5 hover:opacity-80">
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={c.list.avatar ?? undefined} />
+                <AvatarFallback className="text-[10px]">{getInitials(c.list.displayName ?? '')}</AvatarFallback>
+              </Avatar>
+            </Link>
+          ))}
           <span className="text-muted-foreground text-sm">·</span>
           <span className="text-sm text-muted-foreground">{list._count.items} film{list._count.items !== 1 ? 's' : ''}</span>
           <span className="text-muted-foreground text-sm">·</span>

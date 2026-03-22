@@ -212,9 +212,34 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
             <p className="text-sm text-muted-foreground/80 leading-relaxed max-w-md line-clamp-3">{user.bio}</p>
           )}
 
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
-            <Calendar className="h-3 w-3" />
-            <span>Joined {formatDate(user.joinDate, 'MMMM yyyy')}</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
+              <Calendar className="h-3 w-3" />
+              <span>Joined {formatDate(user.joinDate, 'MMMM yyyy')}</span>
+            </div>
+            {(() => {
+              const links = (user as any).socialLinks as { letterboxd?: string; twitter?: string; instagram?: string } | null
+              if (!links) return null
+              return (
+                <>
+                  {links.letterboxd && (
+                    <a href={`https://letterboxd.com/${links.letterboxd}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground/50 hover:text-cinema-400 transition-colors">
+                      Letterboxd
+                    </a>
+                  )}
+                  {links.twitter && (
+                    <a href={`https://x.com/${links.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground/50 hover:text-cinema-400 transition-colors">
+                      @{links.twitter.replace('@', '')}
+                    </a>
+                  )}
+                  {links.instagram && (
+                    <a href={`https://instagram.com/${links.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground/50 hover:text-cinema-400 transition-colors">
+                      IG: {links.instagram.replace('@', '')}
+                    </a>
+                  )}
+                </>
+              )
+            })()}
           </div>
         </div>
       </div>

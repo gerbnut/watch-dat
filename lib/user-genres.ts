@@ -28,7 +28,7 @@ export async function getUserTopGenres(userId: string, limit = 5) {
     }
   }
 
-  return Array.from(counts.entries())
+  const fromDiary = Array.from(counts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([name, count]) => ({
@@ -37,4 +37,19 @@ export async function getUserTopGenres(userId: string, limit = 5) {
       count,
     }))
     .filter((g) => g.id !== 0)
+
+  // Fall back to onboarding genre preferences if user has no diary entries
+  if (fromDiary.length === 0) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { genrePreferences: true },
+    })
+    const prefs = (user?.genrePreferences as number[]) ?? []
+    return prefs
+      .slice(0, limit)
+      .map((id) => ({ id, name: GENRE_MAP[id] ?? '', count: 0 }))
+      .filter((g) => g.name)
+  }
+
+  return fromDiary
 }

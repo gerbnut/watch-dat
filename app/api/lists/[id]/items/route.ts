@@ -23,9 +23,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   try {
-    const list = await prisma.list.findUnique({ where: { id } })
+    const list = await prisma.list.findUnique({
+      where: { id },
+      include: { collaborators: { select: { userId: true } } },
+    })
     if (!list) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    if (list.userId !== session.user.id) {
+    const isOwner = list.userId === session.user.id
+    const isCollaborator = list.collaborators.some((c) => c.userId === session.user.id)
+    if (!isOwner && !isCollaborator) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

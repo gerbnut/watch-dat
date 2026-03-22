@@ -29,7 +29,22 @@ interface Props {
   displayName: string
 }
 
-const TOTAL_STEPS = 2
+const TOTAL_STEPS = 3
+
+const GENRE_CHIPS = [
+  { id: 28, name: 'Action', emoji: '💥' },
+  { id: 35, name: 'Comedy', emoji: '😂' },
+  { id: 18, name: 'Drama', emoji: '🎭' },
+  { id: 27, name: 'Horror', emoji: '👻' },
+  { id: 10749, name: 'Romance', emoji: '💕' },
+  { id: 878, name: 'Sci-Fi', emoji: '🚀' },
+  { id: 53, name: 'Thriller', emoji: '🔪' },
+  { id: 14, name: 'Fantasy', emoji: '🧙' },
+  { id: 99, name: 'Documentary', emoji: '📽️' },
+  { id: 16, name: 'Animation', emoji: '🎨' },
+  { id: 80, name: 'Crime', emoji: '🔍' },
+  { id: 9648, name: 'Mystery', emoji: '🕵️' },
+] as const
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -51,6 +66,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
   const [selected, setSelected] = useState<SelectedMovie[]>([])
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([])
   const [saving, setSaving] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importDone, setImportDone] = useState(false)
@@ -69,6 +85,12 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
     })
   }
 
+  function toggleGenre(genreId: number) {
+    setSelectedGenres((prev) =>
+      prev.includes(genreId) ? prev.filter((id) => id !== genreId) : [...prev, genreId]
+    )
+  }
+
   function handleSearchSelect(movie: { id: number; title: string; poster_path: string | null }) {
     setSelected((prev) => {
       if (prev.find((m) => m.tmdbId === movie.id)) return prev
@@ -80,17 +102,29 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
   async function handleFinish(skip = false) {
     setSaving(true)
     try {
+      const promises: Promise<any>[] = []
       if (!skip && selected.length > 0) {
-        const res = await fetch(`/api/users/${username}/favorites`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tmdbIds: selected.map((m) => m.tmdbId) }),
-        })
-        if (!res.ok) throw new Error('Failed to save')
+        promises.push(
+          fetch(`/api/users/${username}/favorites`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tmdbIds: selected.map((m) => m.tmdbId) }),
+          })
+        )
       }
+      if (selectedGenres.length > 0) {
+        promises.push(
+          fetch('/api/me/genre-preferences', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ genreIds: selectedGenres }),
+          })
+        )
+      }
+      await Promise.all(promises)
     } catch {
       const { toast } = await import('@/hooks/use-toast')
-      toast({ title: 'Could not save favorites', variant: 'destructive' })
+      toast({ title: 'Could not save preferences', variant: 'destructive' })
     } finally {
       router.push('/')
       router.refresh()
@@ -174,7 +208,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
               )}
             </div>
           </motion.div>
-        ) : (
+        ) : step === 2 ? (
           <motion.div
             key="step-2"
             custom={direction}
@@ -188,7 +222,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
             {/* Header */}
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-widest text-cinema-400">
-                Step 2 of 2
+                Step 2 of 3
               </p>
               <h1 className="text-xl sm:text-2xl font-bold leading-tight">
                 Pick your favourite films
@@ -275,6 +309,52 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
               </div>
             </div>
           </motion.div>
+        ) : (
+          <motion.div
+            key="step-3"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="space-y-5"
+          >
+            {/* Header */}
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-widest text-cinema-400">
+                Step 3 of 3
+              </p>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight">
+                What genres do you love?
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Pick your favourites — we'll use these to personalise your recommendations.
+              </p>
+            </div>
+
+            {/* Genre grid */}
+            <div className="grid grid-cols-3 gap-2">
+              {GENRE_CHIPS.map((genre) => {
+                const isSelected = selectedGenres.includes(genre.id)
+                return (
+                  <button
+                    key={genre.id}
+                    onClick={() => toggleGenre(genre.id)}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-sm font-medium transition-all',
+                      isSelected
+                        ? 'border-cinema-500/40 bg-cinema-500/15 text-foreground shadow-glow-green-xs'
+                        : 'border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-cinema-500/30 hover:bg-white/[0.04] hover:text-foreground',
+                    )}
+                  >
+                    <span className="text-2xl">{genre.emoji}</span>
+                    <span>{genre.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -304,13 +384,12 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
               <ArrowRight className="h-4 w-4" />
             </Button>
           </>
-        ) : (
+        ) : step === 2 ? (
           <>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleFinish(true)}
-              disabled={saving}
+              onClick={() => goToStep(3)}
               className="text-muted-foreground"
             >
               Skip
@@ -320,16 +399,39 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
             <Button
               variant="cinema"
               size="sm"
+              onClick={() => goToStep(3)}
+              className="min-w-[120px] gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleFinish(selectedGenres.length === 0 && selected.length === 0)}
+              disabled={saving}
+              className="text-muted-foreground"
+            >
+              Skip
+            </Button>
+            <div className="flex-1" />
+            {selectedGenres.length > 0 && (
+              <span className="text-xs text-muted-foreground">{selectedGenres.length} selected</span>
+            )}
+            <Button
+              variant="cinema"
+              size="sm"
               onClick={() => handleFinish(false)}
               disabled={saving}
               className="min-w-[120px]"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
-              ) : selected.length > 0 ? (
-                'Continue \u2192'
               ) : (
-                'Skip & start'
+                'Get started →'
               )}
             </Button>
           </>

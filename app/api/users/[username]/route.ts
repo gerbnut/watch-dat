@@ -5,11 +5,18 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { z } from 'zod'
 
+const socialLinksSchema = z.object({
+  letterboxd: z.string().max(100).optional(),
+  twitter: z.string().max(100).optional(),
+  instagram: z.string().max(100).optional(),
+}).optional()
+
 const patchSchema = z.object({
   displayName: z.string().trim().min(1).max(50).optional(),
   bio: z.string().trim().max(300).optional().nullable(),
   avatar: z.string().max(2 * 1024 * 1024).optional().nullable(),
   bannerUrl: z.string().max(4 * 1024 * 1024).optional().nullable(),
+  socialLinks: socialLinksSchema,
 })
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
@@ -89,7 +96,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ us
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
     }
-    const { displayName, bio, avatar, bannerUrl } = parsed.data
+    const { displayName, bio, avatar, bannerUrl, socialLinks } = parsed.data
 
     const updated = await prisma.user.update({
       where: { id: user.id },
@@ -98,6 +105,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ us
         ...(bio !== undefined ? { bio } : {}),
         ...(avatar !== undefined ? { avatar } : {}),
         ...(bannerUrl !== undefined ? { bannerUrl } : {}),
+        ...(socialLinks !== undefined ? { socialLinks } : {}),
       },
       select: {
         id: true,

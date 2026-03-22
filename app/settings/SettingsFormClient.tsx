@@ -20,6 +20,7 @@ interface User {
   bio: string | null
   avatar: string | null
   bannerUrl: string | null
+  socialLinks: { letterboxd?: string; twitter?: string; instagram?: string } | null
 }
 
 type CropTarget = {
@@ -49,6 +50,9 @@ export function SettingsFormClient({ user }: { user: User }) {
   const [cropTarget, setCropTarget] = useState<CropTarget | null>(null)
   const [uploading, setUploading] = useState<'avatar' | 'bannerUrl' | null>(null)
   const [saving, setSaving] = useState(false)
+  const [letterboxd, setLetterboxd] = useState(user.socialLinks?.letterboxd ?? '')
+  const [twitter, setTwitter] = useState(user.socialLinks?.twitter ?? '')
+  const [instagram, setInstagram] = useState(user.socialLinks?.instagram ?? '')
   const [displayNameError, setDisplayNameError] = useState('')
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const bannerInputRef = useRef<HTMLInputElement>(null)
@@ -111,7 +115,12 @@ export function SettingsFormClient({ user }: { user: User }) {
       const res = await fetch(`/api/users/${user.username}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName, bio: bio || null, avatar: avatar || null }),
+        body: JSON.stringify({
+          displayName,
+          bio: bio || null,
+          avatar: avatar || null,
+          socialLinks: { letterboxd: letterboxd || undefined, twitter: twitter || undefined, instagram: instagram || undefined },
+        }),
       })
       if (!res.ok) throw new Error('Failed to update')
       toast({ title: 'Profile updated!', variant: 'success' })
@@ -282,6 +291,40 @@ export function SettingsFormClient({ user }: { user: User }) {
             <p className={cn('text-xs text-right', bio.length > 300 ? 'text-destructive' : 'text-muted-foreground/40')}>
               {bio.length}/300
             </p>
+          </div>
+
+          {/* Social Links */}
+          <div className="space-y-3 pt-2 border-t border-white/[0.04]">
+            <p className="text-sm font-medium">Social Links</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground w-20 shrink-0">Letterboxd</span>
+                <Input
+                  value={letterboxd}
+                  onChange={(e) => setLetterboxd(e.target.value)}
+                  placeholder="username"
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground w-20 shrink-0">X / Twitter</span>
+                <Input
+                  value={twitter}
+                  onChange={(e) => setTwitter(e.target.value)}
+                  placeholder="@handle"
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground w-20 shrink-0">Instagram</span>
+                <Input
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="@handle"
+                  className="text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end">

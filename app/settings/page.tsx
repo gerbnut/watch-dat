@@ -25,6 +25,7 @@ export default async function SettingsPage() {
       bio: true,
       avatar: true,
       bannerUrl: true,
+      socialLinks: true,
       letterboxdImportedAt: true,
       letterboxdEntryCount: true,
       favoriteMovies: {
@@ -53,7 +54,7 @@ export default async function SettingsPage() {
         </div>
       </div>
       <SettingsFormClient
-        user={{ id: user.id, username: user.username ?? '', displayName: user.displayName ?? '', bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}
+        user={{ id: user.id, username: user.username ?? '', displayName: user.displayName ?? '', bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null, socialLinks: (user.socialLinks as any) ?? null }}
       />
       <FavoritesEditorClient username={user.username ?? ''} initialFavorites={favorites} />
 
