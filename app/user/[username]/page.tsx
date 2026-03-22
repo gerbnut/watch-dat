@@ -263,9 +263,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       </div>
 
       {/* ── Stats Pills ── */}
+      <div className="relative">
       <div className="flex items-center gap-3 sm:gap-4 py-4 mt-2 overflow-x-auto scrollbar-hide">
         {stats.map(({ label, value, href }) => {
-          const cls = "flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit hover:bg-white/[0.04] transition-colors"
+          const cls = "flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit hover:bg-white/[0.04] active:scale-[0.97] transition-all touch-manipulation"
           return href ? (
             <Link key={label} href={href} className={cls}>
               <span className="text-lg sm:text-xl font-bold tracking-tight tabular-nums">{value.toLocaleString()}</span>
@@ -287,49 +288,45 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           </div>
         )}
       </div>
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+      </div>
 
       {/* ── Favorite Films ── */}
       {user.favoriteMovies.length > 0 && (
         <div className="mt-2 mb-6">
           <p className="text-xs uppercase tracking-wider text-muted-foreground/40 mb-2">Favorites</p>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {user.favoriteMovies.map(({ movie }) => (
-              <MovieCard
-                key={movie.id}
-                tmdbId={movie.tmdbId}
-                title={movie.title}
-                poster={movie.poster}
-                releaseDate={movie.releaseDate}
-                size="xs"
-                showYear={false}
-                className="shrink-0 !w-16 sm:!w-20"
-              />
-            ))}
+          <div className="relative">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {user.favoriteMovies.map(({ movie }) => (
+                <MovieCard
+                  key={movie.id}
+                  tmdbId={movie.tmdbId}
+                  title={movie.title}
+                  poster={movie.poster}
+                  releaseDate={movie.releaseDate}
+                  size="xs"
+                  showYear={false}
+                  className="shrink-0 !w-16 sm:!w-20"
+                />
+              ))}
+            </div>
+            <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           </div>
         </div>
       )}
 
       {/* ── Tab Navigation ── */}
       <ProfileTabs>
-        <TabsList className="w-full justify-start gap-1 overflow-x-auto scrollbar-hide bg-transparent rounded-none border-b border-white/[0.04] p-0 pb-px h-auto">
-          <TabsTrigger value="ranked" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Ranked
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Activity
-          </TabsTrigger>
-          <TabsTrigger value="reviews" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Reviews
-          </TabsTrigger>
-          <TabsTrigger value="diary" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Diary
-          </TabsTrigger>
-          <TabsTrigger value="lists" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Lists
-          </TabsTrigger>
-          <TabsTrigger value="watchlist" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
-            Watchlist
-          </TabsTrigger>
+        <TabsList className="sticky top-14 z-30 w-full justify-start gap-1 overflow-x-auto scrollbar-hide bg-background/95 backdrop-blur-xl rounded-none border-b border-white/[0.04] p-0 pb-px h-auto">
+          {(['ranked', 'activity', 'reviews', 'diary', 'lists', 'watchlist'] as const).map((tab) => (
+            <TabsTrigger
+              key={tab}
+              value={tab}
+              className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200"
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="ranked" className="mt-4">
