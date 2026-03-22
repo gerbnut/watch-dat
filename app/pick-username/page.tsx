@@ -115,8 +115,8 @@ function PickUsernameContent() {
     <AuthShell>
       <div className="space-y-4">
         <div className="text-center space-y-1">
-          <h1 className="text-xl font-bold tracking-tight">Pick a username</h1>
-          <p className="text-sm text-muted-foreground/70">Choose how others will find you</p>
+          <h1 className="text-xl font-bold tracking-tight">Create your identity</h1>
+          <p className="text-sm text-muted-foreground/70">Choose a username and display name</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
