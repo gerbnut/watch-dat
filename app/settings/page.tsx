@@ -9,6 +9,7 @@ import { LetterboxdSettingsClient } from './LetterboxdSettingsClient'
 import { DeleteAccountClient } from './DeleteAccountClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { NotificationPrefsClient } from './NotificationPrefsClient'
+import { ThemeToggleClient } from './ThemeToggleClient'
 
 export const metadata: Metadata = { title: 'Settings' }
 
@@ -57,6 +58,8 @@ export default async function SettingsPage() {
         user={{ id: user.id, username: user.username ?? '', displayName: user.displayName ?? '', bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null, socialLinks: (user.socialLinks as any) ?? null }}
       />
       <FavoritesEditorClient username={user.username ?? ''} initialFavorites={favorites} />
+
+      <ThemeToggleClient />
 
       <NotificationPrefsClient />
 

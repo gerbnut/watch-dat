@@ -70,6 +70,22 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
     if (preselectedMovie) setMovie(preselectedMovie)
   }, [preselectedMovie])
 
+  // Restore draft from localStorage when movie is selected (non-edit mode)
+  React.useEffect(() => {
+    if (!movie || editMode) return
+    const draft = localStorage.getItem(`review-draft-${movie.id}`)
+    if (draft) setText(draft)
+  }, [movie?.id, editMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save review text to localStorage as the user types
+  React.useEffect(() => {
+    if (!movie || editMode || !text) return
+    const timer = setTimeout(() => {
+      localStorage.setItem(`review-draft-${movie.id}`, text)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [text, movie?.id, editMode])
+
   async function handleSubmit() {
     const today = formatDate(new Date(), 'yyyy-MM-dd')
     if (watchedDate && watchedDate > today) {
@@ -124,6 +140,7 @@ export function LogFilmModal({ open, onClose, preselectedMovie, onSuccess, editR
         throw new Error(err.error ?? 'Failed to save')
       }
 
+      localStorage.removeItem(`review-draft-${movie.id}`)
       toast({ title: 'Logged!', description: `${movie.title} added to your diary`, variant: 'success' })
       onSuccess?.()
       handleClose()
