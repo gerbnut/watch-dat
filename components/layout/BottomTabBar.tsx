@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Home, Search, Plus, BarChart3, User } from 'lucide-react'
 import { useState } from 'react'
@@ -11,6 +10,7 @@ import { hapticImpact } from '@/lib/native'
 
 export function BottomTabBar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { data: session } = useSession()
   const [logOpen, setLogOpen] = useState(false)
 
@@ -38,9 +38,16 @@ export function BottomTabBar() {
         <div className="flex h-16 items-center">
           {/* Home + Films */}
           {tabs.slice(0, 2).map(({ href, label, icon: Icon, active }) => (
-            <Link
+            <button
               key={href}
-              href={href}
+              onClick={() => {
+                if (active) {
+                  hapticImpact('light')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                } else {
+                  router.push(href)
+                }
+              }}
               className={cn(
                 'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200',
                 active ? 'text-cinema-400' : 'text-muted-foreground/60'
@@ -49,7 +56,7 @@ export function BottomTabBar() {
               <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]')} />
               {label}
               {active && <span className="h-1 w-1 rounded-full bg-cinema-400 mt-0.5" />}
-            </Link>
+            </button>
           ))}
 
           {/* Center Log button — floating action */}
@@ -70,11 +77,18 @@ export function BottomTabBar() {
             </button>
           </div>
 
-          {/* Friends + Me */}
+          {/* Stats + Me */}
           {tabs.slice(2).map(({ href, label, icon: Icon, active }) => (
-            <Link
+            <button
               key={href}
-              href={href}
+              onClick={() => {
+                if (active) {
+                  hapticImpact('light')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                } else {
+                  router.push(href)
+                }
+              }}
               className={cn(
                 'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200',
                 active ? 'text-cinema-400' : 'text-muted-foreground/60'
@@ -83,7 +97,7 @@ export function BottomTabBar() {
               <Icon className={cn('h-5 w-5', active && 'drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]')} />
               {label}
               {active && <span className="h-1 w-1 rounded-full bg-cinema-400 mt-0.5" />}
-            </Link>
+            </button>
           ))}
         </div>
       </nav>
