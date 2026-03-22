@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { ListCard } from '@/components/lists/ListCard'
+import { CreateListButtonClient } from '@/app/lists/CreateListButtonClient'
 import { ActivityFeedItem } from '@/components/feed/ActivityFeedItem'
 import { FollowButtonClient } from './FollowButtonClient'
 import { BlockButtonClient } from './BlockButtonClient'
@@ -358,7 +359,12 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           </Link>
         </TabsContent>
 
-        <TabsContent value="lists" className="mt-4">
+        <TabsContent value="lists" className="mt-4 space-y-4">
+          {isOwnProfile && (
+            <div className="flex justify-end">
+              <CreateListButtonClient variant="cinema" />
+            </div>
+          )}
           {recentLists.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {recentLists.map((list) => (
