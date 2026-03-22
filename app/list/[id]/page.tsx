@@ -8,6 +8,7 @@ import { Globe, Lock, Film } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { MoviePoster } from '@/components/movies/MoviePoster'
+import { BackButton } from '@/components/ui/BackButton'
 import { AddToListClient } from './AddToListClient'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -45,6 +46,7 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-4">
+        <BackButton />
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">

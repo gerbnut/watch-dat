@@ -7,6 +7,7 @@ import { SettingsFormClient } from './SettingsFormClient'
 import { FavoritesEditorClient } from './FavoritesEditorClient'
 import { LetterboxdSettingsClient } from './LetterboxdSettingsClient'
 import { DeleteAccountClient } from './DeleteAccountClient'
+import { BackButton } from '@/components/ui/BackButton'
 
 export const metadata: Metadata = { title: 'Settings' }
 
@@ -43,9 +44,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground/70 mt-1">Manage your profile and preferences</p>
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Settings</h1>
+          <p className="text-sm text-muted-foreground/70 mt-1">Manage your profile and preferences</p>
+        </div>
       </div>
       <SettingsFormClient
         user={{ id: user.id, username: user.username ?? '', displayName: user.displayName ?? '', bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null }}

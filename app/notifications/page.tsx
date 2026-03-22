@@ -7,6 +7,7 @@ import { Bell, Heart, UserPlus, MessageSquare, AtSign, Send } from 'lucide-react
 import Link from 'next/link'
 import { formatRelativeTime, getInitials, cn } from '@/lib/utils'
 import { MarkReadClient } from './MarkReadClient'
+import { BackButton } from '@/components/ui/BackButton'
 
 export const metadata: Metadata = { title: 'Notifications' }
 
@@ -57,7 +58,10 @@ export default async function NotificationsPage() {
   return (
     <div className="max-w-xl space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Notifications</h1>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <h1 className="text-2xl font-bold">Notifications</h1>
+        </div>
         {unread.length > 0 && <MarkReadClient />}
       </div>
 
