@@ -355,7 +355,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
   // ── Mood phase ───────────────────────────────────────────────────────────
   if (phase === 'mood') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-[calc(100dvh-6rem)] flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full max-w-sm space-y-6">
           <div className="flex items-center">
             <button
@@ -405,7 +405,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
   // ── Done phase ───────────────────────────────────────────────────────────
   if (phase === 'done') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-[calc(100dvh-6rem)] flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full max-w-sm space-y-6 text-center">
           <div className="space-y-1">
             <h2 className="text-2xl font-black">
@@ -449,7 +449,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
 
   // ── Swipe phase ──────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-6 gap-6">
+    <div className="min-h-[calc(100dvh-6rem)] flex flex-col items-center justify-center px-4 py-6 gap-6">
       {/* Header */}
       <div className="w-full max-w-sm flex items-center justify-between text-sm">
         <div className="flex items-center gap-1">
