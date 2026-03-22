@@ -221,69 +221,90 @@ export default async function FilmsPage({
       </div>
     )
   } else if (tab === 'new') {
-    const now = new Date()
-    const yyyy = now.getFullYear()
-    const mm = String(now.getMonth() + 1).padStart(2, '0')
-    const dd = String(now.getDate()).padStart(2, '0')
-    const monthStart = `${yyyy}-${mm}-01`
-    const monthEnd = `${yyyy}-${mm}-${new Date(yyyy, now.getMonth() + 1, 0).getDate()}`
-    const today = `${yyyy}-${mm}-${dd}`
-    const threeMonthsOut = new Date(now)
-    threeMonthsOut.setMonth(threeMonthsOut.getMonth() + 3)
-    const futureDate = `${threeMonthsOut.getFullYear()}-${String(threeMonthsOut.getMonth() + 1).padStart(2, '0')}-${String(threeMonthsOut.getDate()).padStart(2, '0')}`
-    const sixMonthsAgo = new Date(now)
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-    const recentDate = `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}-01`
+    try {
+      const now = new Date()
+      const yyyy = now.getFullYear()
+      const mm = String(now.getMonth() + 1).padStart(2, '0')
+      const dd = String(now.getDate()).padStart(2, '0')
+      const monthStart = `${yyyy}-${mm}-01`
+      const monthEnd = `${yyyy}-${mm}-${new Date(yyyy, now.getMonth() + 1, 0).getDate()}`
+      const today = `${yyyy}-${mm}-${dd}`
+      const threeMonthsOut = new Date(now)
+      threeMonthsOut.setMonth(threeMonthsOut.getMonth() + 3)
+      const futureDate = `${threeMonthsOut.getFullYear()}-${String(threeMonthsOut.getMonth() + 1).padStart(2, '0')}-${String(threeMonthsOut.getDate()).padStart(2, '0')}`
+      const sixMonthsAgo = new Date(now)
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+      const recentDate = `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}-01`
 
-    const empty = { results: [] as TMDBSearchResult[], total_pages: 0 }
-    const settled = await Promise.allSettled([
-      getNowPlayingMovies(),
-      discoverMovies({ releaseDateGte: monthStart, releaseDateLte: monthEnd, minVotes: 10 }),
-      discoverMovies({ releaseDateGte: today, releaseDateLte: futureDate, minVotes: 0 }),
-      discoverMovies({ withGenres: '28,53', releaseDateGte: recentDate, minVotes: 50 }),
-      discoverMovies({ withGenres: 27, releaseDateGte: recentDate, minVotes: 50 }),
-      discoverMovies({ withGenres: 18, releaseDateGte: recentDate, voteAverageGte: 7.0, minVotes: 100 }),
-    ])
-    const [nowPlaying, openingThisMonth, comingSoon, freshAction, newHorror, newDramas] =
-      settled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
+      const empty = { results: [] as TMDBSearchResult[], total_pages: 0 }
+      const settled = await Promise.allSettled([
+        getNowPlayingMovies(),
+        discoverMovies({ releaseDateGte: monthStart, releaseDateLte: monthEnd, minVotes: 10 }),
+        discoverMovies({ releaseDateGte: today, releaseDateLte: futureDate, minVotes: 0 }),
+        discoverMovies({ withGenres: '28,53', releaseDateGte: recentDate, minVotes: 50 }),
+        discoverMovies({ withGenres: 27, releaseDateGte: recentDate, minVotes: 50 }),
+        discoverMovies({ withGenres: 18, releaseDateGte: recentDate, voteAverageGte: 7.0, minVotes: 100 }),
+      ])
 
-    content = (
-      <div className="space-y-8">
-        <NowPlayingRow
-          title="Now Playing"
-          icon={Clapperboard}
-          movies={nowPlaying.results?.slice(0, 20) ?? []}
-        />
-        <MovieScrollRow
-          title="Opening This Month"
-          icon={CalendarDays}
-          movies={openingThisMonth.results?.slice(0, 20) ?? []}
-        />
-        <MovieScrollRow
-          title="Coming Soon"
-          icon={Clock}
-          movies={comingSoon.results?.slice(0, 20) ?? []}
-        />
-        <MovieScrollRow
-          title="Fresh Action & Thriller"
-          icon={Flame}
-          movies={freshAction.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/28,53?title=Fresh+Action+%26+Thriller"
-        />
-        <MovieScrollRow
-          title="New Horror"
-          icon={Skull}
-          movies={newHorror.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/27?title=New+Horror"
-        />
-        <MovieScrollRow
-          title="New Dramas Worth Watching"
-          icon={Heart}
-          movies={newDramas.results?.slice(0, 20) ?? []}
-          seeMoreHref="/films/genre/18?title=New+Dramas+Worth+Watching"
-        />
-      </div>
-    )
+      const failedCalls = settled
+        .map((r, i) => r.status === 'rejected' ? `[${i}] ${r.reason}` : null)
+        .filter(Boolean)
+      if (failedCalls.length > 0) {
+        console.error('[NewReleases] Failed TMDB calls:', failedCalls)
+      }
+
+      const [nowPlaying, openingThisMonth, comingSoon, freshAction, newHorror, newDramas] =
+        settled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
+
+      content = (
+        <div className="space-y-8">
+          <NowPlayingRow
+            title="Now Playing"
+            icon={Clapperboard}
+            movies={nowPlaying.results?.slice(0, 20) ?? []}
+          />
+          <MovieScrollRow
+            title="Opening This Month"
+            icon={CalendarDays}
+            movies={openingThisMonth.results?.slice(0, 20) ?? []}
+          />
+          <MovieScrollRow
+            title="Coming Soon"
+            icon={Clock}
+            movies={comingSoon.results?.slice(0, 20) ?? []}
+          />
+          <MovieScrollRow
+            title="Fresh Action & Thriller"
+            icon={Flame}
+            movies={freshAction.results?.slice(0, 20) ?? []}
+            seeMoreHref="/films/genre/28,53?title=Fresh+Action+%26+Thriller"
+          />
+          <MovieScrollRow
+            title="New Horror"
+            icon={Skull}
+            movies={newHorror.results?.slice(0, 20) ?? []}
+            seeMoreHref="/films/genre/27?title=New+Horror"
+          />
+          <MovieScrollRow
+            title="New Dramas Worth Watching"
+            icon={Heart}
+            movies={newDramas.results?.slice(0, 20) ?? []}
+            seeMoreHref="/films/genre/18?title=New+Dramas+Worth+Watching"
+          />
+        </div>
+      )
+    } catch (e) {
+      console.error('[NewReleases] Uncaught error:', e)
+      content = (
+        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+          <Clapperboard className="h-12 w-12 text-cinema-400/40" />
+          <h2 className="text-xl font-semibold">Could not load new releases</h2>
+          <p className="text-muted-foreground max-w-sm">
+            Something went wrong fetching the latest movies. Try refreshing the page.
+          </p>
+        </div>
+      )
+    }
   } else if (tab === 'top-rated') {
     const empty = { results: [] as TMDBSearchResult[], total_pages: 0 }
     const settled = await Promise.allSettled([
