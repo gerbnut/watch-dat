@@ -17,7 +17,7 @@ export function BottomTabBar() {
   if (pathname.startsWith('/onboarding') || pathname.startsWith('/settings')) return null
 
   const username = session?.user?.username
-  const meHref = username ? `/user/${username}` : '/login'
+  const meHref = username ? `/user/${username}` : session?.user ? '/pick-username' : '/login'
   const meActive = username
     ? pathname.startsWith(`/user/${username}`) || pathname === '/settings'
     : false

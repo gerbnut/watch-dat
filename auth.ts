@@ -28,22 +28,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id as string },
-          select: { username: true, displayName: true, avatar: true },
+          select: { username: true, displayName: true, avatar: true, onboardedAt: true },
         })
         token.username = dbUser?.username
         token.displayName = dbUser?.displayName
         token.needsUsername = !dbUser?.username
+        token.onboardedAt = dbUser?.onboardedAt?.getTime() ?? null
         const av = dbUser?.avatar as string | null
         token.avatar = av?.startsWith('data:') ? null : av
       }
       if (token.needsUsername) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { username: true },
+          select: { username: true, onboardedAt: true },
         })
         if (dbUser?.username) {
           token.needsUsername = false
           token.username = dbUser.username
+        }
+        if (dbUser?.onboardedAt) {
+          token.onboardedAt = dbUser.onboardedAt.getTime()
         }
       }
       return token
@@ -55,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.displayName = (token.displayName as string) ?? null
         session.user.image = token.avatar as string | null
         session.user.needsUsername = token.needsUsername as boolean
+        session.user.onboardedAt = token.onboardedAt as number | null ?? null
       }
       return session
     },

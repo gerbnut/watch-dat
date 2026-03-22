@@ -137,7 +137,7 @@ export function Navbar() {
                       <p className="text-xs text-muted-foreground mt-0.5">@{session.user.username ?? '...'}</p>
                     </div>
                     <Link
-                      href={`/user/${session.user.username ?? ''}`}
+                      href={session.user.username ? `/user/${session.user.username}` : '/pick-username'}
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
                     >

@@ -104,6 +104,7 @@ declare module 'next-auth' {
       displayName: string | null
       image?: string | null
       needsUsername?: boolean
+      onboardedAt?: number | null
     }
   }
 }
@@ -111,5 +112,6 @@ declare module 'next-auth' {
 declare module '@auth/core/jwt' {
   interface JWT {
     needsUsername?: boolean
+    onboardedAt?: number | null
   }
 }

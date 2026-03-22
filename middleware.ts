@@ -21,7 +21,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Force Google users without a username to /pick-username
+  // Force OAuth users without a username to /pick-username
   if (
     isLoggedIn &&
     req.auth?.user?.needsUsername === true &&
@@ -31,18 +31,29 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/pick-username', req.url))
   }
 
+  // Force users who haven't completed onboarding to /onboarding
+  if (
+    isLoggedIn &&
+    req.auth?.user?.needsUsername !== true &&
+    !req.auth?.user?.onboardedAt &&
+    pathname !== '/onboarding' &&
+    !pathname.startsWith('/api')
+  ) {
+    return NextResponse.redirect(new URL('/onboarding', req.url))
+  }
+
   return NextResponse.next()
 })
 
 export const config = {
   matcher: [
-    '/diary/:path*',
-    '/lists/:path*',
-    '/settings/:path*',
-    '/watchlist/:path*',
-    '/pick-username',
-    '/login',
-    '/register',
-    '/verify',
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico, sitemap.xml, robots.txt
+     * - static assets (images, fonts, etc.)
+     */
+    '/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)$).*)',
   ],
 }

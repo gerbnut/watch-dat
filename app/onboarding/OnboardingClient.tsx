@@ -122,13 +122,16 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
         )
       }
       await Promise.all(promises)
+      await fetch('/api/auth/complete-onboarding', { method: 'POST' })
     } catch {
       const { toast } = await import('@/hooks/use-toast')
       toast({ title: 'Could not save preferences', variant: 'destructive' })
+      return
     } finally {
-      router.push('/')
-      router.refresh()
+      setSaving(false)
     }
+    router.push('/')
+    router.refresh()
   }
 
   return (
