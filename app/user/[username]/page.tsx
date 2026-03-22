@@ -17,6 +17,7 @@ import { BlockButtonClient } from './BlockButtonClient'
 import { BannerSection } from './BannerSection'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { ReportButton } from '@/components/ui/ReportButton'
+import { BackButton } from '@/components/ui/BackButton'
 import { RankedFilmsTab } from '@/components/profile/RankedFilmsTab'
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
@@ -51,9 +52,10 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   }
 }
 
-export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
+export default async function UserProfilePage({ params, searchParams }: { params: Promise<{ username: string }>; searchParams: Promise<{ tab?: string }> }) {
   const session = await auth()
   const { username } = await params
+  const { tab } = await searchParams
 
   const user = await prisma.user.findUnique({
     where: { username: username.toLowerCase() },
@@ -143,7 +145,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   const stats = [
     { label: 'Films', value: user._count.diaryEntries, href: `/user/${user.username}/diary` },
     { label: 'Reviews', value: user._count.reviews, href: `/user/${user.username}/reviews` },
-    { label: 'Watchlist', value: user._count.watchlist, href: isOwnProfile ? '/watchlist' : undefined },
+    { label: 'Watchlist', value: user._count.watchlist, href: isOwnProfile ? '/watchlist' : `/user/${user.username}?tab=watchlist` },
     { label: 'Lists', value: user._count.lists, href: `/user/${user.username}/lists` },
     { label: 'Followers', value: user._count.followers, href: `/user/${user.username}/followers` },
     { label: 'Following', value: user._count.following, href: `/user/${user.username}/following` },
@@ -153,6 +155,11 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     <div className="-mt-6">
       {/* ── Banner ── */}
       <div className="relative -mx-4">
+        {!isOwnProfile && (
+          <div className="absolute top-4 left-4 z-10">
+            <BackButton className="backdrop-blur-sm bg-black/30 border-white/[0.08] hover:bg-black/50 text-white hover:text-white" />
+          </div>
+        )}
         <BannerSection
           bannerUrl={(user as any).bannerUrl ?? null}
           isOwnProfile={isOwnProfile}
@@ -303,7 +310,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       )}
 
       {/* ── Tab Navigation ── */}
-      <Tabs defaultValue="ranked">
+      <Tabs defaultValue={tab && ['ranked', 'activity', 'reviews', 'diary', 'lists', 'watchlist'].includes(tab) ? tab : 'ranked'}>
         <TabsList className="w-full justify-start gap-1 overflow-x-auto scrollbar-hide bg-transparent rounded-none border-b border-white/[0.04] p-0 pb-px h-auto">
           <TabsTrigger value="ranked" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Ranked
