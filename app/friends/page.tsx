@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Search, Users, Loader2 } from 'lucide-react'
+import { Search, Users, Loader2, UserPlus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { cn, getInitials } from '@/lib/utils'
@@ -206,9 +207,32 @@ export default function FriendsPage() {
 
   return (
     <div className="max-w-lg space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Friends</h1>
-        <p className="text-sm text-muted-foreground mt-1">Find and follow other members</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Friends</h1>
+          <p className="text-sm text-muted-foreground mt-1">Find and follow other members</p>
+        </div>
+        <Button
+          variant="cinema-outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={async () => {
+            const url = `${window.location.origin}/register`
+            if (navigator.share) {
+              try {
+                await navigator.share({ title: 'Join me on Watch Dat', text: 'Track films, rate and review them, and discover movies through friends.', url })
+                return
+              } catch (e) {
+                if ((e as Error).name === 'AbortError') return
+              }
+            }
+            await navigator.clipboard.writeText(url)
+            toast({ title: 'Invite link copied!' })
+          }}
+        >
+          <UserPlus className="h-3.5 w-3.5" />
+          Invite
+        </Button>
       </div>
 
       {/* Search */}
