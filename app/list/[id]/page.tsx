@@ -11,6 +11,7 @@ import { MoviePoster } from '@/components/movies/MoviePoster'
 import { BackButton } from '@/components/ui/BackButton'
 import { AddToListClient } from './AddToListClient'
 import { EditListClient } from './EditListClient'
+import { ListFilmRow } from './ListFilmRow'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
@@ -69,12 +70,6 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
           </div>
           <div className="flex items-center gap-2">
             {(isOwner || isCollaborator) && <AddToListClient listId={list.id} />}
-            {(isOwner || isCollaborator) && (
-              <EditListClient
-                listId={list.id}
-                items={list.items.map((item) => ({ id: item.id, movieTitle: item.movie.title }))}
-              />
-            )}
           </div>
         </div>
 
@@ -109,45 +104,53 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
           {isOwner && <p className="text-sm text-muted-foreground">Add some films to get started</p>}
         </div>
       ) : (
-        <div className="space-y-2">
-          {list.items.map((item, i) => {
-            const directors = (item.movie.directors as any[]) ?? []
-            const genres = (item.movie.genres as any[]) ?? []
+        <EditListClient
+          listId={list.id}
+          canEdit={isOwner || isCollaborator}
+          itemLabels={Object.fromEntries(list.items.map((item) => [item.id, item.movie.title]))}
+        >
+          <div className="space-y-2">
+            {list.items.map((item, i) => {
+              const directors = (item.movie.directors as any[]) ?? []
+              const genres = (item.movie.genres as any[]) ?? []
 
-            return (
-              <div key={item.id} className="flex items-center gap-4 rounded-lg border bg-card p-3 hover:bg-accent/30 transition-colors">
-                <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{i + 1}</span>
+              return (
+                <ListFilmRow key={item.id} itemId={item.id} movieTitle={item.movie.title}>
+                  <div className="flex items-center gap-4 rounded-lg border bg-card p-3 hover:bg-accent/30 transition-colors">
+                    <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{i + 1}</span>
 
-                <Link href={`/film/${item.movie.tmdbId}`}>
-                  <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded">
-                    <MoviePoster
-                      poster={item.movie.poster}
-                      title={item.movie.title}
-                      tmdbSize="w154"
-                      sizes="44px"
-                    />
+                    <Link href={`/film/${item.movie.tmdbId}`}>
+                      <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded">
+                        <MoviePoster
+                          poster={item.movie.poster}
+                          title={item.movie.title}
+                          tmdbSize="w154"
+                          sizes="44px"
+                        />
+                      </div>
+                    </Link>
+
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/film/${item.movie.tmdbId}`} className="font-semibold hover:underline line-clamp-1">
+                        {item.movie.title}
+                      </Link>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                        {getYearFromDate(item.movie.releaseDate) && <span>{getYearFromDate(item.movie.releaseDate)}</span>}
+                        {directors[0] && <span>· {directors[0].name}</span>}
+                        {genres.slice(0, 2).map((g: any) => (
+                          <span key={g.id} className="text-muted-foreground/60">{g.name}</span>
+                        ))}
+                      </div>
+                      {item.note && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-1 italic">"{item.note}"</p>
+                      )}
+                    </div>
                   </div>
-                </Link>
-
-                <div className="flex-1 min-w-0">
-                  <Link href={`/film/${item.movie.tmdbId}`} className="font-semibold hover:underline line-clamp-1">
-                    {item.movie.title}
-                  </Link>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                    {getYearFromDate(item.movie.releaseDate) && <span>{getYearFromDate(item.movie.releaseDate)}</span>}
-                    {directors[0] && <span>· {directors[0].name}</span>}
-                    {genres.slice(0, 2).map((g: any) => (
-                      <span key={g.id} className="text-muted-foreground/60">{g.name}</span>
-                    ))}
-                  </div>
-                  {item.note && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1 italic">"{item.note}"</p>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+                </ListFilmRow>
+              )
+            })}
+          </div>
+        </EditListClient>
       )}
     </div>
   )

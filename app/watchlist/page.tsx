@@ -2,12 +2,12 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { Metadata } from 'next'
-import { MovieCard } from '@/components/movies/MovieCard'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/BackButton'
 import Link from 'next/link'
 import { Bookmark } from 'lucide-react'
 import { WatchlistControls } from './WatchlistControls'
+import { WatchlistGrid } from './WatchlistGrid'
 
 export const metadata: Metadata = { title: 'Watchlist' }
 
@@ -97,18 +97,14 @@ export default async function WatchlistPage({
             currentSort={sort}
             currentGenre={genreFilter}
           />
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-            {filtered.map(({ movie }) => (
-              <MovieCard
-                key={movie.id}
-                tmdbId={movie.tmdbId}
-                title={movie.title}
-                poster={movie.poster}
-                releaseDate={movie.releaseDate}
-                size="sm"
-              />
-            ))}
-          </div>
+          <WatchlistGrid
+            films={filtered.map(({ movie }) => ({
+              tmdbId: movie.tmdbId,
+              title: movie.title,
+              poster: movie.poster,
+              releaseDate: movie.releaseDate ? String(movie.releaseDate) : null,
+            }))}
+          />
           {filtered.length === 0 && genreFilter && (
             <div className="text-center py-8 text-muted-foreground text-sm">
               No {genreFilter} films in your watchlist
