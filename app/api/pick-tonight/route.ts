@@ -26,7 +26,7 @@ function weightedShuffle(arr: TMDBSearchResult[]): TMDBSearchResult[] {
   return arr
     .map(m => ({
       m,
-      score: (m.vote_average ** 1.5) * Math.log10(Math.max(m.vote_count, 1)) + (Math.random() * 1.5),
+      score: m.vote_average * Math.log10(Math.max(m.vote_count, 1)) + (Math.random() * 3),
     }))
     .sort((a, b) => b.score - a.score)
     .map(x => x.m)
@@ -115,20 +115,20 @@ export async function GET(req: NextRequest) {
 
   const promises: Promise<{ results: TMDBSearchResult[] }>[] = []
   if (genreId !== undefined) {
-    // Genre selected — discover highly-rated within that genre
-    promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 500, voteAverageGte: 6.5, sortBy: 'vote_average.desc' }))
-    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 200, voteAverageGte: 6.0 }))
-    // Also add a popular sort for variety
-    promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 300, sortBy: 'popularity.desc' }))
+    // Genre selected — popular in that genre, biased toward recent
+    promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 100, sortBy: 'popularity.desc' }))
+    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 50, sortBy: 'popularity.desc' }))
+    // Well-rated recent films in genre (last 10 years)
+    promises.push(discoverMovies({ withGenres: genreId, releaseDateGte: '2016-01-01', voteAverageGte: 6.5, minVotes: 200, sortBy: 'popularity.desc' }))
   } else {
-    // Any — use trending + popular + highly rated
+    // Any — trending + popular + recent well-rated
     promises.push(getTrendingMovies('week'))
     promises.push(getPopularMovies(safePage))
-    promises.push(discoverMovies({ voteAverageGte: 7.0, minVotes: 1000, sortBy: 'vote_average.desc', page: safePage }))
+    promises.push(discoverMovies({ releaseDateGte: '2016-01-01', voteAverageGte: 7.0, minVotes: 500, sortBy: 'popularity.desc', page: safePage }))
     // Pull from user's preferred genres if available
     const prefGenres = [...preferredGenreIds].slice(0, 2)
     for (const gId of prefGenres) {
-      promises.push(discoverMovies({ withGenres: gId, voteAverageGte: 6.5, minVotes: 300, sortBy: 'vote_average.desc' }))
+      promises.push(discoverMovies({ withGenres: gId, minVotes: 100, sortBy: 'popularity.desc' }))
     }
   }
   if (fav1) promises.push(
@@ -161,7 +161,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const filtered = allResults.filter((m) => !watchedTmdbIds.has(m.id) && m.vote_average >= 5.0)
+  const filtered = allResults.filter((m) => !watchedTmdbIds.has(m.id))
 
   // Boost movies matching user's preferred genres (from high-rated reviews)
   const preferred = preferredGenreIds.size > 0
