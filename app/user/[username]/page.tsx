@@ -65,6 +65,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           followers: true,
           diaryEntries: true,
           lists: { where: { isPublic: true } },
+          watchlist: true,
         },
       },
       favoriteMovies: {
@@ -90,7 +91,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     : false
   const [resolvedFollowing, resolvedBlocked] = await Promise.all([isFollowing, isBlocked])
 
-  const [recentReviews, recentLists, recentActivities] = await Promise.all([
+  const [recentReviews, recentLists, recentActivities, watchlistItems] = await Promise.all([
     prisma.review.findMany({
       where: { userId: user.id },
       include: {
@@ -124,6 +125,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
       orderBy: { createdAt: 'desc' },
       take: 15,
     }),
+    prisma.watchlistItem.findMany({
+      where: { userId: user.id },
+      include: {
+        movie: { select: { id: true, tmdbId: true, title: true, poster: true, releaseDate: true } },
+      },
+      orderBy: { addedAt: 'desc' },
+      take: 20,
+    }),
   ])
 
   const avgRating = await prisma.review.aggregate({
@@ -134,6 +143,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   const stats = [
     { label: 'Films', value: user._count.diaryEntries, href: `/user/${user.username}/diary` },
     { label: 'Reviews', value: user._count.reviews, href: `/user/${user.username}/reviews` },
+    { label: 'Watchlist', value: user._count.watchlist, href: isOwnProfile ? '/watchlist' : undefined },
     { label: 'Lists', value: user._count.lists, href: `/user/${user.username}/lists` },
     { label: 'Followers', value: user._count.followers, href: `/user/${user.username}/followers` },
     { label: 'Following', value: user._count.following, href: `/user/${user.username}/following` },
@@ -247,16 +257,20 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
 
       {/* ── Stats Pills ── */}
       <div className="flex items-center gap-3 sm:gap-4 py-4 mt-2 overflow-x-auto scrollbar-hide">
-        {stats.map(({ label, value, href }) => (
-          <Link
-            key={label}
-            href={href}
-            className="flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit hover:bg-white/[0.04] transition-colors"
-          >
-            <span className="text-lg sm:text-xl font-bold tracking-tight tabular-nums">{value.toLocaleString()}</span>
-            <span className="text-[10px] sm:text-xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
-          </Link>
-        ))}
+        {stats.map(({ label, value, href }) => {
+          const cls = "flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit hover:bg-white/[0.04] transition-colors"
+          return href ? (
+            <Link key={label} href={href} className={cls}>
+              <span className="text-lg sm:text-xl font-bold tracking-tight tabular-nums">{value.toLocaleString()}</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
+            </Link>
+          ) : (
+            <div key={label} className={cls}>
+              <span className="text-lg sm:text-xl font-bold tracking-tight tabular-nums">{value.toLocaleString()}</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
+            </div>
+          )
+        })}
         {avgRating._avg.rating && (
           <div className="flex flex-col items-center px-3 sm:px-4 py-2 rounded-xl bg-white/[0.02] border border-white/[0.03] min-w-fit">
             <span className="text-lg sm:text-xl font-bold tracking-tight text-cinema-400 tabular-nums">
@@ -305,6 +319,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           </TabsTrigger>
           <TabsTrigger value="lists" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Lists
+          </TabsTrigger>
+          <TabsTrigger value="watchlist" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
+            Watchlist
           </TabsTrigger>
         </TabsList>
 
@@ -383,6 +400,32 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
             </div>
           ) : (
             <p className="text-center text-muted-foreground py-8 text-sm">No lists yet.</p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="watchlist" className="mt-4">
+          {watchlistItems.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              {watchlistItems.map(({ movie }) => (
+                <MovieCard
+                  key={movie.id}
+                  tmdbId={movie.tmdbId}
+                  title={movie.title}
+                  poster={movie.poster}
+                  releaseDate={movie.releaseDate}
+                  size="sm"
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8 text-sm">No films on the watchlist yet.</p>
+          )}
+          {isOwnProfile && watchlistItems.length > 0 && (
+            <div className="flex justify-center mt-4">
+              <Link href="/watchlist" className="text-sm text-cinema-400 hover:text-cinema-300 transition-colors">
+                View full watchlist →
+              </Link>
+            </div>
           )}
         </TabsContent>
       </Tabs>

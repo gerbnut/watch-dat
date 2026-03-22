@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { motion } from 'framer-motion'
 
-import { Film, Home, LogOut, Settings, User, Users, Shuffle } from 'lucide-react'
+import { Bookmark, Film, Home, LogOut, Settings, User, Users, Shuffle } from 'lucide-react'
 import { WatchDatLogoMark } from './WatchDatLogo'
 import { NotificationBell } from './NotificationBell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -149,6 +149,13 @@ export function Navbar() {
                       className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
                     >
                       <Settings className="h-4 w-4 text-muted-foreground" /> Settings
+                    </Link>
+                    <Link
+                      href="/watchlist"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
+                    >
+                      <Bookmark className="h-4 w-4 text-muted-foreground" /> Watchlist
                     </Link>
                     <div className="border-t border-white/[0.06] mt-1 pt-1">
                       <button
