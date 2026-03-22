@@ -14,7 +14,6 @@ import {
 } from '@/lib/tmdb'
 import { getUserTopGenres, getUserWatchedTmdbIds } from '@/lib/user-genres'
 import { MovieScrollRow } from '@/components/movies/MovieScrollRow'
-import { NowPlayingRow } from '@/components/movies/NowPlayingRow'
 import { TrendingCarousel } from '@/components/movies/TrendingCarousel'
 import { MovieSearch } from '@/components/movies/MovieSearch'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
@@ -258,7 +257,7 @@ export default async function FilmsPage({
 
       content = (
         <div className="space-y-8">
-          <NowPlayingRow
+          <MovieScrollRow
             title="Now Playing"
             icon={Clapperboard}
             movies={nowPlaying.results?.slice(0, 20) ?? []}
