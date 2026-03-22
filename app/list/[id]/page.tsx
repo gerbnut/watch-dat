@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 import { BackButton } from '@/components/ui/BackButton'
 import { AddToListClient } from './AddToListClient'
+import { EditListClient } from './EditListClient'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
@@ -66,7 +67,15 @@ export default async function ListDetailPage({ params }: { params: Promise<{ id:
               <p className="text-muted-foreground leading-relaxed">{list.description}</p>
             )}
           </div>
-          {(isOwner || isCollaborator) && <AddToListClient listId={list.id} />}
+          <div className="flex items-center gap-2">
+            {(isOwner || isCollaborator) && <AddToListClient listId={list.id} />}
+            {(isOwner || isCollaborator) && (
+              <EditListClient
+                listId={list.id}
+                items={list.items.map((item) => ({ id: item.id, movieTitle: item.movie.title }))}
+              />
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

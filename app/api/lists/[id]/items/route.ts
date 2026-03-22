@@ -67,6 +67,36 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const list = await prisma.list.findUnique({
+      where: { id },
+      include: { collaborators: { select: { userId: true } } },
+    })
+    if (!list) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const isOwner = list.userId === session.user.id
+    const isCollaborator = list.collaborators.some((c) => c.userId === session.user.id)
+    if (!isOwner && !isCollaborator) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { itemId } = await req.json()
+    if (!itemId) return NextResponse.json({ error: 'itemId required' }, { status: 400 })
+
+    await prisma.listItem.delete({ where: { id: itemId, listId: id } })
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('Delete list item error:', err)
+    return NextResponse.json({ error: 'Failed to remove item' }, { status: 500 })
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const session = await auth()
