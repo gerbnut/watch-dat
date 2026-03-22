@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   motion,
   AnimatePresence,
@@ -11,9 +12,11 @@ import {
   PanInfo,
 } from 'framer-motion'
 import { toast } from '@/hooks/use-toast'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Eye, Heart, Check, Film } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MoviePoster } from '@/components/movies/MoviePoster'
+import { LogFilmModal } from '@/components/reviews/LogFilmModal'
+import { hapticImpact } from '@/lib/native'
 import { cn } from '@/lib/utils'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -29,17 +32,17 @@ interface PickMovie {
   friendRecs: { username: string; avatar: string | null; rating: number }[]
 }
 
-// ── Mood chips (hardcoded — no GENRE_MAP import) ─────────────────────────────
+// ── Mood chips ───────────────────────────────────────────────────────────────
 const MOOD_CHIPS = [
-  { label: 'Any',      emoji: '🎬', genreId: null  },
-  { label: 'Action',   emoji: '💥', genreId: 28    },
-  { label: 'Comedy',   emoji: '😂', genreId: 35    },
-  { label: 'Drama',    emoji: '🎭', genreId: 18    },
-  { label: 'Horror',   emoji: '👻', genreId: 27    },
-  { label: 'Romance',  emoji: '💕', genreId: 10749 },
-  { label: 'Sci-Fi',   emoji: '🚀', genreId: 878   },
-  { label: 'Thriller', emoji: '🔪', genreId: 53    },
-  { label: 'Fantasy',  emoji: '🧙', genreId: 14    },
+  { label: 'Any',      genreId: null  },
+  { label: 'Action',   genreId: 28    },
+  { label: 'Comedy',   genreId: 35    },
+  { label: 'Drama',    genreId: 18    },
+  { label: 'Horror',   genreId: 27    },
+  { label: 'Romance',  genreId: 10749 },
+  { label: 'Sci-Fi',   genreId: 878   },
+  { label: 'Thriller', genreId: 53    },
+  { label: 'Fantasy',  genreId: 14    },
 ] as const
 
 type MoodChip = (typeof MOOD_CHIPS)[number]
@@ -215,12 +218,13 @@ function SwipeCard({ movie, isTop, stackOffset, selectedGenreId, onSwipe, onTap 
   )
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ───────────────────────────────────────────────────────────
 interface PickTonightClientProps {
   currentUserId: string | null
+  genreBackdrops: Record<number, string | null>
 }
 
-export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
+export function PickTonightClient({ currentUserId, genreBackdrops }: PickTonightClientProps) {
   const router = useRouter()
 
   const [phase, setPhase] = useState<'mood' | 'swipe' | 'done'>('mood')
@@ -231,9 +235,9 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
   const [lastSwiped, setLastSwiped] = useState<PickMovie | null>(null)
   const [showUndo, setShowUndo] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [logModalOpen, setLogModalOpen] = useState(false)
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentMoodRef = useRef<MoodChip>(MOOD_CHIPS[0])
-  // Refs for synchronous access inside swipe handler
   const cardsRef = useRef<PickMovie[]>([])
   const currentIndexRef = useRef(0)
   const nextPageRef = useRef<number | null>(null)
@@ -291,6 +295,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
     const card = cardsRef.current[currentIndexRef.current]
     if (!card) return
 
+    hapticImpact('light')
     setLastSwiped(card)
     setShowUndo(true)
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current)
@@ -349,6 +354,28 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
     setPhase('mood')
   }
 
+  function handleSeenIt() {
+    setLogModalOpen(true)
+  }
+
+  function handleLogSuccess() {
+    setLogModalOpen(false)
+    // Advance past this card like a skip
+    const newIndex = currentIndexRef.current + 1
+    currentIndexRef.current = newIndex
+    setCurrentIndex(newIndex)
+    const remaining = cardsRef.current.length - newIndex
+    if (remaining <= 0 && !nextPageRef.current) {
+      setPhase('done')
+    }
+  }
+
+  // Current movie for LogFilmModal
+  const currentCard = cards[currentIndex] ?? null
+  const logModalMovie = currentCard
+    ? { id: currentCard.tmdbId, title: currentCard.title, poster_path: currentCard.poster, release_date: currentCard.releaseDate ?? '' }
+    : null
+
   // Visible stack: up to 3 cards starting from currentIndex
   const visibleCards = cards.slice(currentIndex, currentIndex + 3)
 
@@ -371,22 +398,68 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
             <p className="text-muted-foreground text-sm">What are you in the mood for?</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {MOOD_CHIPS.map((chip) => (
-              <button
-                key={chip.label}
-                onClick={() => setSelectedMood(chip)}
-                className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-sm font-medium transition-all',
-                  selectedMood.label === chip.label
-                    ? 'border-cinema-500/40 bg-cinema-500/15 text-foreground shadow-glow-green-xs'
-                    : 'border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-cinema-500/30 hover:bg-white/[0.04] hover:text-foreground',
-                )}
-              >
-                <span className="text-2xl">{chip.emoji}</span>
-                <span>{chip.label}</span>
-              </button>
-            ))}
+          {/* Genre grid — backdrop image cards */}
+          <div className="grid grid-cols-3 gap-2.5">
+            {MOOD_CHIPS.map((chip) => {
+              const isSelected = selectedMood.label === chip.label
+              const backdrop = chip.genreId ? genreBackdrops[chip.genreId] : null
+              return (
+                <button
+                  key={chip.label}
+                  onClick={() => setSelectedMood(chip)}
+                  className={cn(
+                    'relative h-[80px] rounded-xl overflow-hidden transition-all focus:outline-none touch-manipulation active:scale-[0.97]',
+                    isSelected
+                      ? 'ring-2 ring-cinema-400 shadow-[0_0_12px_-3px_rgba(16,185,129,0.4)]'
+                      : 'ring-1 ring-white/[0.08] hover:ring-white/[0.16]'
+                  )}
+                >
+                  {/* Backdrop image or gradient for "Any" */}
+                  {backdrop ? (
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w780${backdrop}`}
+                      alt={chip.label}
+                      fill
+                      className="object-cover"
+                      sizes="33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-cinema-900/60 to-cinema-950/80" />
+                  )}
+
+                  {/* Gradient overlay */}
+                  <div className={cn(
+                    'absolute inset-0 transition-colors duration-200',
+                    isSelected
+                      ? 'bg-cinema-900/70'
+                      : 'bg-gradient-to-t from-black/80 via-black/40 to-black/20'
+                  )} />
+
+                  {/* Content */}
+                  <div className="relative h-full flex flex-col items-center justify-center gap-0.5">
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                        className="h-5 w-5 rounded-full bg-cinema-400 flex items-center justify-center"
+                      >
+                        <Check className="h-3 w-3 text-black" />
+                      </motion.div>
+                    )}
+                    {!chip.genreId && !isSelected && (
+                      <Film className="h-4 w-4 text-white/60 mb-0.5" />
+                    )}
+                    <span className={cn(
+                      'text-xs font-semibold tracking-wide',
+                      isSelected ? 'text-cinema-300' : 'text-white'
+                    )}>
+                      {chip.label}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
           </div>
 
           <Button
@@ -395,7 +468,7 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
             size="lg"
             onClick={handleStart}
           >
-            Start Swiping →
+            Start Swiping
           </Button>
         </div>
       </div>
@@ -452,26 +525,19 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
     <div className="min-h-[calc(100dvh-6rem)] flex flex-col items-center justify-center px-4 py-6 gap-6">
       {/* Header */}
       <div className="w-full max-w-sm flex items-center justify-between text-sm">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => router.push('/films')}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Back to films"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleChangeMood}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Change mood
-          </button>
-        </div>
-        <span className="font-semibold">
-          {selectedMood.emoji} {selectedMood.label}
+        <button
+          onClick={handleChangeMood}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors touch-manipulation"
+          aria-label="Change mood"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <span className="font-bold text-foreground">
+          {selectedMood.label}
         </span>
-        <span className="text-muted-foreground">
-          {likedCards.length} liked
+        <span className="flex items-center gap-1 text-cinema-400 font-medium">
+          <Heart className="h-3.5 w-3.5 fill-cinema-400" />
+          {likedCards.length}
         </span>
       </div>
 
@@ -504,47 +570,83 @@ export function PickTonightClient({ currentUserId }: PickTonightClientProps) {
         )}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-4">
+      {/* Action buttons with labels */}
+      <div className="flex items-end gap-6">
         {/* Skip */}
-        <button
-          onClick={() => handleSwipe('left')}
-          disabled={loading || visibleCards.length === 0}
-          className="h-14 w-14 rounded-full border-2 border-destructive/60 text-destructive flex items-center justify-center text-2xl hover:bg-destructive/10 hover:border-destructive transition-colors disabled:opacity-40"
-          aria-label="Skip"
-        >
-          ✕
-        </button>
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={() => handleSwipe('left')}
+            disabled={loading || visibleCards.length === 0}
+            className="h-14 w-14 rounded-full border-2 border-destructive/60 text-destructive flex items-center justify-center text-2xl hover:bg-destructive/10 hover:border-destructive active:scale-[0.93] transition-all disabled:opacity-40 touch-manipulation"
+            aria-label="Skip"
+          >
+            ✕
+          </button>
+          <span className="text-[10px] text-muted-foreground/50">Skip</span>
+        </div>
+
+        {/* Seen it */}
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={handleSeenIt}
+            disabled={loading || visibleCards.length === 0 || !currentUserId}
+            className="h-10 w-10 rounded-full border border-white/[0.15] text-muted-foreground flex items-center justify-center hover:bg-white/[0.05] hover:text-foreground active:scale-[0.93] transition-all disabled:opacity-40 touch-manipulation"
+            aria-label="Seen it"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <span className="text-[10px] text-muted-foreground/50">Seen it</span>
+        </div>
 
         {/* Undo */}
         <AnimatePresence>
           {showUndo && (
-            <motion.button
+            <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
-              onClick={handleUndo}
-              className="h-10 w-10 rounded-full border border-white/[0.06] text-muted-foreground flex items-center justify-center text-base hover:bg-white/[0.05] transition-colors"
-              aria-label="Undo"
+              className="flex flex-col items-center gap-1"
             >
-              ↩
-            </motion.button>
+              <button
+                onClick={handleUndo}
+                className="h-10 w-10 rounded-full border border-white/[0.06] text-muted-foreground flex items-center justify-center text-base hover:bg-white/[0.05] active:scale-[0.93] transition-all touch-manipulation"
+                aria-label="Undo"
+              >
+                ↩
+              </button>
+              <span className="text-[10px] text-muted-foreground/50">Undo</span>
+            </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Like / Watch */}
-        <button
-          onClick={() => handleSwipe('right')}
-          disabled={loading || visibleCards.length === 0}
-          className="h-14 w-14 rounded-full border-2 border-cinema-400/60 text-cinema-400 flex items-center justify-center text-2xl hover:bg-cinema-400/10 hover:border-cinema-400 hover:shadow-glow-green-xs transition-all disabled:opacity-40"
-          aria-label="Add to watchlist"
-        >
-          ♥
-        </button>
+        {/* Watchlist */}
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={() => handleSwipe('right')}
+            disabled={loading || visibleCards.length === 0}
+            className="h-14 w-14 rounded-full border-2 border-cinema-400/60 text-cinema-400 flex items-center justify-center hover:bg-cinema-400/10 hover:border-cinema-400 hover:shadow-glow-green-xs active:scale-[0.93] transition-all disabled:opacity-40 touch-manipulation"
+            aria-label="Add to watchlist"
+          >
+            <Heart className="h-6 w-6" />
+          </button>
+          <span className="text-[10px] text-muted-foreground/50">Watchlist</span>
+        </div>
       </div>
 
       {/* Hint */}
-      <p className="text-muted-foreground text-xs">Tap to view details · Swipe or tap buttons</p>
+      <p className="text-muted-foreground/40 text-xs text-center">
+        Swipe right to add to watchlist, left to skip
+      </p>
+
+      {/* Log Film Modal for "Seen it" */}
+      {logModalMovie && (
+        <LogFilmModal
+          open={logModalOpen}
+          onClose={() => setLogModalOpen(false)}
+          preselectedMovie={logModalMovie}
+          onSuccess={handleLogSuccess}
+        />
+      )}
     </div>
   )
 }

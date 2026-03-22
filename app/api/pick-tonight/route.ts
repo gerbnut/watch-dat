@@ -26,7 +26,7 @@ function weightedShuffle(arr: TMDBSearchResult[]): TMDBSearchResult[] {
   return arr
     .map(m => ({
       m,
-      score: m.vote_average * Math.log10(Math.max(m.vote_count, 1)) + (Math.random() * 3),
+      score: m.vote_average * Math.log10(Math.max(m.vote_count, 1)) + (Math.random() * 1.5),
     }))
     .sort((a, b) => b.score - a.score)
     .map(x => x.m)
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
   if (genreId !== undefined) {
     // Genre selected — popular in that genre, biased toward recent
     promises.push(discoverMovies({ withGenres: genreId, page: safePage, minVotes: 100, sortBy: 'popularity.desc' }))
-    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 50, sortBy: 'popularity.desc' }))
+    promises.push(discoverMovies({ withGenres: genreId, page: safePage + 1, minVotes: 150, sortBy: 'popularity.desc', voteAverageGte: 5.5 }))
     // Well-rated recent films in genre (last 10 years)
     promises.push(discoverMovies({ withGenres: genreId, releaseDateGte: '2016-01-01', voteAverageGte: 6.5, minVotes: 200, sortBy: 'popularity.desc' }))
   } else {
@@ -161,7 +161,15 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const filtered = allResults.filter((m) => !watchedTmdbIds.has(m.id))
+  const filtered = allResults.filter((m) => {
+    if (watchedTmdbIds.has(m.id)) return false
+    // Filter out old obscure films — keep classics with high vote counts
+    if (m.release_date) {
+      const year = parseInt(m.release_date.slice(0, 4), 10)
+      if (year < 2000 && m.vote_count < 1000) return false
+    }
+    return true
+  })
 
   // Boost movies matching user's preferred genres (from high-rated reviews)
   const preferred = preferredGenreIds.size > 0
