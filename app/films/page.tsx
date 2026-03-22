@@ -483,6 +483,7 @@ export default async function FilmsPage({
           <Link
             key={id}
             href={href}
+            prefetch={true}
             className={cn(
               'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors border',
               tab === id

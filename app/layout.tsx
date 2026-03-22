@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
@@ -11,6 +11,7 @@ import { PullToRefresh } from '@/components/layout/PullToRefresh'
 import { ServiceWorkerRegistration } from '@/components/layout/ServiceWorkerRegistration'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-geist-sans' })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display', weight: ['500', '600', '700'] })
 
 export const metadata: Metadata = {
   title: {
@@ -57,7 +58,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans min-h-screen antialiased`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans min-h-screen antialiased`}>
         <SessionProvider>
           <QueryProvider>
             <Navbar />

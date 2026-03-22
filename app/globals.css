@@ -62,9 +62,14 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1;
     -webkit-tap-highlight-color: transparent;
     background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.03), transparent);
+  }
+
+  h1, h2, h3 {
+    @apply tracking-tight;
+    font-family: var(--font-display), var(--font-geist-sans), system-ui, sans-serif;
   }
 
   /* Remove tap highlight and default appearance on all interactive elements */

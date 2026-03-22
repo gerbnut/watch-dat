@@ -66,7 +66,7 @@ export function Navbar() {
         {/* Logo + Wordmark */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
           <WatchDatLogoMark className="text-cinema-400 shrink-0 transition-all group-hover:drop-shadow-[0_0_6px_rgba(16,185,129,0.3)]" />
-          <span className="hidden sm:block font-black text-[15px] leading-none tracking-tight">
+          <span className="hidden sm:block font-display font-bold text-[15px] leading-none tracking-tight">
             Watch <span className="text-cinema-400">DAT</span>
           </span>
         </Link>
@@ -84,6 +84,7 @@ export function Navbar() {
               <Link
                 key={href}
                 href={href}
+                prefetch={true}
                 className={cn(
                   'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                   isActive
