@@ -116,6 +116,7 @@ export default async function FilmsPage({
         discoverMovies({ withGenres: 53, runtimeGte: 120, voteAverageGte: 7.0, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
         discoverMovies({ withGenres: 16, withoutGenres: 10751, voteAverageGte: 7.0, releaseDateGte: '2000-01-01', sortBy: 'popularity.desc' }),
         discoverMovies({ primaryReleaseYear: 2026, sortBy: 'popularity.desc', minVotes: 50 }),
+        discoverMovies({ releaseDateGte: '1980-01-01', releaseDateLte: '1989-12-31', minVotes: 500, sortBy: 'popularity.desc' }),
         discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'popularity.desc' }),
         discoverMovies({ withGenres: '10752,18', minVotes: 300, releaseDateGte: '1990-01-01', sortBy: 'popularity.desc' }),
         discoverMovies({ withGenres: '27,53', voteAverageGte: 6.5, sortBy: 'popularity.desc' }),
@@ -126,7 +127,7 @@ export default async function FilmsPage({
       trending, popular, comedies,
       koreanGems, japaneseGems, frenchGems,
       slowBurn, animatedAdults, thisYear,
-      nineties, warConflict, midnightMovies,
+      eighties, nineties, warConflict, midnightMovies,
     ] = settled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
 
     const foreignGems = dedupeMovies([
@@ -181,6 +182,11 @@ export default async function FilmsPage({
           title="This Year's Hits"
           icon={Calendar}
           movies={thisYear.results?.slice(0, 20) ?? []}
+        />
+        <MovieScrollRow
+          title="80s Classics"
+          icon={Film}
+          movies={eighties.results?.slice(0, 20) ?? []}
         />
         <MovieScrollRow
           title="90s Nostalgia"
