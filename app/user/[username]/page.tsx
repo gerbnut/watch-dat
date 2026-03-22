@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { formatDate, getInitials, formatRating } from '@/lib/utils'
 import { Calendar, Film } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ProfileTabs } from './ProfileTabs'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { ListCard } from '@/components/lists/ListCard'
@@ -52,10 +53,9 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   }
 }
 
-export default async function UserProfilePage({ params, searchParams }: { params: Promise<{ username: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const session = await auth()
   const { username } = await params
-  const { tab } = await searchParams
 
   const user = await prisma.user.findUnique({
     where: { username: username.toLowerCase() },
@@ -310,7 +310,7 @@ export default async function UserProfilePage({ params, searchParams }: { params
       )}
 
       {/* ── Tab Navigation ── */}
-      <Tabs defaultValue={tab && ['ranked', 'activity', 'reviews', 'diary', 'lists', 'watchlist'].includes(tab) ? tab : 'ranked'}>
+      <ProfileTabs>
         <TabsList className="w-full justify-start gap-1 overflow-x-auto scrollbar-hide bg-transparent rounded-none border-b border-white/[0.04] p-0 pb-px h-auto">
           <TabsTrigger value="ranked" className="rounded-none rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02] data-[state=active]:bg-white/[0.04] data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cinema-400 data-[state=active]:-mb-px transition-all duration-200">
             Ranked
@@ -435,7 +435,7 @@ export default async function UserProfilePage({ params, searchParams }: { params
             </div>
           )}
         </TabsContent>
-      </Tabs>
+      </ProfileTabs>
     </div>
   )
 }
