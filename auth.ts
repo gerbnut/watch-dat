@@ -50,6 +50,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.onboardedAt = dbUser.onboardedAt.getTime()
         }
       }
+      // Re-fetch onboardedAt for users with username but stale token
+      if (!token.onboardedAt && !token.needsUsername) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { onboardedAt: true },
+        })
+        if (dbUser?.onboardedAt) {
+          token.onboardedAt = dbUser.onboardedAt.getTime()
+        }
+      }
       return token
     },
     async session({ session, token }) {

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Loader2, Shuffle, Upload, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { Check, Loader2, Shuffle, Upload, ArrowRight, ChevronLeft } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { MovieSearch } from '@/components/movies/MovieSearch'
@@ -25,25 +26,26 @@ interface SelectedMovie {
 
 interface Props {
   suggestions: SuggestedMovie[]
+  genreBackdrops: Record<number, string | null>
   username: string
   displayName: string
 }
 
 const TOTAL_STEPS = 3
 
-const GENRE_CHIPS = [
-  { id: 28, name: 'Action', emoji: '💥' },
-  { id: 35, name: 'Comedy', emoji: '😂' },
-  { id: 18, name: 'Drama', emoji: '🎭' },
-  { id: 27, name: 'Horror', emoji: '👻' },
-  { id: 10749, name: 'Romance', emoji: '💕' },
-  { id: 878, name: 'Sci-Fi', emoji: '🚀' },
-  { id: 53, name: 'Thriller', emoji: '🔪' },
-  { id: 14, name: 'Fantasy', emoji: '🧙' },
-  { id: 99, name: 'Documentary', emoji: '📽️' },
-  { id: 16, name: 'Animation', emoji: '🎨' },
-  { id: 80, name: 'Crime', emoji: '🔍' },
-  { id: 9648, name: 'Mystery', emoji: '🕵️' },
+const GENRES = [
+  { id: 28, name: 'Action' },
+  { id: 35, name: 'Comedy' },
+  { id: 18, name: 'Drama' },
+  { id: 27, name: 'Horror' },
+  { id: 10749, name: 'Romance' },
+  { id: 878, name: 'Sci-Fi' },
+  { id: 53, name: 'Thriller' },
+  { id: 14, name: 'Fantasy' },
+  { id: 99, name: 'Documentary' },
+  { id: 16, name: 'Animation' },
+  { id: 80, name: 'Crime' },
+  { id: 9648, name: 'Mystery' },
 ] as const
 
 const slideVariants = {
@@ -61,7 +63,7 @@ const slideVariants = {
   }),
 }
 
-export function OnboardingClient({ suggestions, username, displayName }: Props) {
+export function OnboardingClient({ suggestions, genreBackdrops, username, displayName }: Props) {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
@@ -143,7 +145,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
             key={s}
             className={cn(
               'h-2 rounded-full transition-all duration-300',
-              s === step ? 'w-6 bg-cinema-400' : 'w-2 bg-white/[0.15]'
+              s === step ? 'w-6 bg-cinema-400' : s < step ? 'w-2 bg-cinema-400/50' : 'w-2 bg-white/[0.15]'
             )}
           />
         ))}
@@ -336,23 +338,57 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
               </p>
             </div>
 
-            {/* Genre grid */}
-            <div className="grid grid-cols-3 gap-2">
-              {GENRE_CHIPS.map((genre) => {
+            {/* Genre grid — backdrop image cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {GENRES.map((genre) => {
                 const isSelected = selectedGenres.includes(genre.id)
+                const backdrop = genreBackdrops[genre.id]
                 return (
                   <button
                     key={genre.id}
                     onClick={() => toggleGenre(genre.id)}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-sm font-medium transition-all',
+                      'relative h-[100px] sm:h-[120px] rounded-xl overflow-hidden transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cinema-500 touch-manipulation',
                       isSelected
-                        ? 'border-cinema-500/40 bg-cinema-500/15 text-foreground shadow-glow-green-xs'
-                        : 'border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-cinema-500/30 hover:bg-white/[0.04] hover:text-foreground',
+                        ? 'ring-2 ring-cinema-400 shadow-[0_0_12px_-3px_rgba(16,185,129,0.4)]'
+                        : 'ring-1 ring-white/[0.08] hover:ring-white/[0.16]'
                     )}
                   >
-                    <span className="text-2xl">{genre.emoji}</span>
-                    <span>{genre.name}</span>
+                    {/* Backdrop image */}
+                    {backdrop ? (
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w780${backdrop}`}
+                        alt={genre.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-white/[0.02]" />
+                    )}
+
+                    {/* Gradient overlay */}
+                    <div className={cn(
+                      'absolute inset-0 transition-colors',
+                      isSelected
+                        ? 'bg-cinema-900/70'
+                        : 'bg-gradient-to-t from-black/80 via-black/40 to-black/20'
+                    )} />
+
+                    {/* Content */}
+                    <div className="relative h-full flex flex-col items-center justify-center gap-1">
+                      {isSelected && (
+                        <div className="h-6 w-6 rounded-full bg-cinema-400 flex items-center justify-center mb-0.5">
+                          <Check className="h-3.5 w-3.5 text-black" />
+                        </div>
+                      )}
+                      <span className={cn(
+                        'text-sm font-semibold tracking-wide',
+                        isSelected ? 'text-cinema-300' : 'text-white'
+                      )}>
+                        {genre.name}
+                      </span>
+                    </div>
                   </button>
                 )
               })}
@@ -368,22 +404,20 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
       >
         {step === 1 ? (
           <>
-            <Button
-              variant="ghost"
-              size="sm"
+            <div className="flex-1" />
+            <button
               onClick={() => goToStep(2)}
-              className="text-muted-foreground"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Skip
-            </Button>
-            <div className="flex-1" />
+            </button>
             <Button
               variant="cinema"
               size="sm"
               onClick={() => goToStep(2)}
               className="min-w-[120px] gap-2"
             >
-              {importDone ? 'Next' : 'Skip'}
+              {importDone ? 'Next' : 'Continue'}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </>
@@ -392,18 +426,25 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => goToStep(3)}
-              className="text-muted-foreground"
+              onClick={() => goToStep(1)}
+              className="text-muted-foreground gap-1 px-2"
             >
-              Skip
+              <ChevronLeft className="h-4 w-4" />
+              Back
             </Button>
             <div className="flex-1" />
             <span className="text-xs text-muted-foreground">{selected.length}/5 selected</span>
+            <button
+              onClick={() => goToStep(3)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Skip
+            </button>
             <Button
               variant="cinema"
               size="sm"
               onClick={() => goToStep(3)}
-              className="min-w-[120px] gap-2"
+              className="min-w-[100px] gap-2"
             >
               Next
               <ArrowRight className="h-4 w-4" />
@@ -414,16 +455,23 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleFinish(selectedGenres.length === 0 && selected.length === 0)}
-              disabled={saving}
-              className="text-muted-foreground"
+              onClick={() => goToStep(2)}
+              className="text-muted-foreground gap-1 px-2"
             >
-              Skip
+              <ChevronLeft className="h-4 w-4" />
+              Back
             </Button>
             <div className="flex-1" />
             {selectedGenres.length > 0 && (
               <span className="text-xs text-muted-foreground">{selectedGenres.length} selected</span>
             )}
+            <button
+              onClick={() => handleFinish(selectedGenres.length === 0 && selected.length === 0)}
+              disabled={saving}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              Skip
+            </button>
             <Button
               variant="cinema"
               size="sm"
@@ -434,7 +482,7 @@ export function OnboardingClient({ suggestions, username, displayName }: Props) 
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Get started →'
+                'Get started'
               )}
             </Button>
           </>
