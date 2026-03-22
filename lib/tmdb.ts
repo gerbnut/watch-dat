@@ -19,7 +19,6 @@ export const TMDB_IMAGE = {
 
 async function tmdbFetch(endpoint: string, params: Record<string, string> = {}) {
   const url = new URL(`${TMDB_BASE}${endpoint}`)
-  url.searchParams.set('api_key', process.env.TMDB_API_KEY!)
   Object.entries(params).forEach(([key, val]) => url.searchParams.set(key, val))
 
   const maxRetries = 3

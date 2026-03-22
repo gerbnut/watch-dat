@@ -106,27 +106,30 @@ export default async function FilmsPage({
   let content: React.ReactNode
 
   if (tab === 'popular') {
+    const empty = { results: [] as TMDBSearchResult[], total_pages: 0 }
+    const [settled, recentReviews] = await Promise.all([
+      Promise.allSettled([
+        getTrendingMovies('week'),
+        getPopularMovies(),
+        discoverMovies({ runtimeLte: 100, voteAverageGte: 7.0, minVotes: 300, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withOriginalLanguage: 'ko', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withOriginalLanguage: 'ja', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withOriginalLanguage: 'fr', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withGenres: 53, runtimeGte: 120, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withGenres: 16, withoutGenres: 10751, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+        discoverMovies({ primaryReleaseYear: 2026, sortBy: 'popularity.desc', minVotes: 50 }),
+        discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withGenres: '10752,18', minVotes: 300, sortBy: 'vote_average.desc' }),
+        discoverMovies({ withGenres: '27,53', voteAverageGte: 6.5, sortBy: 'popularity.desc' }),
+      ]),
+      fetchRecentReviews().catch(() => [] as Awaited<ReturnType<typeof fetchRecentReviews>>),
+    ])
     const [
       trending, popular, shortSweet,
       koreanGems, japaneseGems, frenchGems,
       slowBurn, animatedAdults, thisYear,
       nineties, warConflict, midnightMovies,
-      recentReviews,
-    ] = await Promise.all([
-      getTrendingMovies('week'),
-      getPopularMovies(),
-      discoverMovies({ runtimeLte: 100, voteAverageGte: 7.0, minVotes: 300, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withOriginalLanguage: 'ko', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withOriginalLanguage: 'ja', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withOriginalLanguage: 'fr', voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withGenres: 53, runtimeGte: 120, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withGenres: 16, withoutGenres: 10751, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
-      discoverMovies({ primaryReleaseYear: 2026, sortBy: 'popularity.desc', minVotes: 50 }),
-      discoverMovies({ releaseDateGte: '1990-01-01', releaseDateLte: '1999-12-31', minVotes: 500, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withGenres: '10752,18', minVotes: 300, sortBy: 'vote_average.desc' }),
-      discoverMovies({ withGenres: '27,53', voteAverageGte: 6.5, sortBy: 'popularity.desc' }),
-      fetchRecentReviews(),
-    ])
+    ] = settled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
 
     const foreignGems = dedupeMovies([
       ...(koreanGems.results ?? []),
@@ -282,10 +285,8 @@ export default async function FilmsPage({
       </div>
     )
   } else if (tab === 'top-rated') {
-    const [
-      topRated, modernClassics, lastDecade,
-      goldenAge, hiddenGems, bestShort, topDocs,
-    ] = await Promise.all([
+    const empty = { results: [] as TMDBSearchResult[], total_pages: 0 }
+    const settled = await Promise.allSettled([
       getTopRatedMovies(),
       discoverMovies({ releaseDateGte: '2000-01-01', releaseDateLte: '2015-12-31', voteAverageGte: 7.5, minVotes: 2000, sortBy: 'vote_average.desc' }),
       discoverMovies({ releaseDateGte: '2016-01-01', releaseDateLte: '2025-12-31', voteAverageGte: 7.5, minVotes: 1000, sortBy: 'vote_average.desc' }),
@@ -294,6 +295,10 @@ export default async function FilmsPage({
       discoverMovies({ runtimeLte: 90, voteAverageGte: 7.5, minVotes: 300, sortBy: 'vote_average.desc' }),
       discoverMovies({ withGenres: 99, voteAverageGte: 7.0, minVotes: 200, sortBy: 'vote_average.desc' }),
     ])
+    const [
+      topRated, modernClassics, lastDecade,
+      goldenAge, hiddenGems, bestShort, topDocs,
+    ] = settled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
 
     content = (
       <div className="space-y-8">
@@ -362,23 +367,27 @@ export default async function FilmsPage({
       const randomPage = Math.floor(Math.random() * 5) + 1
       const top2Genres = topGenres.slice(0, 2).map((g) => g.id).join(',')
 
-      const [
-        ...genreResults
-      ] = await Promise.all([
-        ...topGenres.map((g) => discoverMovies({ withGenres: g.id, sortBy: 'vote_average.desc' })),
-      ])
+      const empty = { results: [] as TMDBSearchResult[], total_pages: 0 }
+      const genreSettled = await Promise.allSettled(
+        topGenres.map((g) => discoverMovies({ withGenres: g.id, sortBy: 'vote_average.desc' })),
+      )
+      const genreResults = genreSettled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
 
+      const [movieSettled, reviewsResult] = await Promise.all([
+        Promise.allSettled([
+          discoverMovies({ withGenres: topGenres[0].id, sortBy: 'vote_average.desc', page: 2 }),
+          discoverMovies({ withGenres: topGenres[0].id, runtimeLte: 100, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
+          discoverMovies({ withGenres: top2Genres, releaseDateGte: '2025-01-01' }),
+          discoverMovies({ voteAverageGte: 8.0, minVotes: 1000, sortBy: 'vote_average.desc' }),
+          discoverMovies({ voteAverageGte: 7.0, minVotes: 300, page: randomPage }),
+        ]),
+        fetchRecentReviews().catch(() => [] as Awaited<ReturnType<typeof fetchRecentReviews>>),
+      ])
       const [
         deepCuts, quickWatches, newInGenres,
-        criticsPicks, surpriseMe, recentReviews,
-      ] = await Promise.all([
-        discoverMovies({ withGenres: topGenres[0].id, sortBy: 'vote_average.desc', page: 2 }),
-        discoverMovies({ withGenres: topGenres[0].id, runtimeLte: 100, voteAverageGte: 7.0, sortBy: 'vote_average.desc' }),
-        discoverMovies({ withGenres: top2Genres, releaseDateGte: '2025-01-01' }),
-        discoverMovies({ voteAverageGte: 8.0, minVotes: 1000, sortBy: 'vote_average.desc' }),
-        discoverMovies({ voteAverageGte: 7.0, minVotes: 300, page: randomPage }),
-        fetchRecentReviews(),
-      ])
+        criticsPicks, surpriseMe,
+      ] = movieSettled.map((r) => (r.status === 'fulfilled' ? r.value : empty))
+      const recentReviews = reviewsResult
 
       content = (
         <div className="space-y-8">
