@@ -46,6 +46,8 @@ model User {
   pushSubscriptions       PushSubscription[]
   letterboxdImports       LetterboxdImport[]
 
+  notificationPrefs Json?
+
   letterboxdImportedAt DateTime?
   letterboxdEntryCount Int?
 

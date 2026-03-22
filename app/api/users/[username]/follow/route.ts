@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { sendPushToUser } from '@/lib/webpush'
+import { shouldNotify } from '@/lib/notification-prefs'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
@@ -60,7 +61,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
           where: { id: session.user.id },
           select: { displayName: true, username: true },
         })
-        // Activity + notification are critical — await them
+        // Activity is always logged; notification respects user preferences
+        const notifyFollow = await shouldNotify(target.id, 'NEW_FOLLOWER')
         await Promise.all([
           prisma.activity.create({
             data: {
@@ -69,17 +71,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
               metadata: { targetUserId: target.id, targetUsername: username },
             },
           }),
-          prisma.notification.create({
+          ...(notifyFollow ? [prisma.notification.create({
             data: {
               userId: target.id,
               actorId: session.user.id,
               type: 'NEW_FOLLOWER',
             },
-          }),
+          })] : []),
         ])
 
-        // Push is fire-and-forget — never let it break the follow action
-        sendPushToUser(target.id, {
+        // Push is fire-and-forget — only if notification is enabled
+        if (notifyFollow) sendPushToUser(target.id, {
           title: 'New follower',
           body: `${actor?.displayName ?? 'Someone'} started following you`,
           url: `/user/${actor?.username ?? session.user.id}`,

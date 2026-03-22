@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
 import { sendPushToUser } from '@/lib/webpush'
+import { shouldNotify } from '@/lib/notification-prefs'
 
 const commentSchema = z
   .object({
@@ -156,8 +157,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    if (notifications.length > 0) {
-      await prisma.notification.createMany({ data: notifications })
+    // Filter notifications based on each recipient's preferences
+    const prefChecks = await Promise.all(
+      notifications.map(async (n) => ({ ...n, allowed: await shouldNotify(n.userId, n.type) }))
+    )
+    const allowedNotifications = prefChecks.filter((n) => n.allowed)
+
+    if (allowedNotifications.length > 0) {
+      await prisma.notification.createMany({ data: allowedNotifications.map(({ allowed, ...n }) => n) })
 
       // Best-effort push: send to all notification recipients
       const actor = await prisma.user.findUnique({
@@ -166,7 +173,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       })
       const actorName = actor?.displayName ?? 'Someone'
       await Promise.allSettled(
-        notifications.map((n) =>
+        allowedNotifications.map((n) =>
           sendPushToUser(n.userId, {
             title: n.type === 'REPLIED_COMMENT' ? 'New reply' : 'New comment',
             body: n.type === 'REPLIED_COMMENT'

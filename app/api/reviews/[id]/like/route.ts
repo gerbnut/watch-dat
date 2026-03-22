@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { sendPushToUser } from '@/lib/webpush'
+import { shouldNotify } from '@/lib/notification-prefs'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           select: { displayName: true },
         }),
       ])
-      if (review && review.userId !== session.user.id) {
+      if (review && review.userId !== session.user.id && await shouldNotify(review.userId, 'LIKED_REVIEW')) {
         await Promise.all([
           prisma.notification.create({
             data: {

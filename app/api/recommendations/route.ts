@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { getOrCacheMovie } from '@/lib/tmdb'
 import { z } from 'zod'
+import { shouldNotify } from '@/lib/notification-prefs'
 
 const sendSchema = z.object({
   recipientUsername: z.string().min(1),
@@ -88,15 +89,17 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Create a notification for the recipient (fire and forget — duplicates are acceptable)
-  await prisma.notification.create({
-    data: {
-      userId: recipient.id,
-      actorId: session.user.id,
-      type: 'RECOMMENDED_MOVIE',
-      movieId: movie.id,
-    },
-  }).catch((err) => console.error('Notification failed:', err))
+  // Create a notification if the recipient has it enabled
+  if (await shouldNotify(recipient.id, 'RECOMMENDED_MOVIE')) {
+    await prisma.notification.create({
+      data: {
+        userId: recipient.id,
+        actorId: session.user.id,
+        type: 'RECOMMENDED_MOVIE',
+        movieId: movie.id,
+      },
+    }).catch((err) => console.error('Notification failed:', err))
+  }
 
   return NextResponse.json({ success: true })
 }
