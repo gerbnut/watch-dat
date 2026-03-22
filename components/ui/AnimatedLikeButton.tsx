@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { hapticImpact } from '@/lib/native'
 
 interface AnimatedLikeButtonProps {
   isLiked: boolean
@@ -23,7 +24,7 @@ export function AnimatedLikeButton({
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => { hapticImpact('light'); onClick() }}
       disabled={disabled}
       className={cn(
         'flex items-center gap-1.5 text-sm select-none touch-manipulation',

@@ -124,7 +124,7 @@ export function ReviewCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <Link href={`/user/${review.user.username}`} className="shrink-0">
-              <Avatar className="h-8 w-8 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
+              <Avatar className="h-10 w-10 ring-2 ring-transparent hover:ring-cinema-500/40 transition-all">
                 <AvatarImage src={review.user.avatar ?? undefined} alt={review.user.displayName ?? ''} />
                 <AvatarFallback className="text-xs bg-cinema-900 text-cinema-300">
                   {getInitials(review.user.displayName ?? '')}
@@ -157,7 +157,7 @@ export function ReviewCard({
                 ref={menuBtnRef}
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 touch-manipulation"
+                className="h-9 w-9 touch-manipulation"
                 onClick={() => setShowMenu(!showMenu)}
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -250,19 +250,24 @@ export function ReviewCard({
         )}
 
         {/* Action bar */}
-        <div className="flex items-center gap-3 pt-1 border-t border-white/[0.04]">
-          <AnimatedLikeButton
-            isLiked={isLiked}
-            likeCount={likeCount}
-            onClick={handleLike}
-            disabled={liking}
-          />
+        <div className="flex items-center gap-6 pt-2 border-t border-white/[0.04]">
+          <div className="p-1.5 -m-1.5">
+            <AnimatedLikeButton
+              isLiked={isLiked}
+              likeCount={likeCount}
+              onClick={handleLike}
+              disabled={liking}
+            />
+          </div>
 
           <button
-            onClick={() => setCommentsOpen((v) => !v)}
+            onClick={() => {
+              setCommentsOpen((v) => !v)
+              import('@/lib/native').then(({ hapticImpact }) => hapticImpact('light'))
+            }}
             className={cn(
-              'flex items-center gap-1.5 text-sm transition-colors touch-manipulation',
-              commentsOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+              'flex items-center gap-1.5 text-sm p-1.5 -m-1.5 transition-colors touch-manipulation',
+              commentsOpen ? 'text-foreground' : 'text-muted-foreground/60 hover:text-foreground',
             )}
           >
             <MessageSquare className="h-4 w-4" />
