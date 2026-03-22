@@ -5,6 +5,30 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 import { z } from 'zod'
 
+export async function GET() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const lists = await prisma.list.findMany({
+    where: {
+      OR: [
+        { userId: session.user.id },
+        { collaborators: { some: { userId: session.user.id } } },
+      ],
+    },
+    select: {
+      id: true,
+      name: true,
+      _count: { select: { items: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+  })
+
+  return NextResponse.json({ lists })
+}
+
 const createListSchema = z.object({
   name: z.string().trim().min(1, 'List name cannot be empty').max(100),
   description: z.string().max(2000).optional(),

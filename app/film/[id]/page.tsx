@@ -12,6 +12,7 @@ import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogFilmButtonClient } from './LogFilmButtonClient'
 import { WatchlistButtonClient } from './WatchlistButtonClient'
+import { AddToListButtonClient } from './AddToListButtonClient'
 import { RecommendButtonClient } from './RecommendButtonClient'
 import { TrailerButtonClient } from './TrailerButtonClient'
 import { BackButton } from '@/components/ui/BackButton'
@@ -232,6 +233,7 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
           isLogged={!!userReview}
         />
         <WatchlistButtonClient tmdbId={tmdbId} isOnWatchlist={isOnWatchlist} />
+        <AddToListButtonClient tmdbId={tmdbId} />
         <RecommendButtonClient tmdbId={tmdbId} title={movie.title} />
         <TrailerButtonClient trailerKey={trailer?.key ?? null} />
         <div className="ml-auto">
