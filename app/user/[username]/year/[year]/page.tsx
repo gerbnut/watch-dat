@@ -150,11 +150,11 @@ export default async function YearWrappedPage({
       <div className="space-y-8 max-w-3xl">
         <div className="flex items-center gap-3">
           <Link
-            href={`/user/${user.username}/stats`}
+            href="/stats"
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            All stats
+            Stats
           </Link>
         </div>
         <h1 className="text-2xl font-bold">{year}</h1>
