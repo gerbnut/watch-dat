@@ -18,11 +18,21 @@ export async function GET(req: NextRequest) {
   const userId = session.user.id
 
   try {
-    const following = await prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    })
+    const [following, blocks] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      }),
+      prisma.block.findMany({
+        where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+        select: { blockerId: true, blockedId: true },
+      }),
+    ])
+    const blockedUserIds = blocks.map((b) =>
+      b.blockerId === userId ? b.blockedId : b.blockerId
+    )
     const ids = [...following.map((f) => f.followingId), userId]
+      .filter((id) => !blockedUserIds.includes(id))
 
     const activities = await prisma.activity.findMany({
       where: {

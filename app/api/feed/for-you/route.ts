@@ -15,11 +15,24 @@ export async function GET(req: NextRequest) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
   try {
+  // Get blocked user IDs to exclude from feed
+  const blockedUserIds: string[] = []
+  if (session?.user?.id) {
+    const blocks = await prisma.block.findMany({
+      where: { OR: [{ blockerId: session.user.id }, { blockedId: session.user.id }] },
+      select: { blockerId: true, blockedId: true },
+    })
+    blockedUserIds.push(...blocks.map((b) =>
+      b.blockerId === session.user!.id ? b.blockedId : b.blockerId
+    ))
+  }
+
   // Get popular reviews from last 30 days with text or rating
   let reviews = await prisma.review.findMany({
     where: {
       createdAt: { gte: thirtyDaysAgo },
       OR: [{ text: { not: null } }, { rating: { not: null } }],
+      ...(blockedUserIds.length > 0 ? { userId: { notIn: blockedUserIds } } : {}),
     },
     include: {
       user: { select: { id: true, username: true, displayName: true, avatar: true } },
@@ -36,6 +49,7 @@ export async function GET(req: NextRequest) {
     reviews = await prisma.review.findMany({
       where: {
         OR: [{ text: { not: null } }, { rating: { not: null } }],
+        ...(blockedUserIds.length > 0 ? { userId: { notIn: blockedUserIds } } : {}),
       },
       include: {
         user: { select: { id: true, username: true, displayName: true, avatar: true } },

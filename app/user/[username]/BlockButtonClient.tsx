@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ShieldOff, Shield, Loader2 } from 'lucide-react'
+import { ShieldOff, Shield, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
 
@@ -50,12 +50,22 @@ export function BlockButtonClient({ username, isBlocked: initial }: Props) {
 
   if (confirming) {
     return (
-      <div className="flex gap-1.5">
-        <Button variant="destructive" size="sm" onClick={toggle} disabled={loading} className="gap-1.5">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
-          Confirm block
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>Cancel</Button>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={toggle}
+          disabled={loading}
+          title="Confirm block"
+          className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-destructive/50 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldOff className="h-3.5 w-3.5" />}
+        </button>
+        <button
+          onClick={() => setConfirming(false)}
+          title="Cancel"
+          className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
       </div>
     )
   }

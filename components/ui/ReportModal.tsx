@@ -62,7 +62,7 @@ export function ReportModal({ open, onClose, targetType, targetId, targetLabel }
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative w-full max-w-sm bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
         <div className="overflow-y-auto flex-1 p-5 space-y-4" style={{ paddingBottom: reason ? '0.5rem' : undefined }}>
