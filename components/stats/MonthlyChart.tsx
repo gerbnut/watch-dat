@@ -1,6 +1,7 @@
 'use client'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const CHART_HEIGHT = 112 // matches h-28
 
 interface MonthlyChartProps {
   data: { month: number; count: number }[]
@@ -19,30 +20,28 @@ export function MonthlyChart({ data, highlightPeak = true }: MonthlyChartProps) 
 
   return (
     <div className="space-y-1">
-      <div className="flex items-end gap-1 h-28">
-        {filled.map(({ month, label, count }) => {
+      <div className="flex items-end gap-1" style={{ height: CHART_HEIGHT }}>
+        {filled.map(({ month, count }) => {
           const isPeak = highlightPeak && count > 0 && count === peak.count
-          const heightPct = max > 0 ? (count / max) * 100 : 0
+          const barHeight = max > 0 ? Math.max((count / max) * CHART_HEIGHT, count > 0 ? 4 : 0) : 0
           return (
-            <div key={month} className="flex-1 flex flex-col items-center gap-0 group relative">
+            <div key={month} className="flex-1 flex items-end group relative">
               {/* Tooltip */}
               {count > 0 && (
                 <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-semibold text-cinema-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                   {count}
                 </span>
               )}
-              <div className="w-full flex items-end justify-center flex-1">
-                <div
-                  className={`w-full rounded-t transition-all duration-500 ${
-                    isPeak
-                      ? 'bg-cinema-400'
-                      : count > 0
-                      ? 'bg-cinema-500/40 group-hover:bg-cinema-500/70'
-                      : 'bg-muted/30'
-                  }`}
-                  style={{ height: `${Math.max(heightPct, count > 0 ? 3 : 0)}%` }}
-                />
-              </div>
+              <div
+                className={`w-full rounded-t transition-all duration-500 ${
+                  isPeak
+                    ? 'bg-cinema-400'
+                    : count > 0
+                    ? 'bg-cinema-500/40 group-hover:bg-cinema-500/70'
+                    : 'bg-muted/30'
+                }`}
+                style={{ height: barHeight }}
+              />
             </div>
           )
         })}

@@ -1,11 +1,13 @@
 'use client'
 
+const CHART_HEIGHT = 96 // matches h-24
+
 interface RatingChartProps {
   data: { rating: number; _count: { id: number } }[]
 }
 
 export function RatingChart({ data }: RatingChartProps) {
-  // Build all 1–10 steps (DB stores 1–10; display as 1–10 directly)
+  // Build all 1–10 steps
   const steps: { value: number; count: number }[] = []
   for (let i = 1; i <= 10; i++) {
     const entry = data.find((d) => d.rating === i)
@@ -16,29 +18,27 @@ export function RatingChart({ data }: RatingChartProps) {
 
   return (
     <div className="space-y-1">
-      <div className="flex items-end gap-0.5 h-24">
+      <div className="flex items-end gap-0.5" style={{ height: CHART_HEIGHT }}>
         {steps.map(({ value, count }) => {
-          const heightPct = (count / max) * 100
+          const barHeight = Math.max((count / max) * CHART_HEIGHT, count > 0 ? 4 : 0)
           return (
-            <div key={value} className="flex-1 flex flex-col items-center group relative">
+            <div key={value} className="flex-1 flex items-end group relative">
               {count > 0 && (
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-cinema-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                   {count}
                 </span>
               )}
-              <div className="w-full flex items-end justify-center flex-1">
-                <div
-                  className={`w-full rounded-t transition-all duration-300 group-hover:bg-cinema-400 ${
-                    count > 0 ? 'bg-cinema-500/50' : 'bg-muted/20'
-                  }`}
-                  style={{ height: `${Math.max(heightPct, count > 0 ? 4 : 0)}%` }}
-                />
-              </div>
+              <div
+                className={`w-full rounded-t transition-all duration-300 group-hover:bg-cinema-400 ${
+                  count > 0 ? 'bg-cinema-500/50' : 'bg-muted/20'
+                }`}
+                style={{ height: barHeight }}
+              />
             </div>
           )
         })}
       </div>
-      {/* X-axis: show labels at even values (2, 4, 6, 8, 10) */}
+      {/* X-axis */}
       <div className="flex gap-0.5">
         {steps.map(({ value }) => (
           <div key={value} className="flex-1 text-center">
