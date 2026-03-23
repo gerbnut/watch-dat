@@ -52,7 +52,7 @@ export function BottomTabBar() {
               prefetch={true}
               onClick={(e) => handleTabClick(e, active)}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200 touch-manipulation',
                 active ? 'text-cinema-400' : 'text-muted-foreground/60'
               )}
             >
@@ -88,7 +88,7 @@ export function BottomTabBar() {
               prefetch={true}
               onClick={(e) => handleTabClick(e, active)}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-all duration-200 touch-manipulation',
                 active ? 'text-cinema-400' : 'text-muted-foreground/60'
               )}
             >

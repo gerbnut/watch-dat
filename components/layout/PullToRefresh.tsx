@@ -52,9 +52,8 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
     // Clamp with rubber-band feel
     const clamped = Math.min(dy * 0.5, MAX_PULL)
     setPullDistance(clamped)
-    // Only preventDefault after DEAD_ZONE — prevents suppressing click events
-    // on iOS for normal taps that have tiny accidental downward movement
-    if (dy > DEAD_ZONE) e.preventDefault()
+    // passive: true listener — no preventDefault needed.
+    // overscroll-behavior-y: contain on the container handles native bounce.
   }, [refreshing])
 
   const handleTouchEnd = useCallback(async () => {
@@ -75,7 +74,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
     const el = containerRef.current
     if (!el) return
     el.addEventListener('touchstart', handleTouchStart, { passive: true })
-    el.addEventListener('touchmove', handleTouchMove, { passive: false })
+    el.addEventListener('touchmove', handleTouchMove, { passive: true })
     el.addEventListener('touchend', handleTouchEnd, { passive: true })
     return () => {
       el.removeEventListener('touchstart', handleTouchStart)
@@ -88,7 +87,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const isReady = pullDistance >= THRESHOLD
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" style={{ overscrollBehaviorY: 'contain' }}>
       {/* Pull indicator */}
       {(pullDistance > 4 || refreshing) && (
         <div
