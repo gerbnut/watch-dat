@@ -88,7 +88,7 @@ export function MovieSearch({
   // Auto-focus mobile input when overlay opens
   useEffect(() => {
     if (mobileOpen) {
-      requestAnimationFrame(() => mobileInputRef.current?.focus())
+      setTimeout(() => mobileInputRef.current?.focus(), 50)
     }
   }, [mobileOpen])
 

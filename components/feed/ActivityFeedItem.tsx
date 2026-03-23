@@ -137,7 +137,7 @@ export function ActivityFeedItem({ activity, currentUserId, onDelete }: Activity
     <div className="pb-6 last:pb-0">
       {/* Review card — backdrop-led layout */}
       {hasReview && (
-        <div className="relative rounded-2xl border border-white/[0.04] bg-card/60 overflow-hidden group hover:border-white/[0.06] active:scale-[0.99] transition-all touch-manipulation">
+        <div className="relative rounded-2xl border border-white/[0.04] bg-card/60 overflow-hidden group hover:border-white/[0.06] transition-colors">
           {/* Full-card tap target */}
           <Link
             href={`/review/${activity.review.id}`}

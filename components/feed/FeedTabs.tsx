@@ -166,38 +166,31 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
 
   return (
     <div>
-      {/* Tab bar — Twitter-style underline tabs */}
-      <div className="flex border-b border-white/[0.04] mb-4">
+      {/* Tab bar */}
+      <div className="flex items-center gap-2 mb-4">
         {(['following', 'for-you'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              'flex-1 py-3 text-sm font-semibold text-center transition-colors relative touch-manipulation',
+              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors touch-manipulation',
               activeTab === tab
-                ? 'text-foreground'
-                : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.02]',
+                ? 'bg-cinema-500/10 text-cinema-400 border border-cinema-500/20'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border border-transparent',
             )}
           >
             {tab === 'following' ? 'Following' : 'For You'}
-            {activeTab === tab && (
-              <motion.div
-                layoutId="feedTabIndicator"
-                className="absolute bottom-0 left-1/4 right-1/4 h-[3px] rounded-full bg-cinema-400"
-                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-              />
-            )}
           </button>
         ))}
       </div>
 
       {/* Feed content */}
       {currentState.loading && currentItems.length === 0 ? (
-        <div className="divide-y divide-white/[0.04]">
+        <div className="rounded-2xl border border-white/[0.04] bg-card/80 divide-y divide-white/[0.04]">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex gap-3 py-4">
-              <div className="skeleton h-10 w-10 rounded-full shrink-0" />
-              <div className="flex-1 space-y-2.5">
+            <div key={i} className="flex gap-3 p-4">
+              <div className="skeleton h-9 w-9 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
                 <div className="skeleton h-3.5 w-2/5 rounded" />
                 <div className="skeleton h-3 w-full rounded" />
                 <div className="skeleton h-3 w-3/4 rounded" />
@@ -242,10 +235,10 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="divide-y divide-white/[0.04]"
+          className="rounded-2xl border border-white/[0.04] bg-card/80 px-4"
         >
           {currentItems.map((activity) => (
-            <motion.div key={activity.id} variants={itemVariants} className="py-1">
+            <motion.div key={activity.id} variants={itemVariants}>
               <ActivityFeedItem
                 activity={activity as any}
                 currentUserId={currentUserId}
