@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Search, X, Loader2, ArrowLeft, User } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { MoviePoster } from '@/components/movies/MoviePoster'
 import { Input } from '@/components/ui/input'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { TMDB_IMAGE } from '@/lib/tmdb'
 
 interface SearchResult {
   id: number
@@ -46,6 +48,7 @@ export function MovieSearch({
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [people, setPeople] = useState<UserResult[]>([])
+  const [tmdbPeople, setTmdbPeople] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -58,6 +61,7 @@ export function MovieSearch({
     if (!debouncedQuery.trim()) {
       setResults([])
       setPeople([])
+      setTmdbPeople([])
       return
     }
     const controller = new AbortController()
@@ -67,13 +71,15 @@ export function MovieSearch({
     ]
     if (showPeople) {
       fetches.push(
-        fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`, { signal: controller.signal }).then((r) => r.json())
+        fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`, { signal: controller.signal }).then((r) => r.json()),
+        fetch(`/api/people/search?q=${encodeURIComponent(debouncedQuery)}`, { signal: controller.signal }).then((r) => r.json()),
       )
     }
-    Promise.allSettled(fetches).then(([movieRes, userRes]) => {
+    Promise.allSettled(fetches).then(([movieRes, userRes, castRes]) => {
       if (controller.signal.aborted) return
       if (movieRes.status === 'fulfilled') setResults(movieRes.value.results?.slice(0, 5) ?? [])
       if (userRes?.status === 'fulfilled') setPeople(Array.isArray(userRes.value) ? userRes.value.slice(0, 4) : [])
+      if (castRes?.status === 'fulfilled') setTmdbPeople(castRes.value.results?.slice(0, 3) ?? [])
       setLoading(false)
     })
     return () => controller.abort()
@@ -82,7 +88,7 @@ export function MovieSearch({
   // Auto-focus mobile input when overlay opens
   useEffect(() => {
     if (mobileOpen) {
-      setTimeout(() => mobileInputRef.current?.focus(), 50)
+      requestAnimationFrame(() => mobileInputRef.current?.focus())
     }
   }, [mobileOpen])
 
@@ -119,9 +125,17 @@ export function MovieSearch({
     setQuery('')
     setResults([])
     setPeople([])
+    setTmdbPeople([])
   }
 
-  const hasResults = results.length > 0 || people.length > 0
+  function handleSelectPerson(personId: number) {
+    setQuery('')
+    setOpen(false)
+    setMobileOpen(false)
+    router.push(`/person/${personId}`)
+  }
+
+  const hasResults = results.length > 0 || people.length > 0 || tmdbPeople.length > 0
 
   const ResultsList = ({ onFilmClick, onUserClick }: { onFilmClick: (m: SearchResult) => void; onUserClick: (u: UserResult) => void }) => (
     <>
@@ -169,10 +183,51 @@ export function MovieSearch({
             </>
           )}
 
+          {showPeople && tmdbPeople.length > 0 && (
+            <>
+              <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-t border-white/[0.04]">
+                Cast & Crew
+              </p>
+              <ul>
+                {tmdbPeople.map((person: any) => (
+                  <li key={person.id}>
+                    <button
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-white/[0.05] rounded-lg transition-colors"
+                      onMouseDown={() => handleSelectPerson(person.id)}
+                      onClick={() => handleSelectPerson(person.id)}
+                    >
+                      <div className="relative h-8 w-8 shrink-0 rounded-full overflow-hidden bg-muted">
+                        {person.profile_path ? (
+                          <Image
+                            src={TMDB_IMAGE.profile(person.profile_path, 'w45')!}
+                            alt={person.name}
+                            fill
+                            className="object-cover"
+                            sizes="32px"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-xs font-bold">
+                            {person.name?.[0]}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{person.name}</p>
+                        {person.known_for_department && (
+                          <p className="text-xs text-muted-foreground">{person.known_for_department}</p>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
           {showPeople && people.length > 0 && (
             <>
               <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-t border-white/[0.04]">
-                People
+                Members
               </p>
               <ul>
                 {people.map((user) => (
