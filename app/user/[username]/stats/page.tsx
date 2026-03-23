@@ -46,7 +46,7 @@ export default async function StatsPage({ params }: { params: Promise<{ username
     }),
     prisma.$queryRaw<{ rating_bucket: number; count: number }[]>`
       SELECT ROUND(rating)::int as rating_bucket, COUNT(*)::int as count
-      FROM "Review"
+      FROM "DiaryEntry"
       WHERE "userId" = ${user.id} AND rating IS NOT NULL
       GROUP BY rating_bucket
       ORDER BY rating_bucket
