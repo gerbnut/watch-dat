@@ -44,12 +44,13 @@ export default async function StatsPage({ params }: { params: Promise<{ username
       where: { userId: user.id, rating: { not: null } },
       _avg: { rating: true },
     }),
-    prisma.review.groupBy({
-      by: ['rating'],
-      where: { userId: user.id, rating: { not: null } },
-      _count: { id: true },
-      orderBy: { rating: 'asc' },
-    }),
+    prisma.$queryRaw<{ rating_bucket: number; count: number }[]>`
+      SELECT ROUND(rating)::int as rating_bucket, COUNT(*)::int as count
+      FROM "Review"
+      WHERE "userId" = ${user.id} AND rating IS NOT NULL
+      GROUP BY rating_bucket
+      ORDER BY rating_bucket
+    `,
     prisma.$queryRaw<{ genre_name: string; count: bigint }[]>`
       SELECT
         genre->>'name' as genre_name,
@@ -62,15 +63,15 @@ export default async function StatsPage({ params }: { params: Promise<{ username
       ORDER BY count DESC
       LIMIT 12
     `,
-    prisma.$queryRaw<{ month: number; count: number }[]>`
+    prisma.$queryRaw<{ month: number; count: number; yr: number }[]>`
       SELECT
         EXTRACT(MONTH FROM "watchedDate")::int as month,
-        COUNT(*)::int as count
+        COUNT(*)::int as count,
+        EXTRACT(YEAR FROM "watchedDate")::int as yr
       FROM "DiaryEntry"
       WHERE "userId" = ${user.id}
-        AND EXTRACT(YEAR FROM "watchedDate") = ${currentYear}
-      GROUP BY month
-      ORDER BY month
+      GROUP BY yr, month
+      ORDER BY yr DESC, month
     `,
     prisma.$queryRaw<{ total_minutes: bigint }[]>`
       SELECT COALESCE(SUM(m.runtime), 0)::bigint as total_minutes
@@ -95,7 +96,15 @@ export default async function StatsPage({ params }: { params: Promise<{ username
     count: Number(g.count),
   }))
 
-  const monthlyData = monthlyStats.map((m) => ({
+  // Pick current year first, fall back to most recent year with data
+  const currentYearData = monthlyStats.filter((m) => Number(m.yr) === currentYear)
+  const chartYear = currentYearData.length > 0
+    ? currentYear
+    : monthlyStats.length > 0
+      ? Number(monthlyStats[0].yr) // sorted DESC, so first is most recent
+      : currentYear
+  const monthlyForYear = monthlyStats.filter((m) => Number(m.yr) === chartYear)
+  const monthlyData = monthlyForYear.map((m) => ({
     month: Number(m.month),
     count: Number(m.count),
   }))
@@ -157,7 +166,7 @@ export default async function StatsPage({ params }: { params: Promise<{ username
       <div className="rounded-xl border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Films per month</h2>
-          <span className="text-xs text-muted-foreground">{currentYear}</span>
+          <span className="text-xs text-muted-foreground">{chartYear}</span>
         </div>
         {monthlyData.some((d) => d.count > 0) ? (
           <MonthlyChart data={monthlyData} />
@@ -190,7 +199,7 @@ export default async function StatsPage({ params }: { params: Promise<{ username
             Rating distribution
           </h2>
           {ratingDistribution.length > 0 ? (
-            <RatingChart data={ratingDistribution.filter((r) => r.rating !== null) as { rating: number; _count: { id: number } }[]} />
+            <RatingChart data={ratingDistribution.map((r) => ({ rating: Number(r.rating_bucket), _count: { id: Number(r.count) } }))} />
           ) : (
             <div className="text-center py-6 space-y-1">
               <Star className="h-6 w-6 mx-auto text-muted-foreground/20 mb-2" />
