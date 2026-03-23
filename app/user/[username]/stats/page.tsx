@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { BarChart2, Film, Clock, Star, BookOpen, ArrowRight } from 'lucide-react'
+import { BackButton } from '@/components/ui/BackButton'
 import { MonthlyChart } from '@/components/stats/MonthlyChart'
 import { GenreChart } from '@/components/stats/GenreChart'
 import { RatingChart } from '@/components/stats/RatingChart'
@@ -105,16 +106,19 @@ export default async function StatsPage({ params }: { params: Promise<{ username
 
   return (
     <div className="space-y-8 max-w-3xl">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href={`/user/${user.username}`} className="hover:text-foreground transition-colors">
-          @{user.username}
-        </Link>
-        <span>/</span>
-        <span className="text-foreground font-medium flex items-center gap-1.5">
-          <BarChart2 className="h-3.5 w-3.5 text-cinema-400" />
-          Stats
-        </span>
+      {/* Header with back button */}
+      <div className="flex items-center gap-3">
+        <BackButton />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href={`/user/${user.username}`} className="hover:text-foreground transition-colors">
+            @{user.username}
+          </Link>
+          <span>/</span>
+          <span className="text-foreground font-medium flex items-center gap-1.5">
+            <BarChart2 className="h-3.5 w-3.5 text-cinema-400" />
+            Stats
+          </span>
+        </div>
       </div>
 
       {/* Wrapped CTA */}
@@ -158,7 +162,10 @@ export default async function StatsPage({ params }: { params: Promise<{ username
         {monthlyData.some((d) => d.count > 0) ? (
           <MonthlyChart data={monthlyData} />
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-6">No films logged this year yet.</p>
+          <div className="text-center py-6 space-y-1">
+            <Film className="h-6 w-6 mx-auto text-muted-foreground/20 mb-2" />
+            <p className="text-sm text-muted-foreground">Log films to see your viewing habits over the year</p>
+          </div>
         )}
       </div>
 
@@ -171,7 +178,10 @@ export default async function StatsPage({ params }: { params: Promise<{ username
           {genreData.length > 0 ? (
             <GenreChart data={genreData} />
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-6">No data yet.</p>
+            <div className="text-center py-6 space-y-1">
+              <Film className="h-6 w-6 mx-auto text-muted-foreground/20 mb-2" />
+              <p className="text-sm text-muted-foreground">Log films to discover your genre preferences</p>
+            </div>
           )}
         </div>
 
@@ -182,7 +192,10 @@ export default async function StatsPage({ params }: { params: Promise<{ username
           {ratingDistribution.length > 0 ? (
             <RatingChart data={ratingDistribution.filter((r) => r.rating !== null) as { rating: number; _count: { id: number } }[]} />
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-6">No ratings yet.</p>
+            <div className="text-center py-6 space-y-1">
+              <Star className="h-6 w-6 mx-auto text-muted-foreground/20 mb-2" />
+              <p className="text-sm text-muted-foreground">Rate films to see your rating patterns</p>
+            </div>
           )}
         </div>
       </div>
