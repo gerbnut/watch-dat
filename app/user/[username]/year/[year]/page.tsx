@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Film, Clock, Star, RotateCcw, Calendar, Clapperboard } from 'lucide-react'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { MonthlyChart } from '@/components/stats/MonthlyChart'
 import { GenreChart } from '@/components/stats/GenreChart'
 import { MoviePoster } from '@/components/movies/MoviePoster'
@@ -22,7 +23,7 @@ export default async function YearWrappedPage({
 }) {
   const { username, year: yearStr } = await params
   const year = Number(yearStr)
-  if (isNaN(year) || year < 1900 || year > 2100) notFound()
+  if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) notFound()
 
   const user = await prisma.user.findUnique({
     where: { username: username.toLowerCase() },
@@ -144,7 +145,28 @@ export default async function YearWrappedPage({
     `,
   ])
 
-  if (yearCount === 0) notFound()
+  if (yearCount === 0) {
+    return (
+      <div className="space-y-8 max-w-3xl">
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/user/${user.username}/stats`}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            All stats
+          </Link>
+        </div>
+        <h1 className="text-2xl font-bold">{year}</h1>
+        <EmptyState
+          icon={Film}
+          title={`No films logged in ${year}`}
+          description="Start watching and logging films to build your year in review."
+          action={{ label: `Back to @${user.username}`, href: `/user/${user.username}` }}
+        />
+      </div>
+    )
+  }
 
   const avgRating = avgRatingResult._avg.rating
   const totalMinutes = Number(totalRuntimeResult[0]?.total_minutes ?? 0)

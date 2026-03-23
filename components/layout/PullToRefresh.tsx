@@ -39,11 +39,9 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       lockedAxis.current = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical'
     }
 
-    // If swiping horizontally, bail out entirely so scroll containers work
-    if (lockedAxis.current === 'horizontal') {
-      setPullDistance(0)
-      return
-    }
+    // Skip all state updates until axis is confirmed vertical (past dead zone).
+    // This prevents re-renders during taps that would swallow click events.
+    if (lockedAxis.current !== 'vertical') return
 
     if (dy <= 0) {
       setPullDistance(0)
