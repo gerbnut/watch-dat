@@ -167,26 +167,33 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="relative flex border-b border-white/[0.06] mb-5">
         {(['following', 'for-you'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors touch-manipulation',
+              'relative flex-1 py-3 text-center text-sm font-semibold transition-colors touch-manipulation',
               activeTab === tab
-                ? 'bg-cinema-500/10 text-cinema-400 border border-cinema-500/20'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04] border border-transparent',
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/80',
             )}
           >
             {tab === 'following' ? 'Following' : 'For You'}
+            {activeTab === tab && (
+              <motion.div
+                layoutId="feedTabIndicator"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-cinema-400"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
+            )}
           </button>
         ))}
       </div>
 
       {/* Feed content */}
       {currentState.loading && currentItems.length === 0 ? (
-        <div className="rounded-2xl border border-white/[0.04] bg-card/80 divide-y divide-white/[0.04]">
+        <div className="space-y-4 divide-y divide-white/[0.04]">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex gap-3 p-4">
               <div className="skeleton h-9 w-9 rounded-full shrink-0" />
@@ -235,7 +242,7 @@ export function FeedTabs({ currentUserId, initialItems, initialNextCursor }: Fee
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="rounded-2xl border border-white/[0.04] bg-card/80 px-4"
+          className="space-y-1"
         >
           {currentItems.map((activity) => (
             <motion.div key={activity.id} variants={itemVariants}>
