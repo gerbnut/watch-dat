@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Loader2, Flag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
@@ -28,6 +29,9 @@ export function ReportModal({ open, onClose, targetType, targetId, targetLabel }
   const [details, setDetails] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   function handleClose() {
     setReason('')
@@ -59,9 +63,9 @@ export function ReportModal({ open, onClose, targetType, targetId, targetLabel }
     }
   }
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative w-full max-w-sm bg-background border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
@@ -133,6 +137,7 @@ export function ReportModal({ open, onClose, targetType, targetId, targetLabel }
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
