@@ -61,14 +61,12 @@ export function BlockButtonClient({ username, isBlocked: initial }: Props) {
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <button
       onClick={toggle}
-      className="gap-1.5 text-muted-foreground hover:text-destructive"
+      title="Block user"
+      className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors"
     >
-      <ShieldOff className="h-4 w-4" />
-      Block
-    </Button>
+      <ShieldOff className="h-3.5 w-3.5" />
+    </button>
   )
 }

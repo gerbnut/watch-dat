@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { formatDate, getInitials, formatRating } from '@/lib/utils'
-import { Calendar, Film } from 'lucide-react'
+import { Calendar, Film, Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProfileTabs } from './ProfileTabs'
@@ -188,9 +189,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                   text={user.bio ?? `Check out ${user.displayName}'s film diary on Watch Dat`}
                 />
                 <Link href="/settings">
-                  <button className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-sm font-medium hover:bg-white/[0.06] active:bg-white/[0.08] transition-colors">
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <Settings className="h-3.5 w-3.5" />
                     Edit profile
-                  </button>
+                  </Button>
                 </Link>
               </>
             ) : session?.user ? (
@@ -199,7 +201,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                   username={user.username ?? ''}
                   isFollowing={!!resolvedFollowing}
                 />
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <ShareButton
                     url={`/user/${user.username}`}
                     title={`${user.displayName} on Watch Dat`}
