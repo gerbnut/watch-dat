@@ -446,7 +446,7 @@ function CommentItem({ comment, reviewId, currentUserId, depth = 0, onReply, onD
         ) : (
           <>
             <div className="flex items-baseline gap-2 flex-wrap">
-              <Link href={`/user/${comment.user.username}`} className="text-xs font-semibold hover:underline">
+              <Link href={`/user/${comment.user.username}`} className="text-xs font-semibold hover:underline truncate max-w-[150px] inline-block align-bottom">
                 {comment.user.displayName}
               </Link>
               <span className="text-[10px] text-muted-foreground/50">

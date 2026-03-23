@@ -87,7 +87,7 @@ export function ImageCropperModal({
     // Full-screen overlay — z-[300] to sit above all other overlays
     <div className="fixed inset-0 z-[300] flex flex-col bg-black">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-black/80">
+      <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-black/80" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
         <button
           onClick={onCancel}
           className="flex h-9 w-9 items-center justify-center rounded-full text-white/60 hover:text-white transition-colors"
@@ -127,7 +127,7 @@ export function ImageCropperModal({
       </div>
 
       {/* Zoom slider */}
-      <div className="shrink-0 bg-black/80 px-8 py-4">
+      <div className="shrink-0 bg-black/80 px-8 py-4" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
         <p className="mb-2 text-center text-[11px] text-white/40 tracking-wide uppercase">
           Pinch or drag slider to zoom
         </p>

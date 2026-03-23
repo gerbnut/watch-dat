@@ -60,7 +60,7 @@ export function Navbar() {
   }, [userMenuOpen])
 
   return (
-    <nav className="sticky top-0 z-40 backdrop-blur-xl bg-[hsl(225_14%_6%_/_0.8)] border-b border-white/[0.04] shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
+    <nav className="sticky top-0 z-40 backdrop-blur-xl bg-[hsl(225_14%_6%_/_0.8)] border-b border-white/[0.04] shadow-[0_1px_3px_rgba(0,0,0,0.3)]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
 
         {/* Logo + Wordmark */}

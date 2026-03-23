@@ -93,7 +93,7 @@ export function BottomSheet({
             )}
 
             {/* Scrollable content */}
-            <div className="overflow-y-auto overscroll-contain flex-1">
+            <div className="overflow-y-auto overscroll-contain flex-1" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
               {children}
             </div>
           </motion.div>
