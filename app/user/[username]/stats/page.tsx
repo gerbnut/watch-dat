@@ -3,8 +3,7 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { BarChart2, Film, Clock, Star, BookOpen, ArrowRight } from 'lucide-react'
-import { BackButton } from '@/components/ui/BackButton'
+import { BarChart2, Film, Clock, Star, BookOpen, ArrowRight, ArrowLeft } from 'lucide-react'
 import { MonthlyChart } from '@/components/stats/MonthlyChart'
 import { GenreChart } from '@/components/stats/GenreChart'
 import { RatingChart } from '@/components/stats/RatingChart'
@@ -115,9 +114,15 @@ export default async function StatsPage({ params }: { params: Promise<{ username
 
   return (
     <div className="space-y-8 max-w-3xl">
-      {/* Header with back button */}
+      {/* Header with back link */}
       <div className="flex items-center gap-3">
-        <BackButton />
+        <Link
+          href="/stats"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 bg-background/80 backdrop-blur-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Back to stats"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link href={`/user/${user.username}`} className="hover:text-foreground transition-colors">
             @{user.username}
