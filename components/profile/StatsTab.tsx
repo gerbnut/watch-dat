@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { TMDB_IMAGE } from '@/lib/tmdb'
+import { cn } from '@/lib/utils'
 
 interface Stats {
   totalFilms: number
@@ -82,18 +84,26 @@ export function StatsTab({
       )}
 
       {/* Period selector */}
-      <div className="flex gap-2">
+      <div className="relative flex border-b border-white/[0.06] mb-1">
         {PERIODS.map((p) => (
           <button
             key={p.value}
             onClick={() => setPeriod(p.value)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={cn(
+              'relative flex-1 py-3 text-center text-sm font-semibold transition-colors touch-manipulation',
               period === p.value
-                ? 'bg-cinema-400/20 text-cinema-400 border border-cinema-400/30'
-                : 'bg-white/[0.03] text-muted-foreground/60 border border-white/[0.04] hover:bg-white/[0.06]'
-            }`}
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/80',
+            )}
           >
             {p.label}
+            {period === p.value && (
+              <motion.div
+                layoutId="statsTabIndicator"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-cinema-400"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
+            )}
           </button>
         ))}
       </div>

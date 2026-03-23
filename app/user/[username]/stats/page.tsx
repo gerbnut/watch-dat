@@ -117,9 +117,9 @@ export default async function StatsPage({ params }: { params: Promise<{ username
       {/* Header with back link */}
       <div className="flex items-center gap-3">
         <Link
-          href="/stats"
+          href={`/user/${user.username}`}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 bg-background/80 backdrop-blur-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground"
-          aria-label="Back to stats"
+          aria-label="Back to profile"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
