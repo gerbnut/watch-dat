@@ -87,6 +87,16 @@ export default async function StatsPage({ params }: { params: Promise<{ username
     }),
   ])
 
+  // DEBUG — remove after fixing
+  console.log('[STATS DEBUG]', {
+    userId: user.id,
+    watchCount,
+    reviewCount,
+    ratingDistribution: JSON.stringify(ratingDistribution),
+    monthlyStats: JSON.stringify(monthlyStats),
+    genreStatsCount: genreStats.length,
+  })
+
   const avgRating = avgRatingResult._avg.rating
   const totalMinutes = Number(totalRuntimeResult[0]?.total_minutes ?? 0)
   const totalHours = Math.floor(totalMinutes / 60)
