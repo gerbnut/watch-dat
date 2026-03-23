@@ -185,11 +185,11 @@ export default async function YearWrappedPage({
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <Link
-          href={`/user/${user.username}/stats`}
+          href="/stats"
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          All stats
+          Stats
         </Link>
         <div className="flex items-center gap-3">
           <ShareButton

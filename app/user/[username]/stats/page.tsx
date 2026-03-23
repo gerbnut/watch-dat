@@ -1,6 +1,6 @@
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { BarChart2, Film, Clock, Star, BookOpen, ArrowRight, ArrowLeft } from 'lucide-react'
@@ -24,6 +24,9 @@ export default async function StatsPage({ params }: { params: Promise<{ username
 
   const session = await auth()
   const isOwnProfile = session?.user?.id === user.id
+
+  // Own profile stats are now inline on /stats — redirect to avoid detour
+  if (isOwnProfile) redirect('/stats')
 
   const currentYear = new Date().getFullYear()
 
