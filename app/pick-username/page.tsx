@@ -12,7 +12,7 @@ import { validateUsernameFormat, validateDisplayName } from '@/lib/form-validati
 
 function PickUsernameContent() {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
 
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState((session?.user as any)?.name ?? '')
@@ -103,6 +103,7 @@ function PickUsernameContent() {
         return
       }
 
+      await update()
       router.push('/onboarding')
       router.refresh()
     } catch {

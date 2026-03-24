@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { Check, Loader2, Shuffle, Upload, ArrowRight, ChevronLeft } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -73,6 +74,7 @@ const slideTransition = {
 
 export function OnboardingClient({ suggestions, genreBackdrops, username, displayName }: Props) {
   const router = useRouter()
+  const { update } = useSession()
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
   const [selected, setSelected] = useState<SelectedMovie[]>([])
@@ -133,6 +135,7 @@ export function OnboardingClient({ suggestions, genreBackdrops, username, displa
       }
       await Promise.all(promises)
       await fetch('/api/auth/complete-onboarding', { method: 'POST' })
+      await update()
     } catch {
       const { toast } = await import('@/hooks/use-toast')
       toast({ title: 'Could not save preferences', variant: 'destructive' })
