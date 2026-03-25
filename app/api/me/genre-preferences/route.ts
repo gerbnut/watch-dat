@@ -3,6 +3,18 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { GENRE_MAP } from '@/lib/tmdb'
 
+export async function GET() {
+  const session = await auth()
+  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { genrePreferences: true },
+  })
+
+  return NextResponse.json({ genreIds: (user?.genrePreferences as number[]) ?? [] })
+}
+
 export async function PUT(req: NextRequest) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

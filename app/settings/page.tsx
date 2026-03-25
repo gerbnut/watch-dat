@@ -7,6 +7,7 @@ import { SettingsFormClient } from './SettingsFormClient'
 import { FavoritesEditorClient } from './FavoritesEditorClient'
 import { LetterboxdSettingsClient } from './LetterboxdSettingsClient'
 import { DeleteAccountClient } from './DeleteAccountClient'
+import { GenrePreferencesClient } from './GenrePreferencesClient'
 import { BackButton } from '@/components/ui/BackButton'
 import { NotificationPrefsClient } from './NotificationPrefsClient'
 import { ThemeToggleClient } from './ThemeToggleClient'
@@ -58,6 +59,8 @@ export default async function SettingsPage() {
         user={{ id: user.id, username: user.username ?? '', displayName: user.displayName ?? '', bio: user.bio, avatar: user.avatar, bannerUrl: (user as any).bannerUrl ?? null, socialLinks: (user.socialLinks as any) ?? null }}
       />
       <FavoritesEditorClient username={user.username ?? ''} initialFavorites={favorites} />
+
+      <GenrePreferencesClient />
 
       <ThemeToggleClient />
 
