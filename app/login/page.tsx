@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
-import { isNative, openExternal } from '@/lib/native'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FieldError } from '@/components/ui/FieldError'
@@ -70,14 +69,9 @@ function LoginContent() {
           size="lg"
           className="w-full"
           disabled={googleLoading}
-          onClick={async () => {
+          onClick={() => {
             setGoogleLoading(true)
-            if (isNative()) {
-              await openExternal(`https://watch-dat-gold.vercel.app/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`)
-              setGoogleLoading(false)
-            } else {
-              signIn('google', { callbackUrl })
-            }
+            signIn('google', { callbackUrl })
           }}
         >
           {googleLoading ? (
@@ -96,14 +90,9 @@ function LoginContent() {
           size="lg"
           className="w-full"
           disabled={appleLoading}
-          onClick={async () => {
+          onClick={() => {
             setAppleLoading(true)
-            if (isNative()) {
-              await openExternal(`https://watch-dat-gold.vercel.app/api/auth/signin/apple?callbackUrl=${encodeURIComponent(callbackUrl)}`)
-              setAppleLoading(false)
-            } else {
-              signIn('apple', { callbackUrl })
-            }
+            signIn('apple', { callbackUrl })
           }}
         >
           {appleLoading ? (

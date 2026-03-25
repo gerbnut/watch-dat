@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "A72SBFJ6RV.com.watchdat.app",
-        "paths": ["/film/*", "/user/*", "/list/*", "/review/*", "/person/*"]
+        "paths": ["/film/*", "/user/*", "/list/*", "/review/*", "/person/*", "/api/auth/*"]
       }
     ]
   },

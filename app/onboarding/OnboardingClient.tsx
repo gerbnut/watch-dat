@@ -142,8 +142,7 @@ export function OnboardingClient({ suggestions, genreBackdrops, username, displa
       setSaving(false)
       return
     }
-    router.push('/')
-    router.refresh()
+    window.location.href = '/'
   }
 
   return (
