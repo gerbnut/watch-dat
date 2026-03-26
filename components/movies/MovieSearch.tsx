@@ -267,7 +267,7 @@ export function MovieSearch({
           style={{ height: '100dvh' }}
         >
           {/* Header */}
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-border shrink-0">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border shrink-0" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
             <button
               onClick={closeMobile}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"

@@ -55,7 +55,7 @@ export function AddToListClient({ listId }: AddToListClientProps) {
             above the keyboard. On sm+ — centered modal (max-w-lg, rounded).
           */}
           <div className="absolute inset-x-0 top-0 z-10 bg-background border-b sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:shadow-xl">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
               <h2 className="text-base font-semibold">Add a film to this list</h2>
               <button
                 onClick={() => setOpen(false)}

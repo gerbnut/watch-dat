@@ -192,8 +192,8 @@ export function NotificationBell() {
 
           {/* Mobile sheet — fixed from top-14 to bottom, z-[60] */}
           <div
-            className="fixed inset-x-0 top-14 z-[60] flex flex-col bg-background md:hidden pb-[env(safe-area-inset-bottom)]"
-            style={{ bottom: 0 }}
+            className="fixed inset-x-0 z-[60] flex flex-col bg-background md:hidden pb-[env(safe-area-inset-bottom)]"
+            style={{ bottom: 0, top: 'calc(3.5rem + env(safe-area-inset-top))' }}
           >
             {/* Drag handle visual */}
             <div className="flex justify-center pt-2 pb-0 shrink-0">

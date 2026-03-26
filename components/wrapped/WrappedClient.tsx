@@ -284,14 +284,15 @@ export function WrappedClient({ data }: WrappedClientProps) {
   return (
     <div className="fixed inset-0 z-50 bg-black text-white select-none overflow-hidden">
       {/* Progress bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 pt-2 pb-1 px-1 safe-top">
+      <div className="absolute top-0 left-0 right-0 z-20 pb-1 px-1" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
         <ProgressBar total={totalSlides} current={currentSlide} />
       </div>
 
       {/* Close button */}
       <button
         onClick={handleClose}
-        className="absolute top-3 right-3 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors safe-top"
+        className="absolute right-3 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+        style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}
         aria-label="Close"
       >
         <X className="h-4 w-4" />
