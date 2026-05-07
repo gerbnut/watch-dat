@@ -1,6 +1,5 @@
 import { getPersonDetails, TMDB_IMAGE } from '@/lib/tmdb'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { Metadata } from 'next'
 import { MovieCard } from '@/components/movies/MovieCard'
 import { BackButton } from '@/components/ui/BackButton'
@@ -72,7 +71,14 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
         <div className="relative w-28 sm:w-36 shrink-0 mx-auto sm:mx-0">
           <div className="relative overflow-hidden rounded-lg shadow-xl aspect-[2/3] bg-muted">
             {profileUrl ? (
-              <Image src={profileUrl} alt={person.name} fill className="object-cover" priority sizes="(max-width: 640px) 112px, 144px" />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profileUrl}
+                alt={person.name}
+                loading="eager"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-4xl font-bold">
                 {person.name[0]}

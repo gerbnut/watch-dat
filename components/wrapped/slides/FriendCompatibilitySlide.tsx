@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
 interface FriendCompatibilitySlideProps {
@@ -86,7 +85,16 @@ export function FriendCompatibilitySlide({
               const url = TMDB_IMAGE.poster(poster, 'w154')
               return url ? (
                 <div key={i} className="w-12 h-[72px] rounded-md overflow-hidden bg-white/[0.05]">
-                  <Image src={url} alt="" width={48} height={72} className="object-cover w-full h-full" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt=""
+                    width={48}
+                    height={72}
+                    loading="lazy"
+                    decoding="async"
+                    className="object-cover w-full h-full"
+                  />
                 </div>
               ) : null
             })}

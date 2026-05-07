@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   motion,
   AnimatePresence,
@@ -416,12 +415,13 @@ export function PickTonightClient({ currentUserId, genreBackdrops }: PickTonight
                 >
                   {/* Backdrop image or gradient for "Any" */}
                   {backdrop ? (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src={`https://image.tmdb.org/t/p/w780${backdrop}`}
                       alt={chip.label}
-                      fill
-                      className="object-cover"
-                      sizes="33vw"
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-cinema-900/60 to-cinema-950/80" />

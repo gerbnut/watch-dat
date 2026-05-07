@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import Image from 'next/image'
 import { Check, Loader2, Shuffle, Upload, ArrowRight, ChevronLeft } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -377,12 +376,13 @@ export function OnboardingClient({ suggestions, genreBackdrops, username, displa
                     >
                       {/* Backdrop image */}
                       {backdrop ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={`https://image.tmdb.org/t/p/w780${backdrop}`}
                           alt={genre.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 50vw, 33vw"
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 h-full w-full object-cover"
                         />
                       ) : (
                         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-white/[0.02]" />

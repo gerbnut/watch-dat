@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
 interface SlideBackdropProps {
@@ -17,13 +16,13 @@ export function SlideBackdrop({
   return (
     <div className="absolute inset-0">
       {url && (
-        <Image
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
           src={url}
           alt=""
-          fill
-          className="object-cover"
-          sizes="100vw"
-          priority
+          loading="eager"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       )}
       <div className={`absolute inset-0 bg-gradient-to-b ${gradient}`} />

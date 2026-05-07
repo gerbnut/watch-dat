@@ -2,7 +2,6 @@ import { auth } from '@/auth'
 import { getMovieForDisplay, getWatchProviders, getMovieVideos, pickBestTrailer, TMDB_IMAGE } from '@/lib/tmdb'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { formatRuntime, getYearFromDate, getInitials } from '@/lib/utils'
@@ -115,10 +114,6 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
   const streamingProviders = watchProvidersData?.results?.['US'] ?? null
   const isOnWatchlist = !!watchlistItem
 
-  const HERO_BLUR_URL = `data:image/svg+xml;base64,${Buffer.from(
-    '<svg xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#111827"/></svg>'
-  ).toString('base64')}`
-
   const backdropUrl = TMDB_IMAGE.backdrop(movie.backdrop, 'w780')
   const genres = (movie.genres as any[]) ?? []
   const directors = (movie.directors as any[]) ?? []
@@ -138,15 +133,13 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
         <div className="relative h-[300px] sm:h-[400px] overflow-hidden">
           {backdropUrl ? (
             <>
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={backdropUrl}
                 alt={movie.title}
-                fill
-                className="object-cover object-top"
-                priority
-                sizes="100vw"
-                placeholder="blur"
-                blurDataURL={HERO_BLUR_URL}
+                loading="eager"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-top"
               />
               {/* Bottom gradient — fade into page */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background" />
@@ -302,12 +295,13 @@ export default async function FilmPage({ params }: { params: Promise<{ id: strin
                   <Link key={actor.id} href={`/person/${actor.id}`} className="shrink-0 w-20 space-y-1 text-center group">
                     <div className="relative h-20 w-20 overflow-hidden rounded-full bg-muted mx-auto ring-1 ring-white/[0.06] transition-transform duration-200 group-hover:scale-105 group-hover:ring-2 group-hover:ring-cinema-400">
                       {actor.profile_path ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={TMDB_IMAGE.profile(actor.profile_path, 'w185')!}
                           alt={actor.name}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 h-full w-full object-cover"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-xl">
@@ -447,11 +441,14 @@ function StreamingSection({ streamingProviders }: { streamingProviders: any }) {
                 className="flex items-center gap-2 rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2 text-sm font-medium hover:bg-white/[0.05] transition-colors"
                 title={p.provider_name}
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={TMDB_IMAGE.logo(p.logo_path, 'w45')!}
                   alt={p.provider_name}
                   width={22}
                   height={22}
+                  loading="lazy"
+                  decoding="async"
                   className="rounded-md"
                 />
                 {p.provider_name}
@@ -472,11 +469,14 @@ function StreamingSection({ streamingProviders }: { streamingProviders: any }) {
                 className="flex items-center gap-1.5 rounded-md border border-white/[0.04] bg-white/[0.02] px-2.5 py-1.5 text-xs hover:bg-white/[0.05] transition-colors"
                 title={p.provider_name}
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={TMDB_IMAGE.logo(p.logo_path, 'w45')!}
                   alt={p.provider_name}
                   width={18}
                   height={18}
+                  loading="lazy"
+                  decoding="async"
                   className="rounded"
                 />
                 {p.provider_name}

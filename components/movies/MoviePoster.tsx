@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Film } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -12,20 +11,20 @@ type PosterSize = 'w92' | 'w154' | 'w185' | 'w342' | 'w500'
 interface MoviePosterProps {
   /** Raw TMDB poster path, e.g. "/abc123.jpg". Null shows Film icon placeholder. */
   poster: string | null
-  /** Used as alt text on the Image */
+  /** Used as alt text on the image */
   title: string
   /** TMDB image size to fetch — match to the actual rendered size */
   tmdbSize?: PosterSize
-  /** CSS sizes hint for the browser, e.g. "44px" or "(max-width: 768px) 30vw, 200px" */
+  /** CSS sizes hint — accepted for backwards-compat but unused (no responsive generation). */
   sizes?: string
-  /** true = above-the-fold hero image; skips lazy loading */
+  /** true = above-the-fold hero image; sets loading="eager" */
   priority?: boolean
-  /** Applied to the <Image> element (e.g. "object-cover object-top") */
+  /** Applied to the <img> element (e.g. "object-cover object-top") */
   className?: string
 }
 
 /**
- * Renders a TMDB movie poster with fill layout.
+ * Renders a TMDB movie poster filling its parent container.
  * Parent must be `position: relative` with explicit dimensions.
  * When poster is null, shows a dark placeholder with a Film icon.
  */
@@ -33,7 +32,6 @@ export function MoviePoster({
   poster,
   title,
   tmdbSize = 'w342',
-  sizes = '100vw',
   priority = false,
   className,
 }: MoviePosterProps) {
@@ -49,13 +47,13 @@ export function MoviePoster({
   }
 
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src={src}
       alt={title}
-      fill
-      sizes={sizes}
-      priority={priority}
-      className={cn('object-cover', className)}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      className={cn('absolute inset-0 h-full w-full object-cover', className)}
       onError={() => setImgError(true)}
     />
   )

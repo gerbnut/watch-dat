@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight, Play, Film, Star } from 'lucide-react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -59,13 +58,13 @@ export function NowPlayingRow({ title, movies, seeMoreHref, icon: Icon }: NowPla
                 <div className="relative overflow-hidden rounded-lg bg-muted h-36 group">
                   <Link href={`/film/${movie.id}`} className="absolute inset-0 z-0">
                     {posterUrl ? (
-                      <Image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={posterUrl}
                         alt={movie.title}
-                        fill
-                        className="object-cover transition-all duration-300 group-hover:scale-[1.04]"
-                        sizes="(max-width: 768px) 30vw, 200px"
-                        priority={i < 3}
+                        loading={i < 3 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover transition-all duration-300 group-hover:scale-[1.04]"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-white/[0.02]">

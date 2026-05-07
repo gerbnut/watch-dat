@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Film } from 'lucide-react'
@@ -34,13 +33,13 @@ export function LandingHero() {
           transition={{ duration: 1.2, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={TMDB_IMAGE.backdrop(current.path, 'w1280')!}
             alt={current.title}
-            fill
-            className="object-cover"
-            priority={index === 0}
-            sizes="100vw"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
           />
         </motion.div>
       </AnimatePresence>

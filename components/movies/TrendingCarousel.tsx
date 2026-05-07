@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { Star, Users, Play, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -69,13 +68,13 @@ export function TrendingCarousel({ movies }: TrendingCarouselProps) {
             >
               <div className="relative rounded-2xl overflow-hidden bg-muted aspect-video">
                 {backdrop ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={backdrop}
                     alt={movie.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 85vw, 400px"
-                    priority={i < 2}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 bg-white/[0.02]" />

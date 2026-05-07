@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
 interface MoodboardSlideProps {
@@ -33,7 +32,14 @@ export function MoodboardSlide({ moodboard }: MoodboardSlideProps) {
                 className="relative overflow-hidden rounded-lg"
               >
                 {url && (
-                  <Image src={url} alt={item.title} fill className="object-cover" sizes="50vw" />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={url}
+                    alt={item.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <p className="absolute bottom-1 left-2 right-2 text-[9px] text-white/70 font-medium truncate">

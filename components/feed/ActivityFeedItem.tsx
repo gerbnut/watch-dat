@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MoviePoster } from '@/components/movies/MoviePoster'
@@ -149,12 +148,13 @@ export function ActivityFeedItem({ activity, currentUserId, onDelete }: Activity
           {/* Backdrop image */}
           {backdropUrl ? (
             <div className="relative aspect-[16/8] w-full overflow-hidden">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={backdropUrl}
                 alt={activity.movie?.title ?? ''}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 100vw, 600px"
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/30 to-transparent" />
             </div>

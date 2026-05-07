@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 
 interface TopCastSlideProps {
@@ -34,7 +33,14 @@ export function TopCastSlide({ topCast }: TopCastSlideProps) {
               >
                 <div className="relative w-12 h-12 rounded-full overflow-hidden bg-white/[0.05] shrink-0 ring-2 ring-white/[0.06]">
                   {profileUrl ? (
-                    <Image src={profileUrl} alt={actor.name} fill className="object-cover" sizes="48px" />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profileUrl}
+                      alt={actor.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white/30 text-lg font-bold">
                       {actor.name[0]}

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { Search, X, Loader2, ArrowLeft, User } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { MoviePoster } from '@/components/movies/MoviePoster'
@@ -198,12 +197,13 @@ export function MovieSearch({
                     >
                       <div className="relative h-8 w-8 shrink-0 rounded-full overflow-hidden bg-muted">
                         {person.profile_path ? (
-                          <Image
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
                             src={TMDB_IMAGE.profile(person.profile_path, 'w45')!}
                             alt={person.name}
-                            fill
-                            className="object-cover"
-                            sizes="32px"
+                            loading="lazy"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-xs font-bold">

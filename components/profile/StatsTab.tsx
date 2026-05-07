@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { TMDB_IMAGE } from '@/lib/tmdb'
 import { cn } from '@/lib/utils'
 
 interface Stats {
@@ -68,7 +66,14 @@ export function StatsTab({
                 <div className="flex -space-x-2">
                   {favoritePosterUrls.slice(0, 3).map((url, i) => (
                     <div key={i} className="relative h-10 w-7 rounded overflow-hidden ring-1 ring-black/50">
-                      <Image src={url} alt="" fill className="object-cover" sizes="28px" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
                     </div>
                   ))}
                 </div>

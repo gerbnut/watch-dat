@@ -12,7 +12,6 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { cn, getInitials } from '@/lib/utils'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import Link from 'next/link'
-import Image from 'next/image'
 
 type Tab = 'films' | 'members' | 'cast'
 
@@ -173,12 +172,13 @@ function SearchContent() {
               >
                 <div className="relative w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0">
                   {person.profile_path ? (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src={TMDB_IMAGE.profile(person.profile_path, 'w185')!}
                       alt={person.name}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 text-2xl font-bold">

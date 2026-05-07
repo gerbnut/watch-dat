@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { cn, getYearFromDate, formatRating } from '@/lib/utils'
@@ -60,18 +59,18 @@ export function MovieCard({
       >
         {posterUrl && !imgError ? (
           <>
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={posterUrl}
               alt={title}
-              fill
+              loading={priority ? 'eager' : 'lazy'}
+              decoding="async"
               className={cn(
-                'object-cover transition-opacity duration-300',
+                'absolute inset-0 h-full w-full object-cover transition-opacity duration-300',
                 imgLoaded ? 'opacity-100' : 'opacity-0',
               )}
-              sizes="(max-width: 768px) 30vw, 200px"
               onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
-              priority={priority}
             />
             {!imgLoaded && <div className="absolute inset-0 skeleton" />}
           </>

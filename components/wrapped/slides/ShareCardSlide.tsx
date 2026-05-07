@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { TMDB_IMAGE } from '@/lib/tmdb'
 import { ShareButton } from '@/components/ui/ShareButton'
 
@@ -41,7 +40,16 @@ export function ShareCardSlide({
                 const url = TMDB_IMAGE.backdrop(item.backdrop, 'w780')
                 return (
                   <div key={item.backdrop} className="relative overflow-hidden">
-                    {url && <Image src={url} alt={item.title} fill className="object-cover" sizes="33vw" />}
+                    {url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={url}
+                        alt={item.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    )}
                   </div>
                 )
               })}
